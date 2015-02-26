@@ -1,0 +1,32 @@
+\input{documentinfo.tex}
+\input{header.tex}
+
+\begin{document}
+\input{titlepage.tex}
+\hypersetup{linkcolor=black}
+\setcounter{tocdepth}{1}
+\tableofcontents
+
+\part{Einführung}
+% \include{abstract}
+% \include{management_summary}
+\include{aufgabenstellung}
+
+\part{Technischer Bericht}
+\include{broker_einfuehrung}
+
+\part{Anhang}
+\begin{appendices}
+
+% Für eprints auskommentieren <<<
+% \include{erklaerung_urheberschaft}
+% \include{vereinbarung_weiterentwicklung}
+\include{projektplan}
+% \include{persoenliche_berichte}
+% <<<
+
+\include{glossar}
+\include{literatur}
+\end{appendices}
+
+\end{document}

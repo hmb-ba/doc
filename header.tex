@@ -1,0 +1,146 @@
+\documentclass[11pt,oneside,a4paper,parskip,listof=numbered]{scrreprt}
+\usepackage[inner=2.5cm,outer=2cm,top=2cm,bottom=2cm,includefoot]{geometry}
+
+\usepackage{cmbright}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{ngerman}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{ccicons}
+\usepackage{rotating}
+\usepackage[colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue]{hyperref}
+\usepackage{pdfpages}
+\usepackage{todonotes}
+\usepackage{tabularx}
+\usepackage{xcolor,colortbl}
+\usepackage{pdflscape}
+\usepackage{soul}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{pifont}
+\usepackage{fourier}
+\usepackage{MnSymbol}
+\usepackage{wasysym}
+\usepackage{float} % Bilder fix positionieren
+\usepackage{appendix}
+
+\usepackage{makeidx}
+\makeindex
+\usepackage{fancybox}
+\usepackage[nottoc,numbib]{tocbibind}
+\usepackage{enumitem}
+% \usepackage{slashbox} %halbierte Tabellenzellen
+% \setlist{nolistsep}
+\setlist[itemize]{noitemsep, topsep=0pt}
+
+\usepackage{tikz}
+\usepackage{pgf-umlsd}
+\usepgflibrary{arrows} % for pgf-umlsd
+
+% \let\stdsection\section
+% \renewcommand\section{\newpage\stdsection}
+
+\subject{\SUBTITLE}
+\title{\TITLE}
+\author{\AUTHOR \\ \EMAIL}
+
+\hypersetup{
+  pdftitle    = {\TITLE},
+  pdfsubject  = {\SUBTITLE},
+  pdfauthor   = {\AUTHOR, \EMAIL},
+  pdfkeywords = {\KEYWORDS} ,
+  pdfcreator  = {pdflatex},
+  pdfproducer = {LaTeX with hyperref}
+}
+
+
+\newcommand{\logoLX}{\fcolorbox{white}{red}{\textcolor{white}{LX}}}
+\newcommand{\logoSH}{\fcolorbox{white}{maroon}{\textcolor{white}{SH}}}
+\newcommand{\logoSE}{\fcolorbox{white}{orange}{\textcolor{white}{SE}}}
+\newcommand{\logoXJ}{\fcolorbox{white}{darkblue}{\textcolor{white}{XJ}}}
+\newcommand{\logoXC}{\fcolorbox{white}{darkgreen}{\textcolor{white}{XC}}}
+\newcommand{\logoMF}{\fcolorbox{white}{lila}{\textcolor{white}{M4}}}
+\newcommand{\logoMS}{\fcolorbox{white}{violett}{\textcolor{white}{M6}}}
+\newcommand{\logoMN}{\fcolorbox{white}{pink}{\textcolor{white}{MN}}}
+
+\newcommand{\verwundbar}{\hfill \fcolorbox{black}{red}{(Verwundbar \bomb)}}
+\newcommand{\nichtverwundbar}{\hfill \fcolorbox{black}{green}{(Nicht verwundbar~\sun)}}
+\newcommand{\zelleverwundbar}{\cellcolor{red} \bomb}
+\newcommand{\zellenichtverwundbar}{\cellcolor{green} \sun}
+\newcommand{\zelleteilweiseverwundbar}{\cellcolor{yellow} \danger }
+\newcommand{\gegenmassnahme}{$\rightarrow$ Die Gegenmassnahme ist in diesem Kapitel zu finden: }
+\newcommand{\keinegegenmassnahme}{$\rightarrow$ Diese Verwundbarkeit lässt sich mit keiner Gegenmassnahme beheben.}
+
+\definecolor{yellow}{RGB}{240,173,78}
+\definecolor{orange}{RGB}{255,128,0}
+\definecolor{lila}{RGB}{128,128,192}
+\definecolor{violett}{RGB}{64,0,128}
+\definecolor{pink}{RGB}{255,128,192}
+
+% Code-Listing
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{green}{RGB}{92,184,92}
+\definecolor{red}{RGB}{217,83,79}
+%\definecolor{light-gray}{gray}{0.95}
+%\definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
+\usepackage{listings}
+\definecolor{maroon}{rgb}{0.5,0,0}
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+\definecolor{sh_comment}{rgb}{0.12, 0.38, 0.18 } %adjusted, in Eclipse: {0.25, 0.42, 0.30 } = #3F6A4D
+\definecolor{sh_keyword}{rgb}{0.37, 0.08, 0.25}  % #5F1441
+\definecolor{sh_string}{rgb}{0.06, 0.10, 0.98} % #101AF9
+
+% \lstset{numbers=left,
+%     language=Java,                               % oder C++, Pascal, {[77]Fortran}, ...
+%     basicstyle=\ttfamily,                        % Textgröße des Standardtexts
+%     keywordstyle=\ttfamily\color{red},           % Formattierung Schlüsselwörter
+%     commentstyle=\ttfamily\color{green},         % Formattierung Kommentar
+%     stringstyle=\ttfamily\color{blue},           % Formattierung Strings
+%     breaklines=true,                             % Umbruch langer Zeilen
+%     showstringspaces=false,                      % Spezielles Zeichen für Leerzeichen
+% }
+\lstset {
+ frame=rlbt,
+ rulesepcolor=\color{black},
+ showspaces=false,showtabs=false,tabsize=2,
+ %numberstyle=\tiny,numbers=left,
+ basicstyle=\ttfamily\footnotesize,
+ stringstyle=\color{sh_string},
+ keywordstyle = \color{sh_keyword}\bfseries,
+ commentstyle=\color{darkgreen}\itshape,
+ captionpos=b,
+ %lineskip=-0.1em,
+ showstringspaces=false,
+ escapebegin={\lstsmallmath}, escapeend={\lstsmallmathend},
+ breaklines=true, % breakatwhitespace=true,
+ prebreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\rhookswarrow}},
+ % postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}
+}
+\lstnewenvironment{code}{\lstset{language=Haskell}}{}
+
+\newcommand{\inputlisting}[2][]{%
+  \lstinputlisting[caption={\texttt{\detokenize{#2}}},#1]{#2}%
+}
+
+\lstdefinelanguage{XML}
+{
+  basicstyle=\ttfamily\footnotesize,
+  morestring=[b]",
+  moredelim=[s][\bfseries\color{maroon}]{<}{\ },
+  moredelim=[s][\bfseries\color{maroon}]{</}{>},
+  moredelim=[l][\bfseries\color{maroon}]{/>},
+  moredelim=[l][\bfseries\color{maroon}]{>},
+  morecomment=[s]{<?}{?>},
+  morecomment=[s]{<!--}{-->},
+  commentstyle=\color{darkgreen},
+  stringstyle=\color{blue},
+  identifierstyle=\color{red}
+}
