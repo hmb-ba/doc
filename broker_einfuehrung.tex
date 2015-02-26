@@ -1,7 +1,44 @@
-\chapter{Introduction to Distributed Systems}
+\chapter{Introduction to Message Broker}
+\section{Distributed Systems}
+A distributed system consists of a collection of multiple autonomous components,
+connected through network, which enables to coordinate their activities and to
+share the resources. To a user, these systems are perceived as a single,
+integrated computing facility \cite{TAN06}. Other than centralised systems,
+distributed systems has it's advantages in economics, performance and
+scalability, inherent distribution and reliability \cite{POSA1}.
 
-A distributed system consists of a collection of multiple autonomous components, connected through network, which enables to coordinate their activities and to share the resources. To a user, these systems are perceived as a single, integrated computing facility \cite{TAN06}. Other than centralised systems, distributed systems has it's advantages in economics, performance and scalability, inherent distribution and reliability \cite{POSA1}.
+\subsection{Communication styles}
+TODO: fundamentale Aspekte der Kommunikation zwischen verteilten Systemen
+
+\subsubsection{Remote Procedure Call}
+
+\subsubsection{Messaging}
+Introducing a indermediate component between to distributed clients, messaging
+reduces the close coupling of other communication styles based on Sockets or RMI.
+
+\subsubsection{Streams}
+
+\subsection{Definition of Real-Time}
 
 \section{Broker Pattern}
+Different patterns were introduced related to distributed systems. The most
+relevant to build a fully-fledged message broker system proves to be the
+\textit{Broker pattern} which can be used to structure distributed systems with
+decoupled components \cite{POSA1}. 
 
-Different patterns were introduced related to distributed systems The most relevant to build a fully-fledged message broker system proves to be the \textit{Broker pattern} which can be used to structure distributed systems with decoupled components \cite{POSA1}. 
+\section{What is a Message Broker?}
+Note: Gem [TAN06], ist ein Message Broker lediglich ein Konvertierer für
+Messages in unterschiedlichen Formate und nicht essentiell für ein einfaches
+Queueing system. Wenn man jedoch das Broker Pattern[POSA1] als Grundlage nimmt
+ist der Broker die zentrale Komponente die auch das Publish / Subscribe
+Verhalten kontrolliert. 
+\\
+\\
+TODO: verschiedene Definitionen aufnehmen vergleichen, Schluss ziehen
+\section{Providers}
+\subsection{JMS}
+
+\subsection{AMQP}
+\subsection{Kafka
+\\
+TODO: verschiedene Definitionen aufnehmen vergleichen, Schluss ziehen}
