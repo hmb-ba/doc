@@ -12,11 +12,17 @@ TODO: fundamentale Aspekte der Kommunikation zwischen verteilten Systemen
 
 \subsubsection{Remote Procedure Call}
 
-\subsubsection{Messaging}
+\subsubsection{Message-Oriented}
 Introducing a indermediate component between to distributed clients, messaging
-reduces the close coupling of other communication styles based on Sockets or RMI.
-
-\subsubsection{Streams}
+reduces the close coupling of other communication styles based on Sockets or
+RMI. This additional component can be named as Message-Oriented Middleware (MOM)
+and is all about a queueing system where applications can inserting messages
+which are forwarded and delivered to another program. Thereby the main
+characteristic of a MOM is that its supports a storage capacity which leads to a
+way of communication where it is not required that the collaborating endpoints
+are active during the transmission of a message.\cite{TAN06}
+ 
+\subsubsection{Stream-Oriented}
 
 \subsection{Definition of Real-Time}
 
@@ -27,18 +33,26 @@ relevant to build a fully-fledged message broker system proves to be the
 decoupled components \cite{POSA1}. 
 
 \section{What is a Message Broker?}
+We saw that a \textit{Broker} acts like a mediator between to collaborating
+applications which do not need to know each other. The same does a message
+broker, of course in a message-oriented distributed system whereas the broker
+handles incoming messages from a source to a target and backwards. 
+
+In such an environment it is essential that existing and new applications can be
+integrated into a single, coharent system at runtime. Often these applications
+are not speaking the same language and it need kind of a gateway for
+transforming messages into a format that can be unterstood by the receiver.
+\cite{TAN06}
+
 Note: Gem [TAN06], ist ein Message Broker lediglich ein Konvertierer für
 Messages in unterschiedlichen Formate und nicht essentiell für ein einfaches
 Queueing system. Wenn man jedoch das Broker Pattern[POSA1] als Grundlage nimmt
 ist der Broker die zentrale Komponente die auch das Publish / Subscribe
 Verhalten kontrolliert. 
-\\
-\\
+
 TODO: verschiedene Definitionen aufnehmen vergleichen, Schluss ziehen
 \section{Providers}
 \subsection{JMS}
-
 \subsection{AMQP}
-\subsection{Kafka
+\subsection{Kafka}
 \\
-TODO: verschiedene Definitionen aufnehmen vergleichen, Schluss ziehen}
