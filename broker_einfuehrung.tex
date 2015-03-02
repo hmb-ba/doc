@@ -70,10 +70,24 @@ Verhalten kontrolliert.
 
 TODO: verschiedene Definitionen aufnehmen vergleichen, Schluss ziehen \\
 
-\subsubsection{Channels and Topics} 
+\subsubsection{Channels and Topics} %todo: probably split in two sections 
 Channel unterscheided zwischen Producer and Consumer. Wurde eine Nachricht
 Topic unterscheided zwischen Publisher und Subscriber
 konsumiert, wird sie aus der Queue gelöscht. 
+
+\subsubsection{Publish / Subscribe}
+Sending messages to the broker in form of publishing to a specific topic and
+on the other hand receiving messages only for the specified topic, is called
+publish/subscribe.
+In contrast to a one-to-one channel, the message broker requires the abilities 
+to match messages on an application based level to act as a gateway for topic
+related messages. Based on the informations provided within the messages, 
+the broker is being able to provide the messages to the client acting as a 
+subscriber \cite{TAN06}. In fact, the publish/subscribe channel delivers a copy of the 
+topic related messages to the output channel. This also means that there can 
+be more than one channel that consumes the topic specific messages and thus there
+can be more than one subscriber. \cite{EIP03}
+
 \section{Implementations}
 \begin{itemize}
 	\item ActiveMQ 
