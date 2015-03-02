@@ -19,14 +19,30 @@ format from one application to another whereas the parties do not need to know
 each other directly. Thereby the main characteristic of a MOM is that its
 supports a storage capacity which leads to a way of communication where it is
 not required that the collaborating endpoints are active during the entire
-transmission of a message.\cite{TAN06}
+transmission of a message. This loose coupling in time is achieved by
+working with queues (First-In-First-Out) where applications can insert their
+messages and the receiver program can read from this queue at a different time.
+This also has the effect that the distributed stations not need to
+have a direct connection over a network. In normal case the original sender
+never has the guarantee that the sent message has arrived at the desired
+destination but it always has the confirmation of the MOM that the data has put
+in a message queue.  \cite{TAN06} \cite{PprIBMIntro}
  
+\subsubsection{General architecture}
+TODO: +Basic Architectur 
 
-Basically Message-Oriented Middleware is based on queues where applications insert
-messages which are forwarded and delivered to another destination. 
-The general architecture 
+Basic interface to a messaging system (MOM): \cite{TAN06}
+\begin{itemize}
+	\item Put: Append a message to a specific queue 
+	\item Get: Block until the specific queue is nonempty, and remove the
+first message 
+	\item Poll: Check a specific queue for messages, and remove the first.
+Never Block 
+	\item Notify: Install a handler to be called when a message is put into
+specified queue
+\end{itemize}
 
-\subsection{Open Standards and Protocols} 
+\subsubsection{Open Standards and Protocols} 
 \begin{itemize} 
 	\item Advanced Message Queuing Protocol (AMQP) 
 	\item JMS	
@@ -80,6 +96,7 @@ konsumiert, wird sie aus der Queue gelöscht.
 	\item RabbitMQ
 	\item ZeroMQ
 	\item Apache Kafka
+	\item IBM MQSeries
 	\item ... 
 \end{itemize}
 \section{Survey}
