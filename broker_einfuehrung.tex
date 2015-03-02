@@ -6,20 +6,23 @@ share the resources. To a user, these systems are perceived as a single,
 integrated computing facility \cite{TAN06}. Other than centralised systems,
 distributed systems has it's advantages in economics, performance and
 scalability, inherent distribution and reliability \cite{POSA1}.
+In fact, this approach allows us to build reliable applications, 
+scaled using low cost computers and thus can serve massive performance needs 
+whether on demand or continuously.
 
 \subsection{Messaging} 
-Introducing an indermediate component between distributed
+Introducing an intermediate component between distributed
 clients, messaging reduces the close coupling of other communication styles just
 based on Sockets or RMI. This additional component can be named as
 Message-Oriented Middleware (MOM) and is all about passing messages in any
-format from one application to another whereat the parties do not need to know
+format from one application to another whereas the parties do not need to know
 each other directly. Thereby the main characteristic of a MOM is that its
 supports a storage capacity which leads to a way of communication where it is
 not required that the collaborating endpoints are active during the entire
 transmission of a message.\cite{TAN06}
  
 \subsubsection{Channels and Topics} 
-Basically Message-Oriented Middleware is based on queues where applications can inserting
+Basically Message-Oriented Middleware is based on queues where applications insert
 messages which are forwarded and delivered to another destination. 
 \\ 
 Topic unterscheided zwischen Publisher und Subscriber
@@ -34,7 +37,11 @@ konsumiert, wird sie aus der Queue gelöscht.
 \end{itemize}
 
 \subsection{Other communication styles} \subsubsection{Remote Procedure Call}
+
 \subsubsection{Stream-Oriented}
+The type of communication where timing plays a crucial role is often referred as a
+stream oriented communication. 
+
 
 \subsection{Definition of Real-Time}
 
