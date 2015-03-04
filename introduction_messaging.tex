@@ -1,4 +1,4 @@
-\chapter{Introduction to Message Broker} 
+\chapter{Introduction to Messaging} 
 \section{Distributed Systems} 
 A distributed system consists of a collection of multiple autonomous components,
 connected through network, which enables to coordinate their activities and to
@@ -10,7 +10,7 @@ In fact, this approach allows us to build reliable applications,
 scaled using low cost computers and thus can serve massive performance needs 
 whether on demand or continuously.
 
-\subsection{Messaging} 
+\section{What is Messaging?} 
 Introducing an intermediate component between distributed
 clients, messaging reduces the close coupling of other communication styles just
 based on Sockets or RMI. This additional component can be named as
@@ -28,7 +28,7 @@ never has the guarantee that the sent message has arrived at the desired
 destination but it always has the confirmation of the MOM that the data has put
 in a message queue.  \cite{TAN06} \cite{PprIBMIntro}
  
-\subsubsection{General architecture}
+\subsection{General architecture}
 TODO: +Basic Architectur 
 
 Basic interface to a messaging system (MOM): \cite{TAN06}
@@ -42,29 +42,68 @@ Never Block
 specified queue
 \end{itemize}
 
-\subsubsection{Open Standards and Protocols} 
-\begin{itemize} 
-	\item Advanced Message Queuing Protocol (AMQP) 
-	\item JMS	
-	\item XML und SOAP
-\end{itemize}
+\subsection{Interoperablity}
+Because its interoperability, messaging is a very interesting communication
+style for enterprise integration. Basically interoperability means that system with
+different technologies can collaborate together by using the same standard or
+protocols. While using a messaging system in an enterprise environment it is
+much more efficient to integrate a new application to the existing data flow.
+Instead of implementing a new interface for another technology, the additional
+software can be just linked to the existing MOM by using the underlying
+messaging protocol.\\
 
-\subsection{Other communication styles} \subsubsection{Remote Procedure Call}
+In the past, several companies like IBM or Microsoft developed their own
+proprietary standards and protocols for asynchronous messaging systems.
+Probably to keep it locked in their customer base. In June 2001 the Java Message
+Service API (JMS) was released as best-known standard for messaging systems.
+However, it is only an interface an not a specific protocol, JMS implementations
+need to define their own. There was still no general protocol standard which
+would have allowed to interoperate between different messaging implementations.
+Fortunately in June 2006 a pool of multiple companies for network technologies
+defined the Advanced Message Queueing Protocol (AMQP) as a open standard for an
+interoperable messaging protocol. \cite{PrpAMQP}
+ 
+\begin{description} 
+	\item [Advanced Message Queuing Protocol (AMQP)] \hfill
+	
+    \item [JMS]	
+\end{description}
 
-\subsubsection{Stream-Oriented}
+\section{Alternative communication styles} \subsubsection{Remote Procedure Call}
+
+\subsection{Stream-Oriented}
 The type of communication where timing plays a crucial role is often referred as a
 stream oriented communication. 
 
-
 \subsection{Definition of Real-Time}
-
 \section{What is a Message Broker?}
-
 \subsection{Broker Pattern} 
 Different patterns were introduced related to distributed systems. The most
 relevant to build a fully-fledged message broker system proves to be the
 \textit{Broker pattern} which can be used to structure distributed systems with
 decoupled components \cite{POSA1}. 
+
+TODO: Sequenzdiagram ausarbeiten
+\begin{figure}[H]
+    \centering
+     \begin{sequencediagram}
+        %\newthread{broker}{Broker}
+        \newinst[1]{producer}{Producer}
+        \newinst[2]{producerProx}{Producer Proxy}
+        \newinst[3]{broker}{Broker}
+        \newinst[4]{consumerProx}{Consumer Proxy}
+        \newinst[5]{consumer}{Consumer}
+        \begin{call}
+            {producer}{(1) Send Request}{producerProx}{}
+        \end{call}
+        \begin{call}
+            {producerProx}{(3) Forward data}{broker}{}
+        \end{call}
+    \end{sequencediagram}
+    \caption{Producer sends message ...}
+    \label{fig:MB-SSD-1}
+\end{figure}
+
 
 \subsection{Definition Message Broker}
 We saw that a \textit{Broker} acts like a mediator between to collaborating
@@ -86,12 +125,12 @@ Verhalten kontrolliert.
 
 TODO: verschiedene Definitionen aufnehmen vergleichen, Schluss ziehen \\
 
-\subsubsection{Channels and Topics} %todo: probably split in two sections 
+\subsection{Channels and Topics} %todo: probably split in two sections 
 Channel unterscheided zwischen Producer and Consumer. Wurde eine Nachricht
 Topic unterscheided zwischen Publisher und Subscriber
 konsumiert, wird sie aus der Queue gelöscht. 
 
-\subsubsection{Publish / Subscribe}
+\subsection{Publish / Subscribe}
 Sending messages to the broker in form of publishing to a specific topic and
 on the other hand receiving messages only for the specified topic, is called
 publish/subscribe.
@@ -104,15 +143,5 @@ topic related messages to the output channel. This also means that there can
 be more than one channel that consumes the topic specific messages and thus there
 can be more than one subscriber. \cite{EIP03}
 
-\section{Implementations}
-\begin{itemize}
-	\item ActiveMQ 
-	\item RabbitMQ
-	\item ZeroMQ
-	\item Apache Kafka
-	\item IBM MQSeries
-	\item ... 
-\end{itemize}
-\section{Survey}
 
 
