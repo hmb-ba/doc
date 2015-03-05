@@ -1,4 +1,49 @@
 \chapter{Introduction to Stream Processing}
 \section{What is Stream Processing?}
+- Definition: A stream is a sequence of unbounded tuples of the form (a1, a2,
+... an, t) generated continously in time. ai=attribut, t=time
+
+- Stream processing = processing data before storing. Batch systems like hadoop
+provide processing after storingS- Sream processing = processing data before
+storing. HBatch sstems like hadoop provide processing after storing  
+
+- a stream processing system is built out of multiple units called a processing
+elemen (PE). Each PE receive input from their input queues, does some
+computation on the input using its local state and produce output to their
+output queues. PE communicate always through messaging with other PEs.
+
+\subsection{Stream sources}
+-From traditional PCs and Smartphones to a lot of sensors who are connected to
+the interne -> Internet of Things!
+
+\section{(Distributed) Stream processing systems}
+
 \section{Real-time Processing}
+- Zitat: involves a continual input, proccess and output of data. Data must be
+processed in a small time period (or near real-time). 
+- allows organization the ability to take immediate action for those times when
+acting within secons or minutes is significant\\
+
+- Zitat: Storm is an open source distributed Real time computation system that
+processes streams of data. Hadoop MapReduce processes jobs in batch while
+Storm processes streams in near real time. The idea is to reconcile real time
+and batch processing when dealing with large data sets. An example is detecting
+transaction fraud in near Real time while incorporating data from the data
+warehouse or hadoop clusters.\\
+
+\section{Complex event processing (CEP)}
+- Zitat: Combines data from multiple sources  to detect patterns and attempt to
+identify either opportunities or threats. The goal is to identify significant
+events and respond fast. Sales leads, orders or customer service calls are
+examples.\\
+
+\section{Batch processing}
+- Processing data after storing 
+-Zitat: Processing hight volumes of data is where a group of transaction is collected
+over a period of time. Data is collected, entered, processed and the batch
+result are produces. -> Real-time virtually impossible
+- Apache Hadoop\\
+- Data to be stored and analyzed by the batch processing system to get a deeper
+understanding and discovering patterns
+\subsection{Map Reduce model }
 
