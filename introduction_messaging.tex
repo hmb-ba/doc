@@ -9,29 +9,49 @@ each other directly. Thereby the main characteristic of a MOM is that its
 supports a storage capacity which leads to a way of communication where it is
 not required that the collaborating endpoints are active during the entire
 transmission of a message. This loose coupling in time is achieved by
-working with queues (First-In-First-Out) where applications can insert their
-messages and the receiver program can read from this queue at a different time.
-This also has the effect that the distributed stations not need to
-have a direct connection over a network. In normal case the original sender
+working with queues as data structure (first-in-first-out) where applications
+can insert their messages and receiver program can read from this queue at a
+different time. This also has the effect that the distributed stations not need
+to have a direct connection over a network. In normal case the original sender
 never has the guarantee that the sent message has arrived at the desired
 destination but it always has the confirmation of the MOM that the data has put
-in a message queue.  \cite{TAN06} \cite{PprIBMIntro}
- 
-\subsection{General architecture}
-TODO: +Basic Architectur 
+in a message queue. \cite{PprIBMIntro} \cite{TAN06}
 
-Basic interface to a messaging system (MOM): \cite{TAN06}
-\begin{itemize}
-	\item Put: Append a message to a specific queue 
-	\item Get: Block until the specific queue is nonempty, and remove the
-first message 
-	\item Poll: Check a specific queue for messages, and remove the first.
-Never Block 
-	\item Notify: Install a handler to be called when a message is put into
-specified queue
-\end{itemize}
+\todo[inline]{TODO: Definition Message (data type)}
 
-\subsection{Interoperablity}
+\section{Architecture of a Messaging System}
+In a basic scenario with a component A as sender of a message and a component B as
+receiver, the MOM running on the clients itself assumes the task of handling the
+queues and manages an address-lookup database for mapping destination names to
+to network locations. It provides a specific API for bottom the sender as well
+for the receiver:
+\begin{table}[H]
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Put}    & Append a message to a specific queue                                        \\ \hline
+\textbf{Get}    & Block until the specific queue is nonempty, and remove the first message    \\ \hline
+\textbf{Poll}   & Check a specific queue for messages, and remove the first                   \\ \hline
+\textbf{Notify} & Install a handler to be called when a message is put into a specified queue \\ \hline
+\end{tabular}
+\caption[TAN06]{Basic API for message queue implementation \cite{TAN06}}
+\end{table}
+In this very basic setup, the MOM needs know specific information about the
+queueing topology Component A can send messages to B by
+given a destination name which is known by the MOM.
+
+\section{Publish / Subscribe}
+Sending messages to the broker in form of publishing to a specific topic and on
+the other hand receiving messages only for the specified topic, is called
+publish/subscribe. In contrast to a one-to-one channel, the message broker
+requires the abilities to match messages on an application based level to act as
+a gateway for topic related messages. Based on the informations provided within
+the messages, the broker is being able to provide the messages to the client
+acting as a subscriber \cite{TAN06}. In fact, the publish/subscribe channel
+delivers a copy of the topic related messages to the output channel. This also
+means that there can be more than one channel that consumes the topic specific
+messages and thus there can be more than one subscriber. \cite{EIP03}
+
+\section{Interoperablity}
 Because its interoperability, messaging is a very interesting communication
 style for enterprise integration. Basically interoperability means that system with
 different technologies can collaborate together by using the same standard or
@@ -58,7 +78,6 @@ interoperable messaging protocol. \cite{PrpAMQP}
     \item [JMS]	
 \end{description}
 
-\subsection{Definition of Real-Time}
 \section{What is a Message Broker?}
 \subsection{Broker Pattern} 
 Different patterns were introduced related to distributed systems. The most
@@ -111,17 +130,5 @@ Channel unterscheided zwischen Producer and Consumer. Wurde eine Nachricht
 Topic unterscheided zwischen Publisher und Subscriber
 konsumiert, wird sie aus der Queue gelöscht.
 
-\subsection{Publish / Subscribe}
-Sending messages to the broker in form of publishing to a specific topic and
-on the other hand receiving messages only for the specified topic, is called
-publish/subscribe.
-In contrast to a one-to-one channel, the message broker requires the abilities 
-to match messages on an application based level to act as a gateway for topic
-related messages. Based on the informations provided within the messages, 
-the broker is being able to provide the messages to the client acting as a 
-subscriber \cite{TAN06}. In fact, the publish/subscribe channel delivers a copy of the 
-topic related messages to the output channel. This also means that there can 
-be more than one channel that consumes the topic specific messages and thus there
-can be more than one subscriber. \cite{EIP03}
 
 
