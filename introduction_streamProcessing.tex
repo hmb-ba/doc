@@ -1,4 +1,5 @@
 \chapter{Introduction to Stream Processing}
+
 \section{What is Stream Processing?}
 - Definition: A stream is a sequence of unbounded tuples of the form (a1, a2,
 ... an, t) generated continously in time. ai=attribut, t=time
@@ -11,6 +12,13 @@ storing. HBatch sstems like hadoop provide processing after storing
 elemen (PE). Each PE receive input from their input queues, does some
 computation on the input using its local state and produce output to their
 output queues. PE communicate always through messaging with other PEs.
+
+- Most important attributes which however are competing each other : (low)
+Latency of the system and high availability. High availability by recovering
+from failures is critical for a Stream processing system - recovery should be
+fast and efficient. Data should partitioned and handled in parallel for large
+volumes of data. The partitioning strategy of a system  affects how the system
+handles the data in paralell and how the system can scale. 
 
 \subsection{Stream sources}
 -From traditional PCs and Smartphones to a lot of sensors who are connected to
@@ -32,10 +40,14 @@ transaction fraud in near Real time while incorporating data from the data
 warehouse or hadoop clusters.\\
 
 \section{Complex event processing (CEP)}
+In literatur there is often a confusion about the difference between the terms
+complex event processing and stream event processing. Both systems work on
+events and produce results based on the properties of the events... 
 - Zitat: Combines data from multiple sources  to detect patterns and attempt to
 identify either opportunities or threats. The goal is to identify significant
 events and respond fast. Sales leads, orders or customer service calls are
 examples.\\
+
 
 \section{Batch processing}
 - Processing data after storing 
@@ -46,4 +58,7 @@ result are produces. -> Real-time virtually impossible
 - Data to be stored and analyzed by the batch processing system to get a deeper
 understanding and discovering patterns
 \subsection{Map Reduce model }
+
+\section{Lambda Architecture}
+\cite{PrpSvyOfDSPS}
 
