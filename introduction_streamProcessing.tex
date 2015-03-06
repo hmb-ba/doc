@@ -25,19 +25,37 @@ handles the data in paralell and how the system can scale.
 the interne -> Internet of Things!
 
 \section{Real-time versus Batch Processing}
-Definition Real-time:
 
-- Zitat: involves a continual input, proccess and output of data. Data must be
-processed in a small time period (or near real-time). 
-- allows organization the ability to take immediate action for those times when
-acting within secons or minutes is significant\\
+As the trend shows, the needs of a big data environment can't be fulfilled with 
+traditional batch processing anymore. Instead, real-time processing becomes more 
+important than ever to achieve results from queries in minutes, even seconds. 
+\cite{bange2013big}
+\\ \\
+Traditional batch processing systems nowadays are distinguished between
+map-reduce based and non map-reduce based systems and typically consists of two
+stages, data integration and data analytics. The process of data
+extraction-transformation-load (ETL [glossar]), faced in the data integration stage runs
+at a regular time interval, such as daily, weekly or monthly. The process, which
+analyzes the data residing in a data store is being face in the data analytics
+stage and becomes challenging when data size grows and systems may not be able
+to process results within a time limit.\cite{Liu:2014:SRP:2628194.2628251}
+\\ \\
+In real-time processing fashion, systems will address the data integration stage
+with continual input of data. Processing in near-real-time [glossar] to present 
+results within seconds is being addressed in the data analytics stage. Thus,
+real-time processing gives organization the ability to take immediate action
+for those times when acting within seconds or minutes is significant.
+\cite{PrpSvyOfDSPS}
+The lambda architecture introduces a new
+paradigm for big data whit which those needs can be achieved. Any query is
+answered through the serving layer by querying both the speed and the batch
+layer. Where the badge layer computes views on the current collected data and
+is being outdated at the end of it's computation, the speed layer closes this 
+gap by constantly processing the most recent data in near real-time fashion. 
+\cite{marz2015big}
+\\
+%todo: point to the need of messaging systems that deliver data continously
 
-- Zitat: Storm is an open source distributed Real time computation system that
-processes streams of data. Hadoop MapReduce processes jobs in batch while
-Storm processes streams in near real time. The idea is to reconcile real time
-and batch processing when dealing with large data sets. An example is detecting
-transaction fraud in near Real time while incorporating data from the data
-warehouse or hadoop clusters.\\
 
 \section{(Distributed) Stream processing systems}
 
