@@ -1,11 +1,36 @@
-\chapter{Glossar}
+\newglossaryentry{Message} 
+{
+    name=Message,
+    description={
+        A message is mainly a string of bits and bytes that one program 
+        wants to send to another. This data is called application data.  
+    }
+}
+\newglossaryentry{Socket} 
+{
+    name=Socket,
+    description={
+        Communication endpoint to which an application can write data
+        that are to be sent out over the underlying network, and from which incoming end
+        data can be read. \cite{TAN06}
+    }
+}
+\newglossaryentry{Queue} 
+{
+    name=Queue
+}
 
-\begin{description}
-  \item[Message] A message is mainly a string of bits and bytes that one porgram
-wants to send to another. This data is called application data.  
-  \item[Socket] Communication endpoint to which an application can write data
-that are to be sent out over the underlying network, and from which incoming end
-data can be read. \cite{TAN06}
-  \item[Queue] ...
-  \item[FIFO] ...
-\end{description} 
+\newglossaryentry{FIFO}
+{
+    name=FIFO
+}
+
+\newglossaryentry{ETL} 
+{
+    name=ETL,
+    description={Extract (data from homogeneous or heterogeneous data sources), 
+         Transform (the data for storing it in proper format or structure
+         for querying and analysis purpose)
+         Load (it into the final target)
+    }
+}
