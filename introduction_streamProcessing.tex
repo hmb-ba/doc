@@ -20,9 +20,15 @@ fast and efficient. Data should partitioned and handled in parallel for large
 volumes of data. The partitioning strategy of a system  affects how the system
 handles the data in paralell and how the system can scale. 
 
-\subsection{Stream sources}
--From traditional PCs and Smartphones to a lot of sensors who are connected to
-the interne -> Internet of Things!
+\section{Complex event processing (CEP)}
+In literatur there is often a confusion about the difference between the terms
+complex event processing and stream event processing. Both systems work on
+events and produce results based on the properties of the events... 
+- Zitat: Combines data from multiple sources  to detect patterns and attempt to
+identify either opportunities or threats. The goal is to identify significant
+events and respond fast. Sales leads, orders or customer service calls are
+examples.\\
+
 
 \section{Real-time versus Batch Processing}
 
@@ -36,7 +42,7 @@ map-reduce based and non map-reduce based systems and typically consists of two
 stages, data integration and data analytics. The process of data
 extraction-transformation-load (ETL  [glossar]), faced in the data integration stage runs
 at a regular time interval, such as daily, weekly or monthly. The process, which
-analyzes the data residing in a data store is being face in the data analytics
+analyzes the data residing in a data store is being faced in the data analytics
 stage and becomes challenging when data size grows and systems may not be able
 to process results within a time limit.\cite{Liu:2014:SRP:2628194.2628251}
 \\ \\
@@ -46,39 +52,27 @@ results within seconds is being addressed in the data analytics stage. Thus,
 real-time processing gives organization the ability to take immediate action
 for those times when acting within seconds or minutes is significant.
 \cite{PrpSvyOfDSPS}
-The lambda architecture introduces a new
-paradigm for big data whit which those needs can be achieved. Any query is
-answered through the serving layer by querying both the speed and the batch
-layer. Where the badge layer computes views on the current collected data and
-is being outdated at the end of it's computation, the speed layer closes this 
-gap by constantly processing the most recent data in near real-time fashion. 
-\cite{marz2015big}
-\\
-%todo: point to the need of messaging systems that deliver data continously
-
-
-\section{(Distributed) Stream processing systems}
-
-\section{Complex event processing (CEP)}
-In literatur there is often a confusion about the difference between the terms
-complex event processing and stream event processing. Both systems work on
-events and produce results based on the properties of the events... 
-- Zitat: Combines data from multiple sources  to detect patterns and attempt to
-identify either opportunities or threats. The goal is to identify significant
-events and respond fast. Sales leads, orders or customer service calls are
-examples.\\
-
-
-\section{Batch processing}
-- Processing data after storing 
--Zitat: Processing hight volumes of data is where a group of transaction is collected
-over a period of time. Data is collected, entered, processed and the batch
-result are produces. -> Real-time virtually impossible
-- Apache Hadoop\\
-- Data to be stored and analyzed by the batch processing system to get a deeper
-understanding and discovering patterns
-\subsection{Map Reduce model }
 
 \section{Lambda Architecture}
-\cite{PrpSvyOfDSPS}
+The lambda architecture introduces a new paradigm for big data which allows
+processing of massive data volumes in near real-time fashion and thus results within
+seconds can be achieved. 
+\\
+Any query is answered through the serving layer by querying 
+both the speed and the batch layer. Where the badge layer computes views on the current collected data and
+is being outdated at the end of it's computation, the speed layer closes this 
+gap by constantly processing the most recent data in near real-time fashion. 
+\cite{marz2015big} \cite{PrpSvyOfDSPS}
+
+\section{(Stream Sources}
+
+
+
+%todo: point to the need of messaging systems that deliver data continously ->
+%stream source 
+
+-From traditional PCs and Smartphones to a lot of sensors who are connected to
+the interne -> Internet of Things!
+
+
 
