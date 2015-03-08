@@ -72,12 +72,12 @@ This kind of communcation works well in an environment with two systems which
 want to collaborate and use the advantages of messaging. But if there are more
 than two nodes, the local mapping of a queue name to a foreign network location
 implies that each system needs to hold the addresses of all the other nodes that it
-needs to communicate with. When a target address changes, all the systems that
+wants to communicate with. When a target address changes, all the systems that
 communicate with the target must be updated. In most scenarios there also a need
 for transforming messages in different format where these implementations have
-to be made on every node, which leads to duplicating code. Therefore, a more
-centralised solution is required in more complex integration solutions. This is
-where the message broker comes into game.
+to be made on every node, which leads to duplicating code.  For more complex
+integration solutions, a centralised solution whereas the MOM runs on a
+dedicated platform is required. This is where the message broker comes into game.
 
 \section{Message Broker}
 \todo[inline]{TODO: Broker Pattern (POSA1) -> Indirect Broker -> Message Broker}
