@@ -6,7 +6,7 @@ based on \gls{Socket}s or RMI. This additional component can be named as
 Message-Oriented Middleware (MOM) and is all about passing messages in any
 format from one application to another whereas the parties do not need to know
 each other directly. Thereby the main characteristic of a MOM is that its
-supports a storage capacity which leads to a way of communication where it is
+supports a storage capacity which leads to a persistent way of communication where it is
 not required that the collaborating endpoints are active during the entire
 transmission of a message. This loose coupling in time is achieved by
 working with queues as data structure (first-in-first-out) where applications
@@ -49,8 +49,8 @@ interoperable messaging protocol. \cite{PrpAMQP}
 \section{Point-To-Point Connection}
 A Point-To-Point connection is the simplest architecture for communicating in a
 messaging system. In a very basic scenario with a node A as sender of a message
-and a node B as receiver, the MOM (running on the nodes itself) assumes the task
-of handling a local queue for messages and manages an address-lookup
+and a node B as receiver, the MOM (running either on the node itself or
+dedicated in the local network) assumes the task of handling a local queue for messages and manages an address-lookup
 database for mapping destination names to network locations. The sender puts its
 message in his local queue whereas the MOM organises the network transfer to the
 queue of the target. In turn the receiver system can read from its own
@@ -73,17 +73,17 @@ want to collaborate and use the advantages of messaging. But if there are more
 than two nodes, the local mapping of a queue name to a foreign network location
 implies that each system needs to hold the addresses of all the other nodes that it
 wants to communicate with. When a target address changes, all the systems that
-communicate with the target must be updated. In most scenarios there also a need
+communicate with the target must be updated. In most scenarios there is also a need
 for transforming messages in different format where these implementations have
 to be made on every node, which leads to duplicating code.  For more complex
-integration solutions, a centralised solution whereas the MOM runs on a
-dedicated platform is required. This is where the message broker comes into
+integration solutions, a centralised solution whereas the MOM runs on a location
+independent platform is required. This is where the message broker comes into
 game. \cite{MSDNIntegration}
 
 \section{Message Broker}
 A messaging system with point-to-point connections can decouple two systems
 by using a managed queue on each side of a collaboration. But there is
-still the need of configuration the endpoints on each machine. In general, a
+still the need of configuration the endpoints on each party. In general, a
 message broker is a dedicated component which decouples source and
 target systems by assuming full responsibility for coordinating communication between
 all connected nodes. Thereby the main tasks of a message broker are the
@@ -108,10 +108,6 @@ communication.\cite{POSA1}
 \subsection{Endpoint registration}
  
 \todo[inline]{TODO: Broker Pattern (POSA1) -> Indirect Broker -> Message Broker}
-Different patterns were introduced related to distributed systems. The most
-relevant to build a fully-fledged message broker system proves to be the
-\textit{Broker pattern} which can be used to structure distributed systems with
-decoupled components \cite{POSA1}. 
 
 TODO: Sequenzdiagram ausarbeiten
 \begin{figure}[H]
@@ -133,10 +129,10 @@ TODO: Sequenzdiagram ausarbeiten
     \caption{Producer sends message ...}
     \label{fig:MB-SSD-1}
 \end{figure}
-We saw that a \textit{Broker} acts like a mediator between to collaborating
-applications which do not need to know each other. The same does a message
-broker, of course in a message-oriented distributed system whereas the broker
-handles incoming messages from a source to a target and backwards.
+%We saw that a \textit{Broker} acts like a mediator between to collaborating
+%applications which do not need to know each other. The same does a message
+%broker, of course in a message-oriented distributed system whereas the broker
+%handles incoming messages from a source to a target and backwards.
 
 In such an environment it is essential that existing and new applications can be
 integrated into a single, coharent system at runtime. Often these applications
