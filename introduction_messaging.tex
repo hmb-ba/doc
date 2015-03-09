@@ -77,9 +77,36 @@ communicate with the target must be updated. In most scenarios there also a need
 for transforming messages in different format where these implementations have
 to be made on every node, which leads to duplicating code.  For more complex
 integration solutions, a centralised solution whereas the MOM runs on a
-dedicated platform is required. This is where the message broker comes into game.
+dedicated platform is required. This is where the message broker comes into
+game. \cite{MSDNIntegration}
 
 \section{Message Broker}
+A messaging system with point-to-point connections can decouple two systems
+by using a managed queue on each side of a collaboration. But there is
+still the need of configuration the endpoints on each machine. In general, a
+message broker is a dedicated component which decouples source and
+target systems by assuming full responsibility for coordinating communication between
+all connected nodes. Thereby the main tasks of a message broker are the
+dynamically registration of endpoints, determining location of target system
+(a.k.a. routing) and performing of the communication as well transformation of a
+message from one format to another.\cite{MSDNIntegration} \\
+
+\subsection{Broker Pattern}
+As initial point for the detailed definition of a message broker we take the
+\textit{Broker Pattern} of  \textit{Patterns of Software Architecture Volume1}
+which can be used to structure distributed systems with decoupled components.
+Basically it differs between two types of brokers, where the \textit{Direct
+Broker} performs a initialization of a connection but the following communication
+is only between the two endpoints. For messaging, the second variant
+\textit{Indirect Broker}, is lot more interesting because it maintains all of
+the communication between the nodes at every time. So let us define the message
+broker as refinement of the Indirect Broker Pattern for message-based
+communication.\cite{POSA1} 
+
+\subsection{Structure}
+
+\subsection{Endpoint registration}
+ 
 \todo[inline]{TODO: Broker Pattern (POSA1) -> Indirect Broker -> Message Broker}
 Different patterns were introduced related to distributed systems. The most
 relevant to build a fully-fledged message broker system proves to be the
@@ -117,7 +144,18 @@ are not speaking the same language and it need kind of a gateway for
 transforming messages into a format that can be unterstood by the receiver.
 \cite{TAN06}
 
-\subsection{Publish / Subscribe}
+\subsection{Routing and Communicating}
+
+\subsection{Transformation}
+
+\subsection{Further terminology}
+
+\subsubsection{Channels and Topics} %todo: probably split in two sections
+Channel unterscheided zwischen Producer and Consumer. Wurde eine Nachricht
+Topic unterscheided zwischen Publisher und Subscriber
+konsumiert, wird sie aus der Queue gelöscht.
+
+\subsubsection{Publish / Subscribe}
 Sending messages to the broker in form of publishing to a specific topic and on
 the other hand receiving messages only for the specified topic, is called
 publish/subscribe. In contrast to a one-to-one channel, the message broker
@@ -129,7 +167,5 @@ delivers a copy of the topic related messages to the output channel. This also
 means that there can be more than one channel that consumes the topic specific
 messages and thus there can be more than one subscriber. \cite{EIP03}
 
-\subsection{Channels and Topics} %todo: probably split in two sections
-Channel unterscheided zwischen Producer and Consumer. Wurde eine Nachricht
-Topic unterscheided zwischen Publisher und Subscriber
-konsumiert, wird sie aus der Queue gelöscht.
+\subsubsection{Pull / Push}
+
