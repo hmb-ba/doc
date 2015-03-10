@@ -1,55 +1,24 @@
 \chapter{Introduction to Messaging} 
-\section{What is Messaging?} 
+\section{What is Messaging?}
 Introducing an intermediate component between distributed
 clients, messaging reduces the close coupling of other communication styles just
-based on Sockets or RMI. This additional component can be named as
+based on \gls{Socket}s or RMI. This additional component can be named as
 Message-Oriented Middleware (MOM) and is all about passing messages in any
 format from one application to another whereas the parties do not need to know
 each other directly. Thereby the main characteristic of a MOM is that its
-supports a storage capacity which leads to a way of communication where it is
+supports a storage capacity which leads to a persistent way of communication where it is
 not required that the collaborating endpoints are active during the entire
 transmission of a message. This loose coupling in time is achieved by
 working with queues as data structure (first-in-first-out) where applications
-can insert their messages and receiver program can read from this queue at a
-different time. This also has the effect that the distributed stations not need
-to have a direct connection over a network. In normal case the original sender
+can insert their messages and a receiver program can read from this queue at a
+different time. In normal case the original sender
 never has the guarantee that the sent message has arrived at the desired
 destination but it always has the confirmation of the MOM that the data has put
 in a message queue. \cite{PprIBMIntro} \cite{TAN06}
 
 \todo[inline]{TODO: Definition Message (data type)}
-
-\section{Architecture of a Messaging System}
-In a basic scenario with a component A as sender of a message and a component B as
-receiver, the MOM running on the clients itself assumes the task of handling the
-queues and manages an address-lookup database for mapping destination names to
-to network locations. It provides a specific API for bottom the sender as well
-for the receiver:
-\begin{table}[H]
-\begin{tabular}{|l|l|}
-\hline
-\textbf{Put}    & Append a message to a specific queue                                        \\ \hline
-\textbf{Get}    & Block until the specific queue is nonempty, and remove the first message    \\ \hline
-\textbf{Poll}   & Check a specific queue for messages, and remove the first                   \\ \hline
-\textbf{Notify} & Install a handler to be called when a message is put into a specified queue \\ \hline
-\end{tabular}
-\caption[TAN06]{Basic API for message queue implementation \cite{TAN06}}
-\end{table}
-In this very basic setup, the MOM needs know specific information about the
-queueing topology Component A can send messages to B by
-given a destination name which is known by the MOM.
-
-\section{Publish / Subscribe}
-Sending messages to the broker in form of publishing to a specific topic and on
-the other hand receiving messages only for the specified topic, is called
-publish/subscribe. In contrast to a one-to-one channel, the message broker
-requires the abilities to match messages on an application based level to act as
-a gateway for topic related messages. Based on the informations provided within
-the messages, the broker is being able to provide the messages to the client
-acting as a subscriber \cite{TAN06}. In fact, the publish/subscribe channel
-delivers a copy of the topic related messages to the output channel. This also
-means that there can be more than one channel that consumes the topic specific
-messages and thus there can be more than one subscriber. \cite{EIP03}
+\todo[inline]{TODO: Einleitung, unterscheidung verschiedenen kommunikations
+möglichkeiten, Point-to-Point vs Broker}
 
 \section{Interoperablity}
 Because its interoperability, messaging is a very interesting communication
@@ -72,18 +41,73 @@ Fortunately in June 2006 a pool of multiple companies for network technologies
 defined the Advanced Message Queueing Protocol (AMQP) as a open standard for an
 interoperable messaging protocol. \cite{PrpAMQP}
  
-\begin{description} 
-	\item [Advanced Message Queuing Protocol (AMQP)] \hfill
-	
-    \item [JMS]	
-\end{description}
+%\begin{description} 
+%	\item [Advanced Message Queuing Protocol (AMQP)] \hfill
+%    \item [JMS]	
+%\end{description}
 
-\section{What is a Message Broker?}
-\subsection{Broker Pattern} 
-Different patterns were introduced related to distributed systems. The most
-relevant to build a fully-fledged message broker system proves to be the
-\textit{Broker pattern} which can be used to structure distributed systems with
-decoupled components \cite{POSA1}. 
+\section{Point-To-Point Connection}
+A Point-To-Point connection is the simplest architecture for communicating in a
+messaging system. In a very basic scenario with a node A as sender of a message
+and a node B as receiver, the MOM (running either on the node itself or
+dedicated in the local network) assumes the task of handling a local queue for messages and manages an address-lookup
+database for mapping destination names to network locations. The sender puts its
+message in his local queue whereas the MOM organises the network transfer to the
+queue of the target. In turn the receiver system can read from its own
+local queue the incoming message. The MOM provides a specific API for both the
+sender as well for the receiver:
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Put}    & Append a message to a specific queue                                        \\ \hline
+\textbf{Get}    & Block until the specific queue is nonempty, and remove the first message    \\ \hline
+\textbf{Poll}   & Check a specific queue for messages, and remove the first                   \\ \hline
+\textbf{Notify} & Install a handler to be called when a message is put into a specified queue \\ \hline
+\end{tabular}
+\caption[TAN06]{Basic API for message queue implementation \cite{TAN06}}
+\end{table}
+
+This kind of communcation works well in an environment with two systems which
+want to collaborate and use the advantages of messaging. But if there are more
+than two nodes, the local mapping of a queue name to a foreign network location
+implies that each system needs to hold the addresses of all the other nodes that it
+wants to communicate with. When a target address changes, all the systems that
+communicate with the target must be updated. In most scenarios there is also a need
+for transforming messages in different format where these implementations have
+to be made on every node, which leads to duplicating code.  For more complex
+integration solutions, a centralised solution whereas the MOM runs on a location
+independent platform is required. This is where the message broker comes into
+game. \cite{MSDNIntegration}
+
+\section{Message Broker}
+A messaging system with point-to-point connections can decouple two systems
+by using a managed queue on each side of a collaboration. But there is
+still the need of configuration the endpoints on each party. In general, a
+message broker is a dedicated component which decouples source and
+target systems by assuming full responsibility for coordinating communication between
+all connected nodes. Thereby the main tasks of a message broker are the
+dynamically registration of endpoints, determining location of target system
+(a.k.a. routing) and performing of the communication as well transformation of a
+message from one format to another.\cite{MSDNIntegration} \\
+
+\subsection{Broker Pattern}
+As initial point for the detailed definition of a message broker we take the
+\textit{Broker Pattern} of  \textit{Patterns of Software Architecture Volume1}
+which can be used to structure distributed systems with decoupled components.
+Basically it differs between two types of brokers, where the \textit{Direct
+Broker} performs a initialization of a connection but the following communication
+is only between the two endpoints. For messaging, the second variant
+\textit{Indirect Broker}, is lot more interesting because it maintains all of
+the communication between the nodes at every time. So let us define the message
+broker as refinement of the Indirect Broker Pattern for message-based
+communication.\cite{POSA1} 
+
+\subsection{Structure}
+
+\subsection{Endpoint registration}
+ 
+\todo[inline]{TODO: Broker Pattern (POSA1) -> Indirect Broker -> Message Broker}
 
 TODO: Sequenzdiagram ausarbeiten
 \begin{figure}[H]
@@ -105,11 +129,10 @@ TODO: Sequenzdiagram ausarbeiten
     \caption{Producer sends message ...}
     \label{fig:MB-SSD-1}
 \end{figure}
-\subsection{Definition Message Broker}
-We saw that a \textit{Broker} acts like a mediator between to collaborating
-applications which do not need to know each other. The same does a message
-broker, of course in a message-oriented distributed system whereas the broker
-handles incoming messages from a source to a target and backwards.
+%We saw that a \textit{Broker} acts like a mediator between to collaborating
+%applications which do not need to know each other. The same does a message
+%broker, of course in a message-oriented distributed system whereas the broker
+%handles incoming messages from a source to a target and backwards.
 
 In such an environment it is essential that existing and new applications can be
 integrated into a single, coharent system at runtime. Often these applications
@@ -117,18 +140,28 @@ are not speaking the same language and it need kind of a gateway for
 transforming messages into a format that can be unterstood by the receiver.
 \cite{TAN06}
 
-Note: Gem [TAN06], ist ein Message Broker lediglich ein Konvertierer für
-Messages in unterschiedlichen Formate und nicht essentiell für ein einfaches
-Queueing system. Wenn man jedoch das Broker Pattern[POSA1] als Grundlage nimmt
-ist der Broker die zentrale Komponente die auch das Publish / Subscribe
-Verhalten kontrolliert.
+\subsection{Routing and Communicating}
 
-TODO: verschiedene Definitionen aufnehmen vergleichen, Schluss ziehen \\
+\subsection{Transformation}
 
-\subsection{Channels and Topics} %todo: probably split in two sections
+\subsection{Further terminology}
+
+\subsubsection{Channels and Topics} %todo: probably split in two sections
 Channel unterscheided zwischen Producer and Consumer. Wurde eine Nachricht
 Topic unterscheided zwischen Publisher und Subscriber
 konsumiert, wird sie aus der Queue gelöscht.
 
+\subsubsection{Publish / Subscribe}
+Sending messages to the broker in form of publishing to a specific topic and on
+the other hand receiving messages only for the specified topic, is called
+publish/subscribe. In contrast to a one-to-one channel, the message broker
+requires the abilities to match messages on an application based level to act as
+a gateway for topic related messages. Based on the informations provided within
+the messages, the broker is being able to provide the messages to the client
+acting as a subscriber \cite{TAN06}. In fact, the publish/subscribe channel
+delivers a copy of the topic related messages to the output channel. This also
+means that there can be more than one channel that consumes the topic specific
+messages and thus there can be more than one subscriber. \cite{EIP03}
 
+\subsubsection{Pull / Push}
 

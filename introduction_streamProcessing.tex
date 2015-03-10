@@ -36,22 +36,32 @@ As the trend shows, the needs of a big data environment can't be fulfilled with
 traditional batch processing anymore. Instead, real-time processing becomes more 
 important than ever to achieve results from queries in minutes, even seconds. 
 \cite{bange2013big}
-\\ \\
+
+\todo[inline]{LW: Mir fehlt irgendwie noch die Erklärung was traditional batch
+processing ist und warum es den heutigen anforderungen nicht mehr gerecht
+werden kann (eingesetzt wird es ja nach wie vor) }
+
 Traditional batch processing systems nowadays are distinguished between
 map-reduce based and non map-reduce based systems and typically consists of two
 stages, data integration and data analytics. The process of data
-extraction-transformation-load (ETL  [glossar]), faced in the data integration stage runs
-at a regular time interval, such as daily, weekly or monthly. The process, which
-analyzes the data residing in a data store is being faced in the data analytics
-stage and becomes challenging when data size grows and systems may not be able
-to process results within a time limit.\cite{Liu:2014:SRP:2628194.2628251}
-\\ \\
+extraction-transformation-load (ETL  [glossar]), faced in the data integration
+stage, runs at a regular time interval, such as daily, weekly or monthly. The
+process, which analyzes the data residing in a data store is being faced in the
+data analytics stage and becomes challenging when data size grows and systems
+may not be able to process results within a time limit.
+\cite{Liu:2014:SRP:2628194.2628251}
+
 In real-time processing fashion, systems will address the data integration stage
 with continual input of data. Processing in near-real-time [glossar] to present 
 results within seconds is being addressed in the data analytics stage. Thus,
 real-time processing gives organization the ability to take immediate action
 for those times when acting within seconds or minutes is significant.
 \cite{PrpSvyOfDSPS}
+
+\todo[inline]{LW: Rein vom Text habe ich das mit den Stages irgendwie nicht ganz
+verstanden. Du schreibst batch processing beinhaltet diese beiden Stages. Aber
+Real-time scheinbar auch? Sind das die gleichen Stages?  }
+
 
 \section{Lambda Architecture}
 The lambda architecture introduces a new paradigm for big data which allows
@@ -64,7 +74,7 @@ is being outdated at the end of it's computation, the speed layer closes this
 gap by constantly processing the most recent data in near real-time fashion. 
 \cite{marz2015big} \cite{PrpSvyOfDSPS}
 
-\section{Stream Data}
+\section{Stream Sources}
 Every system that is dependent on a continuous input of data requires a data
 source that actually delivers data constantly to it's consumers. Such systems
 can be found in any speed- or batch layer of a lambda architecture environment. 
