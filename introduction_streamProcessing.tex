@@ -136,12 +136,57 @@ hadoop file system (HDFS)---where data can be directly take for further analysis
 \todo[inline]{hdfs glossary}
 
 The same requirement of a data store holds for any other business intelligence
-system followed by the problem of the dependency of a data store which can
-not---due to the lack of an adapter---being served with data by a stream processing 
+system followed by the problem of the dependency of a data store which
+eventually---due to the lack of an adapter---can not be served with data by a stream processing 
 system as comfortable as the HDFS.
 
+Facing the above described types of systems---stream-- and batch
+processing---together, data integration results as a common stage both system have to
+deal with. Even further, for every system an organization operates, the data
+integration stage will be present. 
+Additionally, stream processing systems require a continuous
+incoming stream to further integrate and process where batch processing systems
+on the other hand demand a given persistent set of data to further integrate and analyze.
+
+\begin{table}[h]
+\begin{tabular}{l|c|c|cl}
+\multicolumn{1}{c|}{\textbf{}} & Data Integration & Continuous Data & Persistent
+Data & \multicolumn{1}{c}{} \\ \cline{1-4}
+\textbf{Stream Processing}     & x                & x               &
+&                      \\
+\textbf{Batch Processoing}     & x                &                 & x
+&
+\end{tabular}
+\end{table}
+
+
+Further more, in terms of stream processing the requirement of low latency is
+essential for any system of this type. For database systems combined with stream
+processing, reliability becomes significantly important to handle critical updates 
+such as replicating the change log as discussed above.
+
+In terms of batch processing however, the demand on low latency is not as
+important as the availability of well integrated data with a high throughput to
+be able to handle a large volume of data in time range as low as possible.
+
+\begin{table}[h]
+\begin{tabular}{l|c|cl}
+\multicolumn{1}{c|}{\textbf{}} & \textbf{Stream Processing} & \textbf{Batch
+Processing} & \multicolumn{1}{c}{\textbf{}} \\ \cline{1-3}
+Data Integration               & x                          & x
+&                               \\
+Continuous Data                & x                          &
+&                               \\
+Persistent Data                &                            & x
+&                               \\
+Low Latency                    & x                          &
+&                               \\
+Ordering                       &                            & x
+&
+\end{tabular}
+\end{table}
+
 - problem of traditional messaging systems
-- point to the need of data stream broker systems
 
 %todo: point to the need of messaging systems that deliver data continously ->
 %stream source 
