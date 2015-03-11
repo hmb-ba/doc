@@ -41,7 +41,7 @@ of any size:
 
 \begin{description}
     \item[(A) Store raw data]  \hfill \\
-    {Simply storing every single event in a big database. Through appending
+    {Simply storing every single event in a big data store. Through appending
     every incoming event one get a wide history of every activity on the system.
     To analyze the data, a periodic batch process can execute big queries over
     all events to get a result.  $ \Rightarrow $  \textbf{Batch Processing}}
@@ -92,6 +92,9 @@ Any query is answered through the serving layer by querying
 both the speed and the batch layer. Where the badge layer computes views on the current collected data and
 is being outdated at the end of it's computation, the speed layer closes this 
 gap by constantly processing the most recent data in near real-time fashion. 
+
+\todo[inline]{Besser einordnen, verweis auf stream processing}
+
 \cite{marz2015big} \cite{PrpSvyOfDSPS}
 
 \subsection{Stream Processing}
@@ -127,28 +130,31 @@ examples.\\
 Begriff einordnen kann}
 
 \subsection{Event Sourcing}
+\label{event-sourcing}
 Regarding to event processing we often met the term \textit{Event Sourcing} in
 literature. It is a pattern originally defined by Martin Fowler which basically
 treats with the same objects as we mentioned for batch processing just with
 other terms of the Domain-Driven-Design community. Instead of directly updating
-adatabase record due to an event, every change of a state should individual
+a database record due to an event, every change of a state should individual
 recorded. This leads to a simplified writing sequence (just appending) and gets
 also an event history which can be analyzed in detail. 
 
 \section{Stream Broker}
 Any system which is dependent on a continuous input of data requires a delivery
-system that can provide data constantly to it's consumers. Stream processing
+system that can provide data constantly. Stream processing
 systems, whether being in a lambda architecture or not, obviously holds this requirement
 as well as it's especially dependent on low-latency.
 
-But if one thinks more traditionally, even database systems can be thought of as
-an even stream. The process of creating a backup in form of dumps won't scale as
+But if we think more traditionally, even database systems can be thought of as
+an event stream. The process of creating a backup in form of dumps won't scale as
 we increase the frequency of dumps over time. Not only will the process take
 longer according to the size of the database, also system resources are limited
-during this process. Another approach to make this more efficient is change
-capture, which describes a single row changes made on a database. If this can be
-done continuously a continuous sequence of single row change is what is being
-left. This in in fact, can again be described as a stream of events resulting in a
+during this process. An approach to make this more efficient is change
+capture, which describes the difference between the state of the affected database
+rows before and after the change (basic principle of Event Sourcing
+\ref{event-sourcing}). If this can be done continuously a continuous
+sequence of row changes is what is being left. This in in fact, can again
+be described as a stream of events resulting in a
 data stream (\ref{intro-datastream-datastream}).
 
 On the other hand, in a big data environment there is also the requirement of
@@ -162,11 +168,11 @@ hadoop file system (HDFS)---where data can be directly take for further analysis
 
 The same requirement of a data store holds for any other business intelligence
 system followed by the problem of the dependency of a data store which
-eventually---due to the lack of an adapter---can not be served with data by a stream processing 
-system as comfortable as the HDFS.
+eventually ---due to the lack of an adapter--- can not be served with data by a
+stream processing system as comfortable as the HDFS.
 
-Facing the above described types of systems---stream-- and batch
-processing---together, data integration results as a common stage both system have to
+Facing the above described types of processing events ---stream- and batch
+processing--- together, data integration results as a common stage both system have to
 deal with. Even further, for every system an organization operates, the data
 integration stage will be present. 
 Additionally, stream processing systems require a continuous
