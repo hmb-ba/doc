@@ -1,9 +1,25 @@
-\newglossaryentry{Message} 
+\newglossaryentry{Channel}
+{
+    name=Channel,
+    description={
+        Messaging applications transmit data through a Message Channel, a virtual
+        pipe that connects a sender to a receiver. A newly installed messaging
+        system does not contain any channels; you must determine how your
+        applications need to communicate and then create the channels to facilitate
+        it.
+    }
+}
+\newglossaryentry{Msg}
 {
     name=Message,
     description={
-        A message is mainly a string of bits and bytes that one program 
-        wants to send to another. This data is called application data.  
+        A Message is an atomic packet of data that can be transmitted on a
+        channel. Thus to transmit data, an application must break the data into
+        one or more packets, wrap each packet as a message, and then send the
+        message on a channel. Likewise, a receiver application receives a
+        message and must extract the data from the message to process it. The
+        message system will try repeatedly to deliver the message (e.g.,
+        transmit it from the sender to the receiver) until it succeeds.
     }
 }
 \newglossaryentry{Socket}
@@ -15,7 +31,7 @@
         data can be read. \cite{TAN06}
     }
 }
-\newglossaryentry{Queue} 
+\newglossaryentry{Queue}
 {
     name=Queue,
     description={-}
@@ -28,7 +44,7 @@
     description={-}
 }
 
-\newglossaryentry{ETL} 
+\newglossaryentry{ETL}
 {
     name=ETL,
     description={Extract (data from homogeneous or heterogeneous data sources), 
