@@ -159,7 +159,6 @@ Data & \multicolumn{1}{c}{} \\ \cline{1-4}
 \end{tabular}
 \end{table}
 
-
 Further more, in terms of stream processing the requirement of low latency is
 essential for any system of this type. For database systems combined with stream
 processing, reliability becomes significantly important to handle critical updates 
@@ -186,10 +185,35 @@ Ordering                       &                            & x
 \end{tabular}
 \end{table}
 
+Note that the mentioned systems do not only consume data for integration and
+processing, they can also have an output. Thus, many systems are both sources and
+destinations for data transfer in consequence of which a system would then need
+two channels \todo[inline]{channel->glossary} per system. 
+Obviously each output in this constellation is intended to be consumed by 1--N
+system(s) again. Connecting all of these would lead to building a custom
+channel between each pair of system (see Figure). As the set of system in an organization
+grows, this would clearly become a challenge to maintain.
+
+(Figure of messy system landscape)
+
+In this scenario several hurdles arise. The process of data integration would
+have to be done for each system pair individually. At this point an obvious
+approach for simplification would be to introduce an organization-wide
+standardization of the data format. Thus, the integration process becomes 
+significantly easier but still has to be done redundantly. Another problem that
+remains are the tightly coupled systems. A simple change on one system could
+affect one or more of it's connected systems directly, which is not only hard to
+manage but also reduces the flexibility of further development of the landscape.
+To extend the landscape they chances are high to touch existing systems which is
+not only time intensive but also risky regarding possible failures.
+
+A more elegant and reliable approach to solve the mentioned problems would be to
+introduce a broker \ref{intro-messaging-broker}.
+
+
+\section{Notes}
 - problem of traditional messaging systems
 
-%todo: point to the need of messaging systems that deliver data continously ->
-%stream source 
 
 -From traditional PCs and Smartphones to a lot of sensors who are connected to
 the interne -> Internet of Things!
