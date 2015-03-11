@@ -5,7 +5,7 @@
 Introducing an intermediate component between distributed
 clients, messaging reduces the close coupling of other communication styles just
 based on \gls{Socket}s or RMI. This additional component can be named as
-Message-Oriented Middleware (MOM) and is all about passing messages in any
+Message-Oriented Middleware (MOM) and is all about passing \gls{Msg}s in any
 format from one application to another whereas the parties do not need to know
 each other directly. Thereby the main characteristic of a MOM is that its
 supports a storage capacity which leads to a persistent way of communication where it is
@@ -19,6 +19,8 @@ destination but it always has the confirmation of the MOM that the data has put
 in a message queue. \cite{PprIBMIntro} \cite{TAN06}
 
 \todo[inline]{TODO: Definition Message (data type)}
+
+
 \todo[inline]{TODO: Einleitung, unterscheidung verschiedenen kommunikations
 möglichkeiten, Point-to-Point vs Broker}
 
@@ -105,30 +107,74 @@ the communication between the nodes at every time. So let us define the message
 broker as refinement of the Indirect Broker Pattern for message-based
 communication.\cite{POSA1} 
 
-\subsection{Structure}
+%\subsection{Structure}
+The \textit{Broker Pattern} consists of five types of participating components,
+which we can adapt for a message based environment by using the common terms.
 
-\subsection{Endpoint registration}
- 
-\todo[inline]{TODO: Broker Pattern (POSA1) -> Indirect Broker -> Message Broker}
+\begin{description}
+    \item[Producer (adapted from Client component)] \hfill \\
+        {Applications that either generating data for later processing or
+        accessing a service from another client in the messaging system. In both
+        cases the producer pushes its messages to the broker and in general don't care 
+        about it anymore.}
+    \item[Producer API (adapted from Client-Side-Proxy)] \hfill \\
+        {Structural component which encapsulates messaging-specific
+        functionality from the rest of the client code. Thereby, a call from the producer
+        can be transformed to a message in the right format. The producer API
+        directly communicates with the broker API.}
+    \item[Broker] \hfill \\
+        {Central component that acts as a mediator and is responsible for the
+        transmission of messages from multiple producers to multiple consumers.
+        A broker offers an API to the messaging clients, both for consumer and
+        producer. It also must have kind of a directory for locating registered
+        consumers.} 
+    \item[Consumer (adapted from Server component)] \hfill \\
+        {Basically the consumer is a endpoint which receives and processes a
+            message for further activities. An \textit{Event-Driven-Consumer}
+            handles incoming messages automatically as they are pushed from the
+            broker. A \textit{Polling-Consumer} explicitly gets messages when it
+            wants to receive it from the broker. If a consumer provides a
+            service to other clients, it also can act as a producer for sending
+            back messages as response.}
+\item[Consumer API (adapted from Server-Side-Proxy)] \hfill \\
+        {Structural component which encapsulates messaging-specific
+        functionality from the rest of the client code. Based on incoming
+        messages it calls services within the consumer component. }
+\end{description}
 
-TODO: Sequenzdiagram ausarbeiten
 \begin{figure}[H]
     \centering
      \begin{sequencediagram}
         %\newthread{broker}{Broker}
-        \newinst[1]{producer}{Producer}
-        \newinst[2]{producerProx}{Producer Proxy}
-        \newinst[3]{broker}{Broker}
-        \newinst[4]{consumerProx}{Consumer Proxy}
-        \newinst[5]{consumer}{Consumer}
-        \begin{call}
+         \newinst[1]{producer}{Producer}
+         \newinst[1]{producerProx}{Producer API}
+         \newinst[1]{broker}{Broker}
+        \newinst[1]{consumerProx}{Consumer API}
+        \newinst[1]{consumer}{Consumer}
+        \begin{messcall}
             {producer}{(1) Send Request}{producerProx}{}
-        \end{call}
+        \end{messcall}
         \begin{call}
-            {producerProx}{(3) Forward data}{broker}{}
+            {producerProx}{(2) Pack data}{producerProx}{}
         \end{call}
+        \begin{messcall}
+            {producerProx}{(3) Transmit message}{broker}{}
+        \end{messcall}
+        \begin{call}
+            {broker}{(4) Find Consumer}{broker}{}
+        \end{call}
+        \begin{messcall}
+            {broker}{(5) Deliver Message}{consumerProx}{} 
+        \end{messcall}
+        \begin{call}
+            {consumerProx}{(6) Unpack Data}{consumerProx}{}
+        \end{call}
+        \begin{messcall}
+            {consumerProx}{(7) Forward Message}{consumer}{}
+        \end{messcall}
     \end{sequencediagram}
-    \caption{Producer sends message ...}
+    \caption{General structure of the Broker Pattern with Event-Based
+    Consumer}
     \label{fig:MB-SSD-1}
 \end{figure}
 %We saw that a \textit{Broker} acts like a mediator between to collaborating
@@ -136,24 +182,22 @@ TODO: Sequenzdiagram ausarbeiten
 %broker, of course in a message-oriented distributed system whereas the broker
 %handles incoming messages from a source to a target and backwards.
 
-In such an environment it is essential that existing and new applications can be
-integrated into a single, coharent system at runtime. Often these applications
-are not speaking the same language and it need kind of a gateway for
-transforming messages into a format that can be unterstood by the receiver.
-\cite{TAN06}
+%In such an environment it is essential that existing and new applications can be
+%integrated into a single, coharent system at runtime. Often these applications
+%are not speaking the same language and it need kind of a gateway for
+%transforming messages into a format that can be unterstood by the receiver.
+%\cite{TAN06}
 
-\subsection{Routing and Communicating}
+%\subsection{Routing and Communicating}
 
-\subsection{Transformation}
+%\subsection{Transformation}
 
-\subsection{Further terminology}
+\subsection{Publish / Subscribe Channel} 
+Basically, a channel is equivalent to the managed queues we described so far. In
+a channel one application can write messages and another one reads that
+information from it. Because a message broker can handle multiple clients with
+variable behaviour we can differ between different channel.
 
-\subsubsection{Channels and Topics} %todo: probably split in two sections
-Channel unterscheided zwischen Producer and Consumer. Wurde eine Nachricht
-Topic unterscheided zwischen Publisher und Subscriber
-konsumiert, wird sie aus der Queue gelöscht.
-
-\subsubsection{Publish / Subscribe}
 Sending messages to the broker in form of publishing to a specific topic and on
 the other hand receiving messages only for the specified topic, is called
 publish/subscribe. In contrast to a one-to-one channel, the message broker
@@ -164,6 +208,3 @@ acting as a subscriber \cite{TAN06}. In fact, the publish/subscribe channel
 delivers a copy of the topic related messages to the output channel. This also
 means that there can be more than one channel that consumes the topic specific
 messages and thus there can be more than one subscriber. \cite{EIP03}
-
-\subsubsection{Pull / Push}
-
