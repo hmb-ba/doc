@@ -206,5 +206,9 @@ a gateway for topic related messages. Based on the informations provided within
 the messages, the broker is being able to provide the messages to the client
 acting as a subscriber \cite{TAN06}. In fact, the publish/subscribe channel
 delivers a copy of the topic related messages to the output channel. This also
-means that there can be more than one channel that consumes the topic specific
-messages and thus there can be more than one subscriber. \cite{EIP03}
+means that there can be more than one client that consumes the topic specific
+messages and thus there can be more than one subscriber. Especially this feature
+of having multiple consumers of a message channel, is decisive for using a
+message broker in environment where we want to process the same stream of
+data in multiple ways. We will go in deeper detail to stream processing in the
+following chapter. \cite{EIP03}
