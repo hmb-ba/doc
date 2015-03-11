@@ -1,4 +1,4 @@
-\chapter{Introduction to Event Streaming}
+\Chapter{Introduction to Event Streaming}
 
 The view of data as rows of databases or single files changes when one thinks
 about what a business actually does with the generated data. Where retail
@@ -236,15 +236,33 @@ remains are the tightly coupled systems. A simple change on one system could
 affect one or more of it's connected systems directly, which is not only hard to
 manage but also reduces the flexibility of further development of the landscape.
 To extend the landscape the chances are high to touch existing systems which is
-not only time intensive but also risky regarding possible failures.
-
+not only time intensive but also risky regarding possible failures. In fact,
+these are known issues of a Point-To-Point channel of traditional messaging and
+is described in Chapter \ref{intro-messaging-pointtopoint}.
+\\ \\
 A more elegant and reliable approach to solve the mentioned problems would be to
-introduce a broker (\ref{intro-messaging-broker}).
+introduce a broker as described in Chapter \ref{intro-messaging-broker}, that is 
+able to support both batch and real-time consumption and thus is able to hold
+the described requirements given in table XX \todo{make table index}. 
+This broker can act as a single data repository to isolated consumers and gives
+access to any data that is required, as shown in figure \todo{ref to solved
+mess}. In a survey (Chapter \ref{survey-broker}) we examine the limits of
+traditional message brokers and the needs for lately introduced broker systems
+such as Apache Kafka, Scribe or Flume and further try to compare and categorize those
+systems after their strengths and weaknesses.
 
-\todo[inline]{refer to problems of point-to-point messaging}
+(figure of solved mess)
+
+However, in this constellation integrating a new data system---be it a data source or a data destination---is fairly 
+simple. Connecting it to a single channel attached to the broker is all what is needed 
+to be done. Besides the loosely coupled components, with this architecture
+it becomes possible to centralize the process of data integration by doing so
+in a standardized way, directly within the broker. Thus, a huge factor of complexity 
+over the system landscape is being reduced. In fact, this opens up a whole new
+set of possibilities in organizational scalability, which is being discussed in
+Chapter \ref{intro-log}.
+
 \section{Notes}
-- problem of traditional messaging systems
-
 
 -From traditional PCs and Smartphones to a lot of sensors who are connected to
 the interne -> Internet of Things!
