@@ -14,10 +14,12 @@ stock. Every order can be captured as an event and so can all events together re
 the current stock price.
 
 \section{Data Stream}
-Events are transmitted as discrete messages on a (see \ref{intro-messaging-mom}) and thus
+\label{intro-datastream-datastream}
+Events are transmitted as discrete messages on a MOM (see \ref{intro-messaging-mom}) and thus
 following Tannenbaum et al. (2006), represent a data stream of data units. 
 Where a data stream can be applied to discrete as well as continuous media, events are
-transmitted as (byte oriented) discrete messages only. 
+transmitted as (byte oriented) discrete messages only. The message as itself can
+be considered as an event message \cite{EIP03}.
 \todo[inline]{in the following we'll call messages of a data stream just events}
 
 \section{Processing of events}
@@ -38,8 +40,8 @@ past. We distinguish between stream processing for the first and batch
 processing for the latter.
 
 \section{Stream Processing}
-
-Stream processing refers to processing of data before storing. 
+\label{intro-datastream-streamprocessing}
+Stream processing refers to integration and processing of data before storing. 
 A stream processing system is built out of multiple units called a processing
 element (PE). Each PE receive input from their input queues, does some
 computation on the input using its local state and produce output to their
@@ -51,10 +53,15 @@ systems and should be fast and efficient.
 Data should partitioned and handled in parallel for large volumes of data. 
 The partitioning strategy of a system  affects how the system
 handles the data in parallel and how the system can scale. 
+\cite{PrpSvyOfDSPS}
+\\ \\
+Stream processing frameworks---such as Storm, Samza, or Spark
+Streaming---were especially developed to provide rich processing primitives and thus can be taken advantage of
+in the data integration- and processing stages.
 
-\todo[inline]{source?}
 
 \section{Batch Processing}
+\label{intro-datastream-batchprocessing}
 Traditional batch processing systems nowadays are distinguished between
 map-reduce based and non map-reduce \todo[inline]{ref to literature or glossary} based systems and typically consists of two
 stages, data integration and data analytics. 
@@ -103,15 +110,35 @@ is being outdated at the end of it's computation, the speed layer closes this
 gap by constantly processing the most recent data in near real-time fashion. 
 \cite{marz2015big} \cite{PrpSvyOfDSPS}
 
-\section{Stream Sources}
-Every system that is dependent on a continuous input of data requires a delivery
-system that can provide data constantly to it's consumers. Systems requiring
-this kind of delivery system can be found in any speed- or batch layer of a lambda architecture environment. 
-But also a lot of more traditionally built business intelligence systems have to be
-served with data continuously.
-
 \section{Stream Broker}
+Any system which is dependent on a continuous input of data requires a delivery
+system that can provide data constantly to it's consumers. Stream processing
+systems, whether being in a lambda architecture or not, obviously holds this requirement
+as well as it's especially dependent on low-latency.
 
+But if one thinks more traditionally, even database systems can be thought of as
+an even stream. The process of creating a backup in form of dumps won't scale as
+we increase the frequency of dumps over time. Not only will the process take
+longer according to the size of the database, also system resources are limited
+during this process. Another approach to make this more efficient is change
+capture, which describes a single row changes made on a database. If this can be
+done continuously a continuous sequence of single row change is what is being
+left. This in in fact, can again be described as a stream of events resulting in a
+data stream (\ref{intro-datastream-datastream}).
+
+On the other hand, in a big data environment there is also the requirement of
+batch processing systems (\ref{intro-datastream-batchprocessing}) being served
+with data. In a lambda environment this could be done again using a stream
+processing framework (\ref{intro-datastream-streamprocessing}) responsible for
+serving the batch processing system with integrated data, ready for data
+analysis. However an other way of doing so would be a data store---such as the
+hadoop file system (HDFS)---where data can be directly take for further analysis.
+\todo[inline]{hdfs glossary}
+
+The same requirement of a data store holds for any other business intelligence
+system followed by the problem of the dependency of a data store which can
+not---due to the lack of an adapter---being served with data by a stream processing 
+system as comfortable as the HDFS.
 
 - problem of traditional messaging systems
 - point to the need of data stream broker systems
