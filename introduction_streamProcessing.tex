@@ -133,7 +133,7 @@ Begriff einordnen kann}
 \label{event-sourcing}
 Regarding to event processing we often met the term \textit{Event Sourcing} in
 literature. It is a pattern originally defined by Martin Fowler which basically
-treats with the same objects as we mentioned for batch processing just with
+treats with the same objectives as we mentioned for batch processing just with
 other terms of the Domain-Driven-Design community. Instead of directly updating
 a database record due to an event, every change of a state should individual
 recorded. This leads to a simplified writing sequence (just appending) and gets
@@ -229,19 +229,19 @@ grows, this would clearly become a challenge to maintain.
 
 In this scenario several hurdles arise. The process of data integration would
 have to be done for each system pair individually. At this point an obvious
-approach for simplification would be to introduce an organization-wide
+approach for a simplification would be to introduce an organization-wide
 standardization of the data format. Thus, the integration process becomes 
 significantly easier but still has to be done redundantly. Another problem that
 remains are the tightly coupled systems. A simple change on one system could
 affect one or more of it's connected systems directly, which is not only hard to
 manage but also reduces the flexibility of further development of the landscape.
-To extend the landscape they chances are high to touch existing systems which is
+To extend the landscape the chances are high to touch existing systems which is
 not only time intensive but also risky regarding possible failures.
 
 A more elegant and reliable approach to solve the mentioned problems would be to
 introduce a broker (\ref{intro-messaging-broker}).
 
-
+\todo[inline]{refer to problems of point-to-point messaging}
 \section{Notes}
 - problem of traditional messaging systems
 
