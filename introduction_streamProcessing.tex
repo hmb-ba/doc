@@ -1,4 +1,4 @@
-\chapter{Introduction to Data Streaming}
+\chapter{Introduction to Event Streaming}
 
 The view of data as rows of databases or single files changes when one thinks
 about what a business actually does with the generated data. Where retail
@@ -23,11 +23,11 @@ transmitted as discrete messages only. The message as itself can
 be considered as an event message \cite{EIP03}.
 \todo[inline]{in the following we'll call messages of a data stream just events}
 
-\section{Processing of events}
-The data stream consisting of events as it self is not valuable but
-can be taken advantage of by a system that processes the events and produces a
+\section{Processing of Events}
+A data stream consisting of events as it self is not valuable but
+can be taken advantage of by a system that processes these events and produces a
 result. This can be the calculation of the new stock price after a customer sold
-his stock or the personalized content on my news feed after I subscribed to a new fan
+his stock or the personalized content on a news feed after a person subscribed to a new fan
 page. But it could also be a more complex analysis over all the collected
 event that ever happened, stored in a big database. 
 \\ \\
@@ -36,10 +36,65 @@ calculation of the stock price is fairly simple by setting the price to the
 latest paid stock price without any knowledge about the stock prices in past. 
 In contrast, a complete analysis over a huge user base will not only require a
 significant amount of processing time, it also requires some data produced in the
-past. We distinguish between stream processing for the first and batch
-processing for the latter.
+past. This leads to two different approaches to handle an incoming event stream
+of any size: 
 
-\section{Stream Processing}
+\begin{description}
+    \item[(A) Store raw data]  \hfill \\
+    {Simply storing every single event in a big database. Through appending
+    every incoming event one get a wide history of every activity on the system.
+    To analyze the data, a periodic batch process can execute big queries over
+    all events to get a result.  $ \Rightarrow $  \textbf{Batch Processing}}
+    \item[(B) Store aggregated data  ] \hfill \\
+    {Instead of persist every single event, directly process the incoming data stream and store
+    only an aggregated summary. Because of updating the aggregation with every
+    incoming event, getting an overall result is very fast (what we call
+    "Real-Time"). Of course there is not a history of all the "happenings"
+    anymore. $ \Rightarrow $ \textbf{Stream Processing}} 
+\end{description}
+\cite{TalkKleppmann}
+
+\subsection{Batch Processing}
+\label{intro-datastream-batchprocessing}
+Traditional batch processing systems nowadays are distinguished between
+map-reduce based and non map-reduce based systems and typically consists of two
+stages, data integration and data analytics. \todo[inline]{ref to literature or glossary} 
+
+The process of data extraction-transformation-load (ETL  \todo{glossary}), 
+faced in the data integration
+stage, runs at a regular time interval, such as daily, weekly or monthly. 
+\\ \\
+Analyzing data that resides in a data store is being faced in the
+data analytics stage and becomes challenging when data size grows and systems
+may not be able to process results within a time limit.
+\cite{Liu:2014:SRP:2628194.2628251}
+
+\subsection{Real-time Batch Processing}
+
+As the trend shows, the needs of performance and responsiveness in a big data environment can't be fulfilled with 
+traditional batch processing anymore. Instead, real-time processing becomes more 
+important than ever to achieve results from queries in minutes, even seconds. 
+\cite{bange2013big}
+
+In real-time processing fashion, systems will address the data integration stage
+with continual input of data. Processing in near-real-time [glossar] to present 
+results within seconds is being addressed in the data analytics stage. Thus,
+real-time processing gives organization the ability to take immediate action
+for those times when acting within seconds or minutes is significant.
+\cite{PrpSvyOfDSPS}
+
+\subsubsection{Lambda Architecture}
+The lambda architecture introduces a new paradigm for big data which allows
+processing of massive data volumes in near real-time fashion and thus results within
+seconds can be achieved. 
+\\
+Any query is answered through the serving layer by querying 
+both the speed and the batch layer. Where the badge layer computes views on the current collected data and
+is being outdated at the end of it's computation, the speed layer closes this 
+gap by constantly processing the most recent data in near real-time fashion. 
+\cite{marz2015big} \cite{PrpSvyOfDSPS}
+
+\subsection{Stream Processing}
 \label{intro-datastream-streamprocessing}
 Stream processing refers to integration and processing of data before storing. 
 A stream processing system is built out of multiple units called a processing
@@ -59,56 +114,26 @@ Stream processing frameworks---such as Storm, Samza, or Spark
 Streaming---were especially developed to provide rich processing primitives and thus can be taken advantage of
 in the data integration- and processing stages.
 
+\subsection{Complex Event processing (CEP)}
+In literatur there is often a confusion about the difference between
+complex event processing and stream event processing. Both systems work on
+events and produce results based on the properties of the events... 
+- Zitat: Combines data from multiple sources  to detect patterns and attempt to
+identify either opportunities or threats. The goal is to identify significant
+events and respond fast. Sales leads, orders or customer service calls are
+examples.\\
 
-\section{Batch Processing}
-\label{intro-datastream-batchprocessing}
-Traditional batch processing systems nowadays are distinguished between
-map-reduce based and non map-reduce \todo[inline]{ref to literature or glossary} based systems and typically consists of two
-stages, data integration and data analytics. 
-\\ \\
-The process of data extraction-transformation-load (ETL  \todo[inline]{glossary}), 
-faced in the data integration
-stage, runs at a regular time interval, such as daily, weekly or monthly. 
-\\ \\
-Analyzing data that resides in a data store is being faced in the
-data analytics stage and becomes challenging when data size grows and systems
-may not be able to process results within a time limit.
-\cite{Liu:2014:SRP:2628194.2628251}
+\todo[inline]{wie Event Sourcing, kurz beschreiben damit man weiss wo man den
+Begriff einordnen kann}
 
-
-\section{Real-time Batch Processing}
-
-As the trend shows, the needs of performance and responsiveness in a big data environment can't be fulfilled with 
-traditional batch processing anymore. Instead, real-time processing becomes more 
-important than ever to achieve results from queries in minutes, even seconds. 
-\cite{bange2013big}
-
-\todo[inline]{LW: Mir fehlt irgendwie noch die Erklärung was traditional batch
-processing ist und warum es den heutigen anforderungen nicht mehr gerecht
-werden kann (eingesetzt wird es ja nach wie vor) }
-
-In real-time processing fashion, systems will address the data integration stage
-with continual input of data. Processing in near-real-time [glossar] to present 
-results within seconds is being addressed in the data analytics stage. Thus,
-real-time processing gives organization the ability to take immediate action
-for those times when acting within seconds or minutes is significant.
-\cite{PrpSvyOfDSPS}
-
-\todo[inline]{LW: Rein vom Text habe ich das mit den Stages irgendwie nicht ganz
-verstanden. Du schreibst batch processing beinhaltet diese beiden Stages. Aber
-Real-time scheinbar auch? Sind das die gleichen Stages?  }
-
-
-\subsection{Lambda Architecture}
-The lambda architecture introduces a new paradigm for big data which allows
-processing of massive data volumes in near real-time fashion and thus results within
-seconds can be achieved. 
-\\
-Any query is answered through the serving layer by querying 
-both the speed and the batch layer. Where the badge layer computes views on the current collected data and
-is being outdated at the end of it's computation, the speed layer closes this 
-gap by constantly processing the most recent data in near real-time fashion. 
-\cite{marz2015big} \cite{PrpSvyOfDSPS}
+\subsection{Event Sourcing}
+Regarding to event processing we often met the term \textit{Event Sourcing} in
+literature. It is a pattern originally defined by Martin Fowler which basically
+treats with the same objects as we mentioned for batch processing just with
+other terms of the Domain-Driven-Design community. Instead of directly updating
+adatabase record due to an event, every change of a state should individual
+recorded. This leads to a simplified writing sequence (just appending) and gets
+also an event history which can be analyzed in detail. 
 
 \section{Stream Broker}
 Any system which is dependent on a continuous input of data requires a delivery
@@ -203,14 +228,6 @@ future. Then you can have another consumer which does some aggregation (for
 example, incrementing counters), and another consumer which does something else.
 Those can all feed off the same event stream.}
 
-\section{Complex event processing (CEP)}
-In literatur there is often a confusion about the difference between the terms
-complex event processing and stream event processing. Both systems work on
-events and produce results based on the properties of the events... 
-- Zitat: Combines data from multiple sources  to detect patterns and attempt to
-identify either opportunities or threats. The goal is to identify significant
-events and respond fast. Sales leads, orders or customer service calls are
-examples.\\
 
 \todo[inline]{move to glossary?}
 
