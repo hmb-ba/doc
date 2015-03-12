@@ -144,10 +144,10 @@ recorded. This leads to a simplified writing sequence (just appending) and gets
 also an event history which can be analyzed in detail. 
 
 \section{Stream Broker}
-Any system which is dependent on a continuous input of data requires a delivery
+Any system which is dependent on a continuous input of data, requires a delivery
 system that can provide data constantly. Stream processing
 systems, whether being in a lambda architecture or not, obviously holds this requirement
-as well as it's especially dependent on low-latency.
+as well as being dependent on low latency.
 
 But if we think more traditionally, even database systems can be thought of as
 an event stream. The process of creating a backup in form of dumps won't scale as
@@ -157,53 +157,40 @@ during this process. An approach to make this more efficient is change
 capture, which describes the difference between the state of the affected database
 rows before and after the change (basic principle of Event Sourcing
 \ref{event-sourcing}). If this can be done continuously a continuous
-sequence of row changes is what is being left. This in in fact, can again
-be described as a stream of events resulting in a
-data stream.
+sequence of row changes is what is being left. This in in fact, can be described 
+as a stream of events resulting in a data stream.
 
 On the other hand, in a big data environment there is also the requirement of
 batch processing systems (\ref{intro-datastream-batchprocessing}) being served
-with data. In a lambda environment this could be done again using a stream
+with data. In a lambda architecture this could be done using a stream
 processing framework (\ref{intro-datastream-streamprocessing}) responsible for
 serving the batch processing system with integrated data, ready for data
-analysis. However an other way of doing so would be a data store---such as the
-hadoop file system (HDFS)---where data can be directly take for further analysis.
+analysis. However, an other way of doing so would be a data store---such as the
+hadoop file system (HDFS)---where data can be directly taken for further analysis.
 \todo[inline]{hdfs glossary}
-
 The same requirement of a data store holds for any other business intelligence
 system followed by the problem of the dependency of a data store which
-eventually ---due to the lack of an adapter--- can not be served with data by a
+eventually---due to the lack of an adapter---can not be served with data by a
 stream processing system as comfortable as the HDFS.
 
-Facing the two types of processing events ---stream- and batch
-processing--- together, data integration results as a common stage both system have to
+Facing the two types of processing events---stream- and batch
+processing---together, data integration results as a common stage both system have to
 deal with. Even further, for every system an organization operates, the data
 integration stage will be present. 
 Additionally, stream processing systems require a continuous
 incoming stream to further integrate and process where batch processing systems
 on the other hand demand a given persistent set of data to further integrate and analyze.
 
-%\begin{table}[h]
-%\begin{tabular}{l|c|c|cl}
-%\multicolumn{1}{c|}{\textbf{}} & Data Integration & Continuous Data & Persistent
-%Data & \multicolumn{1}{c}{} \\ \cline{1-4}
-%\textbf{Stream Processing}     & x                & x               &
-%&                      \\
-%\textbf{Batch Processoing}     & x                &                 & x
-%&
-%\end{tabular}
-%\end{table}
-
 Further more, in terms of stream processing the requirement of low latency is
 essential for any system of this type. For database systems combined with stream
 processing, reliability becomes significantly important to handle critical updates 
 such as replicating the change log as discussed above.
-
 In terms of batch processing however, the demand on low latency is not as
 important as the availability of well integrated data with a high throughput to
 be able to handle a large volume of data in time range as low as possible.
 
-\begin{table}[h]
+\begin{table}[H]
+\centering
 \begin{tabular}{l|c|cl}
 \multicolumn{1}{c|}{\textbf{}} & \textbf{Stream Processing} & \textbf{Batch
 Processing} & \multicolumn{1}{c}{\textbf{}} \\ \cline{1-3}
@@ -226,13 +213,18 @@ destinations for data transfer in consequence of which a system would then need
 two channels \todo[inline]{channel->glossary} per system. 
 Obviously each output in this constellation is intended to be consumed by 1--N
 system(s) again. Connecting all of these would lead to building a custom
-channel between each pair of system (see Figure). As the set of system in an organization
-grows, this would clearly become a challenge to maintain.
+channel between each pair of system (see Figure \ref{fig:datapipeline_complex}). As the set of system in an organization
+rows, this would clearly become a challenge to maintain.
 
-(Figure of messy system landscape)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/datapipeline_complex.png}
+    \caption{Complex Point-To-Point Architecture}
+    \label{fig:datapipeline_complex}
+\end{figure}
 
 In this scenario several hurdles arise. The process of data integration would
-have to be done for each system pair individually. At this point an obvious
+have to be done for each system pair individually. At this point, an obvious
 approach for a simplification would be to introduce an organization-wide
 standardization of the data format. Thus, the integration process becomes 
 significantly easier but still has to be done redundantly. Another problem that
@@ -240,22 +232,28 @@ remains are the tightly coupled systems. A simple change on one system could
 affect one or more of it's connected systems directly, which is not only hard to
 manage but also reduces the flexibility of further development of the landscape.
 To extend the landscape the chances are high to touch existing systems which is
-not only time intensive but also risky regarding possible failures. In fact,
+not only time intensive but also connected with risks regarding possible failures. In fact,
 these are known issues of a Point-To-Point channel of traditional messaging and
-is described in Chapter \ref{intro-messaging-pointtopoint}.
+is described in Section \ref{intro-messaging-pointtopoint}.
 \\ \\
 A more elegant and reliable approach to solve the mentioned problems would be to
-introduce a broker as described in Chapter \ref{intro-messaging-broker}, that is 
+introduce a broker as described in Section \ref{intro-messaging-broker}, that is 
 able to support both batch and real-time consumption and thus is able to hold
 the described requirements given in table XX \todo{make table index}. 
 This broker can act as a single data repository to isolated consumers and gives
-access to any data that is required, as shown in figure \todo{ref to solved
-mess}. In a survey (Chapter \ref{survey-broker}) we examine the limits of
+access to any data that is required, as shown in figure
+\ref{fig:datapipeline_simple} In a survey (Chapter \ref{survey-broker}) we examine the limits of
 traditional message brokers and the needs for lately introduced broker systems
 such as Apache Kafka, Scribe or Flume and further try to compare and categorize those
 systems after their strengths and weaknesses.
 
-(figure of solved mess)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/datapipeline_simple.png}
+    \caption{Broker Architecture}
+    \label{fig:datapipeline_simple}
+\end{figure}
+
 
 However, in this constellation integrating a new data system---be it a data source or a data destination---is fairly 
 simple. Connecting it to a single channel attached to the broker is all what is needed 
