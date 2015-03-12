@@ -202,9 +202,11 @@ Persistent Data                &                            & x
 &                               \\
 Low Latency                    & x                          &
 &                               \\
-Ordering                       &                            & x
+High Throughput                     &                            & x
 &
 \end{tabular}
+\caption{Requirements of batch and stream processing systems}
+\label{table:requirements-batch-stream}
 \end{table}
 
 Note that the mentioned systems do not only consume data for integration and
@@ -237,6 +239,7 @@ these are known issues of a Point-To-Point channel of traditional messaging and
 is described in Section \ref{intro-messaging-pointtopoint}.
 \\ \\
 A more elegant and reliable approach to solve the mentioned problems would be to
+<<<<<<< HEAD
 introduce a broker as described in section \ref{intro-messaging-broker}, that is 
 able to feed both batch and real-time consumption and thus is able to hold
 the described requirements given in table XX \todo{make table index}. 
@@ -246,6 +249,18 @@ access to any data that is required, as shown in figure
 examine the limits of traditional message brokers and the needs for lately
 introduced broker systems such as Apache Kafka, Scribe or Flume and further try
 to compare and categorize those systems after their strengths and weaknesses.
+=======
+introduce a broker as described in Section \ref{intro-messaging-broker}, that is 
+able to support both batch and real-time consumption and thus is able to hold
+the described requirements given in table \ref{table:requirements-batch-stream}. 
+This broker can act as a single data repository to isolated consumers and gives
+access to any data that is required, as shown in figure
+\ref{fig:datapipeline_simple} In a survey (Chapter \ref{survey-broker}) we examine the limits of
+traditional message brokers and the needs for lately introduced broker systems
+such as Apache Kafka\cite{apachekafka}, Scribe\cite{scribe} or
+Flume\cite{apacheflume} and further try to compare and categorize those
+systems after their strengths and weaknesses.
+>>>>>>> db5753b08241c1a5d15410c64d62b9aef313ba86
 
 \begin{figure}[H]
     \centering
