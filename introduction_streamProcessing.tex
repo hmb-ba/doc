@@ -1,4 +1,4 @@
-\Chapter{Introduction to Event Streaming}
+\chapter{Introduction to Event Streaming}
 
 The view of data as rows of databases or single files changes when one thinks
 about what a business actually does with the generated data. Where retail
@@ -21,20 +21,26 @@ following Tannenbaum et al. (2006), represent a data unit of a data streams.
 Where a data stream can be applied to discrete as well as continuous media, events are
 transmitted as discrete messages only. The message as itself can
 be considered as an event message \cite{EIP03}.
-\todo[inline]{in the following we'll call messages of a data stream just events}
 
 \section{Processing of Events}
-A data stream consisting of events as it self is not valuable but
-can be taken advantage of by a system that processes these events and produces a
-result. This can be the calculation of the new stock price after a customer sold
-his stock or the personalized content on a news feed after a person subscribed to a new fan
-page. But it could also be a more complex analysis over all the collected
-event that ever happened, stored in a big database. 
+Basically processing of events follows two key objectives: 
+\begin{itemize}
+    \item \textbf{Data Integration:} Making all the data of an organization available in all its services and systems.
+    \item \textbf{Data Analytics:} Preparing collected data for further analysis at any time. 
+\end{itemize}
+
+So data streams consisting of events as it self are not valuable but
+can be taken advantage of by a system that processes these events, produces a
+result and provide it to other services. This can be the calculation of the new
+stock price after a customer sold his stock or the personalized content on a
+news feed after a person subscribed to a new fan page. But it could also be a
+more complex analysis over all the collected event that ever happened, stored in
+a big database. 
 \\ \\
 In fact, the above mentioned examples differ in it's nature. Where the
 calculation of the stock price is fairly simple by setting the price to the
 latest paid stock price without any knowledge about the stock prices in past. 
-In contrast, a complete analysis over a huge user base will not only require a
+In contrast, a complete analysis over a huge data base will not only require a
 significant amount of processing time, it also requires some data produced in the
 past. This leads to two different approaches to handle an incoming event stream
 of any size: 
@@ -54,19 +60,20 @@ of any size:
 \end{description}
 \cite{TalkKleppmann}
 
+
 \subsection{Batch Processing}
 \label{intro-datastream-batchprocessing}
 Traditional batch processing systems nowadays are distinguished between
 map-reduce based and non map-reduce based systems and typically consists of two
 stages, data integration and data analytics. \todo[inline]{ref to literature or glossary} 
 
-The process of data extraction-transformation-load (ETL  \todo{glossary}), 
-faced in the data integration
-stage, runs at a regular time interval, such as daily, weekly or monthly. 
+The process of  data integration (a.k.a data extraction-transformation-load, ETL
+\todo{glossary}), faced in the data integration stage, runs at a regular time
+interval, such as daily, weekly or monthly. 
 \\ \\
-Analyzing data that resides in a data store is being faced in the
-data analytics stage and becomes challenging when data size grows and systems
-may not be able to process results within a time limit.
+Analyzing data that resides in a data store is being faced in the data analytics
+stage and becomes challenging when data size grows and systems may not be able
+to process results within a time limit.
 \cite{Liu:2014:SRP:2628194.2628251}
 
 \subsection{Real-time Batch Processing}
@@ -155,7 +162,7 @@ rows before and after the change (basic principle of Event Sourcing
 \ref{event-sourcing}). If this can be done continuously a continuous
 sequence of row changes is what is being left. This in in fact, can again
 be described as a stream of events resulting in a
-data stream (\ref{intro-datastream-datastream}).
+data stream.
 
 On the other hand, in a big data environment there is also the requirement of
 batch processing systems (\ref{intro-datastream-batchprocessing}) being served
@@ -171,7 +178,7 @@ system followed by the problem of the dependency of a data store which
 eventually ---due to the lack of an adapter--- can not be served with data by a
 stream processing system as comfortable as the HDFS.
 
-Facing the above described types of processing events ---stream- and batch
+Facing the two types of processing events ---stream- and batch
 processing--- together, data integration results as a common stage both system have to
 deal with. Even further, for every system an organization operates, the data
 integration stage will be present. 
@@ -179,16 +186,16 @@ Additionally, stream processing systems require a continuous
 incoming stream to further integrate and process where batch processing systems
 on the other hand demand a given persistent set of data to further integrate and analyze.
 
-\begin{table}[h]
-\begin{tabular}{l|c|c|cl}
-\multicolumn{1}{c|}{\textbf{}} & Data Integration & Continuous Data & Persistent
-Data & \multicolumn{1}{c}{} \\ \cline{1-4}
-\textbf{Stream Processing}     & x                & x               &
-&                      \\
-\textbf{Batch Processoing}     & x                &                 & x
-&
-\end{tabular}
-\end{table}
+%\begin{table}[h]
+%\begin{tabular}{l|c|c|cl}
+%\multicolumn{1}{c|}{\textbf{}} & Data Integration & Continuous Data & Persistent
+%Data & \multicolumn{1}{c}{} \\ \cline{1-4}
+%\textbf{Stream Processing}     & x                & x               &
+%&                      \\
+%\textbf{Batch Processoing}     & x                &                 & x
+%&
+%\end{tabular}
+%\end{table}
 
 Further more, in terms of stream processing the requirement of low latency is
 essential for any system of this type. For database systems combined with stream
