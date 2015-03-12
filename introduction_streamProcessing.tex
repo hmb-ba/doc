@@ -143,7 +143,7 @@ a database record due to an event, every change of a state should individual
 recorded. This leads to a simplified writing sequence (just appending) and gets
 also an event history which can be analyzed in detail. 
 
-\section{Stream Broker}
+\section{Streaming Broker}
 Any system which is dependent on a continuous input of data, requires a delivery
 system that can provide data constantly. Stream processing
 systems, whether being in a lambda architecture or not, obviously holds this requirement
@@ -237,15 +237,15 @@ these are known issues of a Point-To-Point channel of traditional messaging and
 is described in Section \ref{intro-messaging-pointtopoint}.
 \\ \\
 A more elegant and reliable approach to solve the mentioned problems would be to
-introduce a broker as described in Section \ref{intro-messaging-broker}, that is 
-able to support both batch and real-time consumption and thus is able to hold
+introduce a broker as described in section \ref{intro-messaging-broker}, that is 
+able to feed both batch and real-time consumption and thus is able to hold
 the described requirements given in table XX \todo{make table index}. 
-This broker can act as a single data repository to isolated consumers and gives
+This broker holds a stream of events as a single data repository to isolated consumers and gives
 access to any data that is required, as shown in figure
-\ref{fig:datapipeline_simple} In a survey (Chapter \ref{survey-broker}) we examine the limits of
-traditional message brokers and the needs for lately introduced broker systems
-such as Apache Kafka, Scribe or Flume and further try to compare and categorize those
-systems after their strengths and weaknesses.
+\ref{fig:datapipeline_simple}. In a survey (Chapter \ref{survey-broker}) we
+examine the limits of traditional message brokers and the needs for lately
+introduced broker systems such as Apache Kafka, Scribe or Flume and further try
+to compare and categorize those systems after their strengths and weaknesses.
 
 \begin{figure}[H]
     \centering
@@ -264,19 +264,19 @@ over the system landscape is being reduced. In fact, this opens up a whole new
 set of possibilities in organizational scalability, which is being discussed in
 Chapter \ref{intro-log}.
 
-\section{Notes}
+%\section{Notes}
 
--From traditional PCs and Smartphones to a lot of sensors who are connected to
-the interne -> Internet of Things!
+%-From traditional PCs and Smartphones to a lot of sensors who are connected to
+%the interne -> Internet of Things!
 
-\todo[inline]{Einbringen des folgenden Statements: The nice thing about this
-architecture is that you can now have multiple consumers for the same event
-data. You can have one consumer which simply archives the raw events to some big
-storage; even if you don’t yet have the capability to process the raw events,
-you might as well store them, since storage is cheap and you can use them in
-future. Then you can have another consumer which does some aggregation (for
-example, incrementing counters), and another consumer which does something else.
-Those can all feed off the same event stream.}
+%\todo[inline]{Einbringen des folgenden Statements: The nice thing about this
+%architecture is that you can now have multiple consumers for the same event
+%data. You can have one consumer which simply archives the raw events to some big
+%storage; even if you don’t yet have the capability to process the raw events,
+%you might as well store them, since storage is cheap and you can use them in
+%future. Then you can have another consumer which does some aggregation (for
+%example, incrementing counters), and another consumer which does something else.
+%Those can all feed off the same event stream.}
 
 
 \todo[inline]{move to glossary?}
