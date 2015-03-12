@@ -205,6 +205,8 @@ Low Latency                    & x                          &
 High Throughput                     &                            & x
 &
 \end{tabular}
+\caption{Requirements of batch and stream processing systems}
+\label{table:requirements-batch-stream}
 \end{table}
 
 Note that the mentioned systems do not only consume data for integration and
@@ -239,7 +241,7 @@ is described in Section \ref{intro-messaging-pointtopoint}.
 A more elegant and reliable approach to solve the mentioned problems would be to
 introduce a broker as described in Section \ref{intro-messaging-broker}, that is 
 able to support both batch and real-time consumption and thus is able to hold
-the described requirements given in table XX \todo{make table index}. 
+the described requirements given in table \ref{table:requirements-batch-stream}. 
 This broker can act as a single data repository to isolated consumers and gives
 access to any data that is required, as shown in figure
 \ref{fig:datapipeline_simple} In a survey (Chapter \ref{survey-broker}) we examine the limits of
