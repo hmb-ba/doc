@@ -64,29 +64,26 @@ of any size:
 \subsection{Batch Processing}
 \label{intro-datastream-batchprocessing}
 Traditional batch processing systems nowadays are distinguished between
-map-reduce based and non map-reduce based systems and typically consists of two
-stages, data integration and data analytics. \todo[inline]{ref to literature or glossary} 
+map-reduce based and non map-reduce based systems 
+\todo[inline]{ref to literature or glossary} 
 
 The process of  data integration (a.k.a data extraction-transformation-load, ETL
-\todo{glossary}), faced in the data integration stage, runs at a regular time
-interval, such as daily, weekly or monthly. 
-\\ \\
-Analyzing data that resides in a data store is being faced in the data analytics
-stage and becomes challenging when data size grows and systems may not be able
-to process results within a time limit.
-\cite{Liu:2014:SRP:2628194.2628251}
+\todo{glossary}), runs at a regular time interval, such as daily, weekly or
+monthly. Analyzing data that resides in a data store stage and becomes
+challenging when data size grows and systems may not be able to process results
+within a time limit. \cite{Liu:2014:SRP:2628194.2628251}
 
 \subsection{Real-time Batch Processing}
-
-As the trend shows, the needs of performance and responsiveness in a big data environment can't be fulfilled with 
-traditional batch processing anymore. Instead, real-time processing becomes more 
-important than ever to achieve results from queries in minutes, even seconds. 
+As the trend shows, the needs of performance and responsiveness in a big data
+environment can't be fulfilled with traditional batch processing anymore.
+Instead, real-time processing becomes more important than ever to achieve
+results from queries in minutes, even seconds. 
 \cite{bange2013big}
 
-In real-time processing fashion, systems will address the data integration stage
+In real-time batch processing fashion, systems will address the data integration stage
 with continual input of data. Processing in near-real-time [glossar] to present 
-results within seconds is being addressed in the data analytics stage. Thus,
-real-time processing gives organization the ability to take immediate action
+results within seconds is being addressed in data analytics. Thus,
+real-time batch processing gives organization the ability to take immediate action
 for those times when acting within seconds or minutes is significant.
 \cite{PrpSvyOfDSPS}
 
@@ -101,7 +98,7 @@ is being outdated at the end of it's computation, the speed layer closes this
 gap by constantly processing the most recent data in near real-time fashion. 
 
 \todo[inline]{Besser einordnen, verweis auf stream processing}
-
+\todo[inline]{Illustration}
 \cite{marz2015big} \cite{PrpSvyOfDSPS}
 
 \subsection{Stream Processing}
