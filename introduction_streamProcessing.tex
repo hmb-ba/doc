@@ -149,7 +149,12 @@ quantities of data by taking advantage of both batch and stream processing
 methods. It is split into three layers, the batch layer, the serving layer and
 the speed layer:
 
-\todo[inline]{Illustration}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/lambda-architecture.jpg}
+    \caption{Lambda Architecture}
+    \label{fig:lambda-Architecture}
+\end{figure}
 
 Any query is answered through the serving layer by querying both the speed and
 the batch layer. Where the badge layer periodically computes views on the
@@ -158,9 +163,9 @@ speed layer closes this gap by constantly processing the most recent data in
 near real-time fashion. \cite{marz2015big} \cite{PrpSvyOfDSPS}
 
 \section{Stream Broker}
-\subsection{Need for a Event Stream}
+\subsection{Need for a common data stream}
 Any system which is dependent on a continuous input of data, requires a delivery
-system that can provide data constantly as event stream (can be
+system that can provide data constantly as stream (can be
 compared to an ordered message queue \todo{ref} containing events). Stream
 processing systems, whether being in a lambda architecture or not, obviously
 holds this requirement. On the other hand, in a big data environment there is
