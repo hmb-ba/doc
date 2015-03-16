@@ -22,12 +22,22 @@ Where a data stream can be applied to discrete as well as continuous media, even
 transmitted as discrete messages only. The message as itself can
 be considered as an event message \cite{EIP03}.
 
+If we think more traditionally, even database systems can be thought of as
+an event based systems. The process of creating a backup in form of dumps won't scale
+as we increase the frequency of dumps over time. Not only will the process take
+longer according to the size of the database, also system resources are limited
+during this process. An approach to make this more efficient \todo{why?} is change capture,
+which describes the difference between the state of the affected database rows
+before and after the change as event. If this can be done continuously a sequence of
+row changes is what is being left. This in in fact, can be described as a stream
+of events.
+
 \section{Processing of Events}
 Basically processing of events follows two key objectives: 
-\begin{itemize}
-    \item \textbf{Data Integration:} Making all the data of an organization available in all its services and systems.
-    \item \textbf{Data Analytics:} Preparing collected data for further analysis at any time. 
-\end{itemize}
+\begin{description}
+    \item [Data Integration] \hfill \\ Making all the data of an organization available in all its services and systems.
+    \item [Data Analytics]  \hfill \\ Preparing collected data for further analysis at any time. 
+\end{description}
 
 So data streams consisting of events as it self are not valuable but
 can be taken advantage of by a system that processes these events, produces a
@@ -46,12 +56,12 @@ past. This leads to two different approaches to handle an incoming event stream
 of any size: 
 
 \begin{description}
-    \item[(A) Store raw data]  \hfill \\
+    \item[Store raw data]  \hfill \\
     {Simply storing every single event in a big data store. Through appending
     every incoming event one get a wide history of every activity on the system.
     To analyze the data, a periodic batch process can execute big queries over
     all events to get a result.  $ \Rightarrow $  \textbf{Batch Processing}}
-    \item[(B) Store aggregated data  ] \hfill \\
+    \item[Store aggregated data  ] \hfill \\
     {Instead of persist every single event, directly process the incoming data stream and store
     only an aggregated summary. Because of updating the aggregation with every
     incoming event, getting an overall result is very fast (what we call
@@ -65,7 +75,7 @@ of any size:
 \label{intro-datastream-batchprocessing}
 Traditional batch processing systems nowadays are distinguished between
 map-reduce based and non map-reduce based systems 
-\todo[inline]{ref to literature or glossary} 
+\todo{cite} 
 
 The process of  data integration (a.k.a data extraction-transformation-load, ETL
 \todo{glossary}), runs at a regular time interval, such as daily, weekly or
@@ -73,7 +83,7 @@ monthly. Analyzing data that resides in a data store stage and becomes
 challenging when data size grows and systems may not be able to process results
 within a time limit. \cite{Liu:2014:SRP:2628194.2628251}
 
-\subsection{Real-time Batch Processing}
+%\subsection{Real-time Batch Processing}
 As the trend shows, the needs of performance and responsiveness in a big data
 environment can't be fulfilled with traditional batch processing anymore.
 Instead, real-time processing becomes more important than ever to achieve
@@ -87,19 +97,6 @@ real-time batch processing gives organization the ability to take immediate acti
 for those times when acting within seconds or minutes is significant.
 \cite{PrpSvyOfDSPS}
 
-\subsubsection{Lambda Architecture}
-The lambda architecture introduces a new paradigm for big data which allows
-processing of massive data volumes in near real-time fashion and thus results within
-seconds can be achieved. 
-\\
-Any query is answered through the serving layer by querying 
-both the speed and the batch layer. Where the badge layer computes views on the current collected data and
-is being outdated at the end of it's computation, the speed layer closes this 
-gap by constantly processing the most recent data in near real-time fashion. 
-
-\todo[inline]{Besser einordnen, verweis auf stream processing}
-\todo[inline]{Illustration}
-\cite{marz2015big} \cite{PrpSvyOfDSPS}
 
 \subsection{Stream Processing}
 \label{intro-datastream-streamprocessing}
@@ -121,7 +118,8 @@ Stream processing frameworks---such as Storm, Samza, or Spark
 Streaming---were especially developed to provide rich processing primitives and thus can be taken advantage of
 in the data integration- and processing stages.
 
-\subsection{Complex Event processing (CEP)}
+\subsection{Other Terminology}
+\subsubsection{Complex Event processing (CEP)}
 In literatur there is often a confusion about the difference between
 complex event processing and stream event processing. Both systems work on
 events and produce results based on the properties of the events... 
@@ -130,52 +128,64 @@ identify either opportunities or threats. The goal is to identify significant
 events and respond fast. Sales leads, orders or customer service calls are
 examples.\\
 
-\todo[inline]{wie Event Sourcing, kurz beschreiben damit man weiss wo man den
-Begriff einordnen kann}
+\todo[inline]{incomplete}
 
-\subsection{Event Sourcing}
+\subsubsection{Event Sourcing}
 \label{event-sourcing}
 Regarding to event processing we often met the term \textit{Event Sourcing} in
 literature. It is a pattern originally defined by Martin Fowler which basically
 treats with the same objectives as we mentioned for batch processing just with
-other terms of the Domain-Driven-Design community. Instead of directly updating
-a database record due to an event, every change of a state should individual
-recorded. This leads to a simplified writing sequence (just appending) and gets
-also an event history which can be analyzed in detail. 
+other terms of the Domain-Driven-Design community. Instead of storing aggregated
+data which represents the current state, the basic idea is to capture
+every state change of an application as immutable event object. For later
+analysis, this gives much richer information than just overwriting it. \todo{cite}
+
+\section{Lambda Architecture}
+While batch processing is used for data analysis to get results out of huge
+amount of raw stored data at any time, stream processing reacts to events in
+real time. Both approaches are very useful in different use cases. Lambda
+architecture is a data-processing architecture designed to handle massive
+quantities of data by taking advantage of both batch and stream processing
+methods. It is split into three layers, the batch layer, the serving layer and
+the speed layer:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/lambda-architecture.jpg}
+    \caption{Lambda Architecture}
+    \label{fig:lambda-Architecture}
+\end{figure}
+
+Any query is answered through the serving layer by querying both the speed and
+the batch layer. Where the badge layer periodically computes views on the
+current collected data and is being outdated at the end of it's computation, the
+speed layer closes this gap by constantly processing the most recent data in
+near real-time fashion. \cite{marz2015big} \cite{PrpSvyOfDSPS}
 
 \section{Stream Broker}
+\subsection{Need for a common data stream}
 Any system which is dependent on a continuous input of data, requires a delivery
-system that can provide data constantly. Stream processing
-systems, whether being in a lambda architecture or not, obviously holds this requirement
-as well as being dependent on low latency.
+system that can provide data constantly as stream (can be
+compared to an ordered message queue \todo{ref} containing events). Stream
+processing systems, whether being in a lambda architecture or not, obviously
+holds this requirement. On the other hand, in a big data environment there is
+also the requirement of batch processing systems
+(\ref{intro-datastream-batchprocessing}) being served with data. In a lambda
+architecture this could be done using a stream processing framework
+(\ref{intro-datastream-streamprocessing}) responsible for serving the batch
+processing system with integrated data, ready for data analysis. However, an
+other way of doing so would be a data store---such as the hadoop file system
+(HDFS\todo{gls}---where data can be directly taken for further analysis.
+The same requirement of a data store holds for any
+other business intelligence system followed by the problem of the dependency of
+a data store which eventually---due to the lack of an adapter---can not be
+served with data by a stream processing system as comfortable as the HDFS.
 
-But if we think more traditionally, even database systems can be thought of as
-an event stream. The process of creating a backup in form of dumps won't scale as
-we increase the frequency of dumps over time. Not only will the process take
-longer according to the size of the database, also system resources are limited
-during this process. An approach to make this more efficient is change
-capture, which describes the difference between the state of the affected database
-rows before and after the change (basic principle of Event Sourcing
-\ref{event-sourcing}). If this can be done continuously a continuous
-sequence of row changes is what is being left. This in in fact, can be described 
-as a stream of events resulting in a data stream.
-
-On the other hand, in a big data environment there is also the requirement of
-batch processing systems (\ref{intro-datastream-batchprocessing}) being served
-with data. In a lambda architecture this could be done using a stream
-processing framework (\ref{intro-datastream-streamprocessing}) responsible for
-serving the batch processing system with integrated data, ready for data
-analysis. However, an other way of doing so would be a data store---such as the
-hadoop file system (HDFS)---where data can be directly taken for further analysis.
-\todo[inline]{hdfs glossary}
-The same requirement of a data store holds for any other business intelligence
-system followed by the problem of the dependency of a data store which
-eventually---due to the lack of an adapter---can not be served with data by a
-stream processing system as comfortable as the HDFS.
-
+\subsection{Requirements}
 Facing the two types of processing events---stream- and batch
 processing---together, data integration results as a common stage both system have to
-deal with. Even further, for every system an organization operates, the data
+deal with. Even further, for every system an organization operates, like the
+data warehouse, full-text search indexes, caches or lot more, the data
 integration stage will be present. 
 Additionally, stream processing systems require a continuous
 incoming stream to further integrate and process where batch processing systems
@@ -184,7 +194,7 @@ on the other hand demand a given persistent set of data to further integrate and
 Further more, in terms of stream processing the requirement of low latency is
 essential for any system of this type. For database systems combined with stream
 processing, reliability becomes significantly important to handle critical updates 
-such as replicating the change log as discussed above.
+such as replicating the as discussed above.
 In terms of batch processing however, the demand on low latency is not as
 important as the availability of well integrated data with a high throughput to
 be able to handle a large volume of data in time range as low as possible.
@@ -209,10 +219,10 @@ High Throughput                     &                            & x
 \label{table:requirements-batch-stream}
 \end{table}
 
-Note that the mentioned systems do not only consume data for integration and
+Note that the mentioned systems \todo{which?} do not only consume data for integration and
 processing, they can also have an output. Thus, many systems are both sources and
 destinations for data transfer in consequence of which a system would then need
-two channels \todo[inline]{channel->glossary} per system. 
+two channels \todo{gls} per system. 
 Obviously each output in this constellation is intended to be consumed by 1--N
 system(s) again. Connecting all of these would lead to building a custom
 channel between each pair of system (see Figure \ref{fig:datapipeline_complex}). As the set of system in an organization
@@ -237,7 +247,8 @@ To extend the landscape the chances are high to touch existing systems which is
 not only time intensive but also connected with risks regarding possible failures. In fact,
 these are known issues of a Point-To-Point channel of traditional messaging and
 is described in Section \ref{intro-messaging-pointtopoint}.
-\\ \\
+
+\subsection{Central Platform as Solution}
 A more elegant and reliable approach to solve the mentioned problems would be to
 introduce a broker as described in Section \ref{intro-messaging-broker}, that is 
 able to support both batch and real-time consumption and thus is able to hold
@@ -257,7 +268,6 @@ systems after their strengths and weaknesses.
     \label{fig:datapipeline_simple}
 \end{figure}
 
-
 However, in this constellation integrating a new data system---be it a data source or a data destination---is fairly 
 simple. Connecting it to a single channel attached to the broker is all what is needed 
 to be done. Besides the loosely coupled components, with this architecture
@@ -267,20 +277,16 @@ over the system landscape is being reduced. In fact, this opens up a whole new
 set of possibilities in organizational scalability, which is being discussed in
 Chapter \ref{intro-log}.
 
-\section{Notes}
+%\section{Notes}
 
--From traditional PCs and Smartphones to a lot of sensors who are connected to
-the interne -> Internet of Things!
+%-From traditional PCs and Smartphones to a lot of sensors who are connected to
+%the interne -> Internet of Things!
 
-\todo[inline]{Einbringen des folgenden Statements: The nice thing about this
-architecture is that you can now have multiple consumers for the same event
-data. You can have one consumer which simply archives the raw events to some big
-storage; even if you don’t yet have the capability to process the raw events,
-you might as well store them, since storage is cheap and you can use them in
-future. Then you can have another consumer which does some aggregation (for
-example, incrementing counters), and another consumer which does something else.
-Those can all feed off the same event stream.}
-
-
-\todo[inline]{move to glossary?}
-
+%\todo[inline]{Einbringen des folgenden Statements: The nice thing about this
+%architecture is that you can now have multiple consumers for the same event
+%data. You can have one consumer which simply archives the raw events to some big
+%storage; even if you don’t yet have the capability to process the raw events,
+%you might as well store them, since storage is cheap and you can use them in
+%future. Then you can have another consumer which does some aggregation (for
+%example, incrementing counters), and another consumer which does something else.
+%Those can all feed off the same event stream.}
