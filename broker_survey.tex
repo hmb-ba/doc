@@ -27,7 +27,37 @@
     \item [Active MQ] \hfill \\
         {}
     \item [Rabbit MQ] \hfill \\
-    {}
+    {
+    Performance / Persistence:
+    It is possible for persistence to underperform because the persister is
+    limited in the number of file handles or async threads it has to work with.
+    In both cases this can happen when you have a large number of queues which
+    need to access the disk simultaneously. 
+    (https://www.rabbitmq.com/persistence-conf.html)
+
+
+    In a RabbitMQ Cluster, queues are
+    created and live in a single node, and all nodes know about
+    all the queues. When a node receives a request to a queue
+    that is not available in the current node, it routes the request
+    to the node that has the queue.
+    To provide high availability
+    (HA), RabbitMQ has a mirrored queue arranged in the
+    master-slave fashion, and messages are replicated between
+    master and slave, so the slave can take over if the master
+    has died.
+    (http://aidm.googlecode.com/svn/trunk/apache-site/research/papers/mb2.pdf)
+
+    What RabbitMQ clustering doesn't do is provide guarantees against message loss.
+    Even if you do everything right (set your messages, queues and exchanges to
+    durable, etc.), when a Rabbit cluster node dies, the messages in queues on that
+    node can disappear. This is because RabbitMQ doesn't replicate the contents
+    of queues throughout the cluster. They live only on the node that owns the
+    queue.
+    (http://www.cybershovel.com/b/RabbitMQinAction.pdf
+    http://pdf.th7.cn/down/files/1312/RabbitMQ%20in%20Action.pdf?yundunkey=1c4e3306d3a07226a40e927b533a8c1841426173782_179979013)
+
+    }
     \item [Zero MQ] \hfill \\
     {}
 \end{description}
