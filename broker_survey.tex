@@ -13,56 +13,25 @@ features of each product after.
 \section{Relevant Characteristics}
 \begin{description}
     \item [Architecture] \hfill \\
-    { }
+    {Publish Subscribe / Message Delivery:  Pull or Push / }
     \item [Throughput] \hfill \\
-        { (What it is) (Key Aspects)}
+        {Proportion of messages which can be sent to a broker to the amount of
+        messages which can be consumed in a fixed time interval.}
     \item [Scalability] \hfill \\
-    {}
+    {Ability to dynamically increase performance depending on work load.  }
     \item [Latency]\hfill \\
-    {elapsed time it takes to process a single message   }
-    \item [Scalability] \hfill \\
-    {}
+    {Elapsed time it takes to process a single message for consumption.  }
     \item [Reliability / Fault Tolerance] \hfill \\
-        {Note: The problem with running lots of stand alone brokers or brokers in a
-        network is that messages are owned by a single physical broker at any
-    point in time. If that broker goes down, you have to wait for it to be
-restarted before the message can be delivered. (If you are using non-persistent
-messaging and a broker goes down you generally lose your message). The idea
-behind MasterSlave is that messages are replicated to a slave broker so that
-even if you have a catastrophic hardware failure of the master's machine, file
-system or data centre, you get immediate failover to the slave with no message
-loss.}
-
-    \item [Message delivery] \hfill \\
-    {}
-\item [Independence] \hfill \\
-    {}
-\item [Simplicity] \hfill \\
-    {}
+        {Ability to recovery after a failure with minimal message loss.
+        Possibility to build redundancy through clustering and replication strategy such as
+    master slave or state machine replication. }
+    \item [Independence] \hfill \\
+    { Independence to specific technologies or systems. The more independent
+    a system is, the better it can be integrated in a existing environment. }
     \item [Persistency] \hfill \\ 
-        Note: The main difference is that if you are using
-        persistent delivery, messages are persisted to disk/database so that
-        they will survive a broker restart. When using non-persistent delivery,
-        if you kill a broker then you will lose all in-transit messages. \\
-        Queues: \\
-        Persistent : Message will be saved on disk and sent later if consumer is inactive.\\
-        Non-persistent : Messages will be saved in-memory and sent later if
-        consumer is inactive. But they will not survive a broker re-start. \\
-        Topics: 
-        Persistent and Durable : Message will be saved both on-disk and in-memory
-        and sent later if subscriber is inactive.\\
-        Persistent  and  Non-Durable :
-        Message will not be saved either in-memory or on disk and any inactive
-        subscriber at the moment of message receipt at broker will not receive
-        the message.\\
-        Non-persistent and Durable : Message will be saved
-        in-memory and sent later if subscriber is inactive. So it will not
-        survive a broker re-start.\\
-        Non-persistent and Non-Durable : Message
-        will not be saved either in-memory or on disk and any inactive
-        subscriber at the moment of message receipt at broker will not receive
-        the message. Similar to Persistent and Non-Durable case.\\
-
+        {Ability to offer durable and persistent messages although the broker
+            systems restarts or consumer is inactive for longer period of time
+            (for instance batch processing system). }
 
 \end{description}
 \section{Implementations}
