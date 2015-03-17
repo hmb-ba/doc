@@ -13,10 +13,10 @@ specific aspects will be resolved in detail.
 
 \section{Background}
 
-Apache Kafka was initially developed at LinkedIn\todo{cite} and subsequently
+Apache Kafka was initially developed at LinkedIn\cite{linkedin} and subsequently
 released as an open source project with the Apache Software
-Foundation\todo{cite}. 
-
+Foundation\cite{apachefoundation}. 
+\\ \\
 Initially at LinkedIn the landscape was overwhelmed by the complexity due to
 point-to-point (\ref{intro-messaging-pointtopoint})
 pipelines that delivered data to a single destination with no
@@ -33,12 +33,24 @@ of the data warehouse ETL processes. This could have been solved solved with
 stream processing systems (\ref{intro-datastream-streamprocessing}) but again, 
 due to the lack of any central platform (\ref{intro-datastream-centralplatform})
 that can provide continuous data, was not supported at this point.
+\\ \\
+First attempts towards a piece of infrastructure (e.g. broker) that can server
+stream and batch processing systems were made by experimenting with
+ActiveMQ\cite{activemq}. During tests under full production load they ran into
+several significant problems. It turned out that if the queue backed up beyond what could
+be kept in memory, performance would severely degrade due to heavy amounts of
+random I/O. Inefficiencies had to be accepted regarding clustered consumers
+requiring duplicating the data for each consumer in a separate queue. Further
+difficulties were faced with ActiveMQ's built in persistence mechanism that lead
+to very long restart times. 
+\todo[inline]{well, reasons are not that overwhelming honestly...}
+According to LinkedIn it would have been possible to provide enough buffer to
+keep the ActiveMQ brokers above water but would have required hundred servers to
+process a subset of activity data. As a result, the decision was made to build a
+custom piece of messaging infrastructure targeting high-volume scale-out
+deployment and thus serve batch and stream processing systems. 
 
 
-- Zitat: First, it is interesting to note that Kafka started out as a way to
-make data ingest to Hadoop easier. When there are multiple data sources and
-destinations involved, writing a separate data pipeline for each source and
-destination pairing quickly evolves to an unmaintainable mess.
 \section{Characteristics}
 - Zitat: One key feature of Kafka is its functional simplicity. While there is a
 lot of sophisticated engineering under the covers, Kafka’s general functionality
