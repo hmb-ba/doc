@@ -73,23 +73,32 @@ are designed for programmatic access. Basically it is a simple, append-only data
 structure which contains a sequence of records ordered by time whereas each
 entry is assigned to an unique number, called offset. Thanks to the strict
 ordering insight a log the record offset can be used as timestamp whereas a log
-gets decoupled from any time system.
+gets decoupled from any time system. \cite{apachekafka} \cite{JK-TheLog}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.4\textwidth]{images/log.png}
-    \caption{The  Log}
+    \caption{The  Log \cite{JK-TheLog}}
     \label{fig:the-log}
 \end{figure}
 
-Apache Kafka handles a own log for every
-topic whereas the log handles all published messages as single records. For
-improving throughput and fault tolerance, Kafka can partition a Log
+Apache Kafka handles a own log for every topic whereas the log contains all
+published messages as single records. Compared to traditional messaging systems,
+Kafka does not delete a record after consumption, actually it makes no difference
+ whether or not they have been consumed. As we see later every consumer
+controls its position of the log by its own. Instead Kafka holds record within a
+defined window of data before it deletes the tail of the log. An additional
+feature called log compaction can be activated to reduce the amount of messages
+which need to be deleted by removing only obsolete records. \cite{apachekafka} \cite{JK-TheLog}
+
+Facing the challenges of large distributed systems, a log must scale well. For
+improving scalability and fault tolerance, Kafka can divide a log in multiple
+partition. 
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.5\textwidth]{images/log_anatomy.png}
-    \caption{Partitioned Log}
+    \caption{Partitioned Log \cite{apachekafka}}
     \label{fig:the-log}
 \end{figure}
 
@@ -100,12 +109,12 @@ states of getting replicas is getting much easier. Apache Kafka uses this
 approach for consumption of messages. Every consumer knows its actual offset and
 advance it linearly as it reads messages from the log. The log can be seen as a
 re-playable record of history whereas a consumer also can reset to an older
-offset to reprocess.
+offset to reprocess. \cite{JK-TheLog}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.4\textwidth]{images/state-machine-replication.png}
-    \caption{Log used for replication}
+    \caption{Log used for replication \cite{JK-TheLog}}
     \label{fig:the-log}
 \end{figure}
 
