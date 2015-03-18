@@ -1,0 +1,133 @@
+\chapter{Survey of Message Broker implementations} 
+\label{survey-broker}
+In previous chapters we first discussed the traditional messaging broker as it hosts a queue
+for simply move data between distributed clients without losing messages or
+requiring each component to be always available. Regarding to our second topic,
+the streaming of big data we defined an advanced broker with special abilities
+optimized for further processing events in real-time. 
+
+In the following survey we want to compare implementations of the most related
+broker system by first defining relevant characteristics and compare the
+features of each product after.
+
+\section{Relevant Characteristics}
+\begin{description}
+    \item [Architecture] \hfill \\
+    {Publish Subscribe / Message Delivery:  Pull or Push / }
+    \item [Throughput] \hfill \\
+        {Proportion of messages which can be sent to a broker to the amount of
+        messages which can be consumed in a fixed time interval.}
+    \item [Scalability] \hfill \\
+    {Ability to dynamically increase performance depending on work load.  }
+    \item [Latency]\hfill \\
+    {Elapsed time it takes to process a single message for consumption.  }
+    \item [Reliability / Fault Tolerance] \hfill \\
+        {Ability to recovery after a failure with minimal message loss.
+        Possibility to build redundancy through clustering and replication strategy such as
+    master slave or state machine replication. }
+    \item [Independence] \hfill \\
+    { Independence to specific technologies or systems. The more independent
+    a system is, the better it can be integrated in a existing environment. }
+    \item [Persistency] \hfill \\ 
+        {Ability to offer durable and persistent messages although the broker
+            systems restarts or consumer is inactive for longer period of time
+            (for instance batch processing system). }
+
+\end{description}
+\section{Implementations}
+%\subsection{Traditional Message Broker}
+
+\begin{description}
+    \item [Rabbit MQ] \hfill \\
+    {
+    Performance / Persistence:
+    It is possible for persistence to underperform because the persister is
+    limited in the number of file handles or async threads it has to work with.
+    In both cases this can happen when you have a large number of queues which
+    need to access the disk simultaneously. 
+    (https://www.rabbitmq.com/persistence-conf.html)
+
+
+    In a RabbitMQ Cluster, queues are
+    created and live in a single node, and all nodes know about
+    all the queues. When a node receives a request to a queue
+    that is not available in the current node, it routes the request
+    to the node that has the queue.
+    To provide high availability
+    (HA), RabbitMQ has a mirrored queue arranged in the
+    master-slave fashion, and messages are replicated between
+    master and slave, so the slave can take over if the master
+    has died.
+    (http://aidm.googlecode.com/svn/trunk/apache-site/research/papers/mb2.pdf)
+
+    What RabbitMQ clustering doesn't do is provide guarantees against message loss.
+    Even if you do everything right (set your messages, queues and exchanges to
+    durable, etc.), when a Rabbit cluster node dies, the messages in queues on that
+    node can disappear. This is because RabbitMQ doesn't replicate the contents
+    of queues throughout the cluster. They live only on the node that owns the
+    queue.
+    (http://www.cybershovel.com/b/RabbitMQinAction.pdf
+    http://pdf.th7.cn/down/files/1312/RabbitMQ%20in%20Action.pdf?yundunkey=1c4e3306d3a07226a40e927b533a8c1841426173782_179979013)
+
+    }
+    \item [Active MQ] \hfill \\
+        {Note: Apache ActiveMQ is an open source message broker written in Java
+    together with a full Java Message Service (JMS) client. The Replicated
+    LevelDB Store uses Apache ZooKeeper to pick a master from a set of broker
+    nodes configured to replicate a LevelDB Store. Then synchronizes all slave
+    LevelDB Stores with the master keeps them up to date by replicating all
+    updates from the master. ActiveMQ will preserve the order of messages sent
+    by a single producer to all consumers on a topic. If there is a single
+    consumer on a queue then the order of messages sent by a single producer
+    will be preserved as well. Journal: To achieve high performance of durable
+    messaging in ACtiveMQ V4.x we strongly recommend you use our high
+    performance journal - which is enabled by default. This works rather like a
+    database; messages (and transcation commits/rollbacks and message
+    acknowledgements) are written to the journal as fast as is humanly possible
+    - then at intervals we checkpoint the journal to the long term persistence
+    storage (in this case JDBC).Kind of. A message can be loaded directly from the journal if it was swapped out of memory.
+    The journal cannot be used, however, to recover a durable subscription as it
+    does not keep an ordered index of messages per durable sub. So when a durable
+    sub is activated, the journal checkpoints to flush any messages in the journal
+    to the long term store and then the long term store is used to recover the
+    durable subscription.Brokers cannot share a journal. Each must be
+configured with it's own journal. Broker Clustering: The most common mental model of clustering in
+a JMS context is that there is a collection of JMS brokers and a JMS client
+will connect to one of them; then if the JMS broker goes down, it will
+f we just run multiple brokers on a network and tell the clients about them
+using either static discovery or dynamic discovery, then clients can easily
+failover from one broker to another. However, stand alone brokers don't know
+about consumers on other brokers; so if there are no consumers on a certain
+broker, messages could just pile up without being consumedauto-reconnect to
+another broker. } 
+
+\end{description}
+
+
+%\subsection{Streaming Broker}
+\begin{description}
+    \item [Apache Kafka] \hfill \\
+        { (What it is) (Creator) (License) (Characteristics according features) Fault-tolerance: Beim conumse kann keine message verloren gehen da log durable, nur bei procuder kann es sein }
+    \item [Amazon Kinesis] \hfill \\
+    { Amazon Kinesis is a service for real-time processing of streaming big
+    data. You can push data from many data producers, rapidly and continuously
+as it is generated into Amazon Kinesis, which offers a reliable, highly
+scalable service to capture, and store the data. ping that connects all their
+distributed systems—DynamoDB, RedShift, S3, etc.—as well as the basis for
+distributed stream processing using EC2. \\
+ Kinesis keeps messages just for 24 hours no Log Compaction. Thus it cannot be
+ used for checkpointing and state store changelogging. Another service must be
+ used for durable storage.\\
+    
+ }
+    \item [Scribe] \hfill \\
+    {}
+    \item [Kastrell] \hfill \\
+    {}
+    \item [Apache Flume] \hfill \\
+    {Flume is a distributed logging service specializing on being a reliable way of getting stream and log data into HDFS.}
+\end{description}
+
+\section{Conslusion}
+
+\todo[inline]{Welches System passt für welchen Anwendungsfall und welche nicht (Gründe)}

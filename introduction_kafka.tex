@@ -66,6 +66,48 @@ independence from any other applications (excepting Apache ZooKeeper)
 \end{description}
 
 \section{The Log}
+Apache Kafka uses a so-called commit log for managing messages within the
+broker. This log has nothing in common with "application logging", as traces of
+a software designed for human read. Instead, logs in the context of distributed systems
+are designed for programmatic access. Basically it is a simple, append-only data
+structure which contains a sequence of records ordered by time whereas each
+entry is assigned to an unique number, called offset. Thanks to the strict
+ordering insight a log the record offset can be used as timestamp whereas a log
+gets decoupled from any time system.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{images/log.png}
+    \caption{The  Log}
+    \label{fig:the-log}
+\end{figure}
+
+Apache Kafka handles a own log for every
+topic whereas the log handles all published messages as single records. For
+improving throughput and fault tolerance, Kafka can partition a Log
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/log_anatomy.png}
+    \caption{Partitioned Log}
+    \label{fig:the-log}
+\end{figure}
+
+Logs originally come from databases where they are used to for replication
+whereas the log includes records of what happened. Describing every replica by
+the maximum log entry it has processed, the problem of coordinating
+states of getting replicas is getting much easier. Apache Kafka uses this
+approach for consumption of messages. Every consumer knows its actual offset and
+advance it linearly as it reads messages from the log. The log can be seen as a
+re-playable record of history whereas a consumer also can reset to an older
+offset to reprocess.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{images/state-machine-replication.png}
+    \caption{Log used for replication}
+    \label{fig:the-log}
+\end{figure}
 
 \section{Components}
 \subsection{Persistance}
