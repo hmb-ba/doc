@@ -66,6 +66,7 @@ independence from any other applications (excepting Apache ZooKeeper)
 \end{description}
 
 \section{The Log}
+\label{intro-kafka-log}
 Apache Kafka uses a so-called commit log for managing messages within the
 broker. This log has nothing in common with "application logging", as traces of
 a software designed for human read. Instead, logs in the context of distributed systems
@@ -120,28 +121,29 @@ offset to reprocess. \cite{JK-TheLog}
 
 \section{Components}
 \subsection{Persistance}
-Apache Kafka stores all data immediately to a persistent log\todo{ref to log} 
-and therefore relies heavily on the file system \todo{gls}.
+Apache Kafka stores all data immediately to a persistent log
+(\ref{intro-kafka-log}) 
+and therefore relies heavily on the \gls{file system}.
 Instead of flushing incoming messages from producers directly to the disks, the
-data is stored as a compact byte structure within the page cache \todo{gls}.
+data is stored as a compact byte structure within the \gls{page cache}.
 \\ \\
 The process of copying the data to the disk is handled by the operating system
 that will not only use linear reads and writes \todo{gls} as a pattern for heavy
-optimization but also provides read-ahead und write-behind\todo{gls} techniques.
-The latter will prefetch data in large block multiples and group smaller logical
-writes into large physical writes. Thus, a SATA RAID-5 \todo{gls} of six 7200rpm
+optimization but also provides read-ahead and write-behind techniques.
+The latter will pre-fetch data in large block multiples and group smaller logical
+writes into large physical writes. Thus, a SATA RAID-5 of six 7200rpm
 disks will achieve a performance of 600MB/s in writes.
 \\ \\
 As a result of of the mentioned factors of using the file system and relying on
-pagecache leads to the fact that Apache Kafa claims access to all free memory.
+\gls{page cache} leads to the fact that Apache Kafka claims access to all free memory.
 Doing so will result in a cache of up to 28-30GB on a 32GB machine. In a default
 setup, data is kept in memory for 7 days to provide data required for processing
 directly from the memory. This duration should be set according to of one's own
 needs. In fact, the memory stays persistent during a restart of the Kafka
 service but won't if the server restarts for example. In the latter scenario,
-Apache Kafka will restore all data from the disk to the memory. i
+Apache Kafka will restore all data from the disk to the memory.
 \\ \\
-One drawback of this model of not immediately writing data to disk can not be
+One drawback following this model of not immediately writing data to disk can not be
 omitted. A small number of messages can be lost in the event of a hard server
 failure before messages are transfered to the Kafka brokers or flushed to disk. 
 
