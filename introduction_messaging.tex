@@ -205,22 +205,34 @@ can catch up at any time whereas the risk of bottleneck lies at the broker thus
  environment a consumer never knows whether a message is ready for consumption
  or not. In worst case this ends up with a read loop where the consumer
  constantly need to check the queue. \cite{apachekafka} }
-    \item [Scalability] \hfill \\
-    {Ability to dynamically increase performance depending on work load.  }
-    \item [Latency]\hfill \\
-    {Elapsed time it takes to process a single message for consumption.  }
-    \item [Reliability / Fault Tolerant] \hfill \\
-        {Ability to recovery after a failure with minimal message loss.
-        Possibility to build redundancy through clustering and replication strategy such as
-    master slave or state machine replication. }
+    \item [Delivery Reliability] \hfill \\
+    {
+    A reliable delivery of messages can promise a specific behaviour to producer
+    and consumer. A message broker typically supports one ore more of the
+    following guarantees.
+    \textit{At most once} guarantees that messages may be lost but are never
+    redelivered. \textit{At least once} is defined that messages are never lost
+    but may be redelivered. The \textit{Exactly once} semantic which is very
+    typical guarantees that each message is delivered only once. Broker system
+    which use the \textit{In Order} semantic deliver messages to the consumer in
+    the strict same order they are sent from the producer to the broker. 
+    }
     \item [Independence] \hfill \\
     { Independence to specific technologies or systems. The more independent a
         message broker is, the better it can be integrated in a existing
         environment. The use of standards and effective standardized interfaces
         promotes independence.}
-    \item [Persistency] \hfill \\ 
+    \item [Scalability] \hfill \\
+    {Ability to dynamically increase performance depending on work load.  }
+    \item [Latency]\hfill \\
+    {Elapsed time it takes to process a single message for consumption.  }
+\item [Fault Tolerance] \hfill \\
+        {Ability to recovery after a failure with minimal message loss.
+        Possibility to build redundancy through clustering and replication strategy such as
+    master slave or state machine replication. }
+        \item [Persistency] \hfill \\ 
         {Ability to offer durable and persistent messages although the broker
-            systems restarts or consumer is inactive for longer period of time
+            systems restarts, crashes or consumer is inactive for longer period of time
             (for instance batch processing system). }
     \item [Throughput] \hfill \\
         {Proportion of messages which can be sent to a broker to the amount of
@@ -248,6 +260,6 @@ message broker in environment where we want to process the same stream of
 data in multiple ways. We will go in deeper detail to stream processing in the
 following chapter. \cite{EIP03}
 
-\todo[inline]{Beschreibung und Sequenzdiagram: Consumer meldet sich für den
-Empfang beim Broker an } 
+%\todo[inline]{Beschreibung und Sequenzdiagram: Consumer meldet sich für den
+%Empfang beim Broker an } 
 
