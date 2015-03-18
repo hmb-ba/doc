@@ -35,7 +35,6 @@ due to the lack of any central platform (\ref{intro-datastream-centralplatform})
 that can provide continuous data, was not supported at this point.
 \cite{goodhope2012building}
 
-\\ \\
 First attempts towards a piece of infrastructure (e.g. broker) that can server
 stream and batch processing systems were made by experimenting with
 ActiveMQ\cite{activemq}. During tests under full production load they ran into
@@ -76,7 +75,7 @@ a software designed for human read. Instead, logs in the context of distributed 
 are designed for programmatic access. Basically it is a simple, append-only data
 structure which contains a sequence of records ordered by time whereas each
 entry is assigned to an unique number, called offset. Thanks to the strict
-ordering insight a log the record offset can be used as timestamp whereas a log
+ordering inside a log the record offset can be used as timestamp whereas a log
 gets decoupled from any time system. \cite{apachekafka} \cite{JK-TheLog}
 
 \begin{figure}[H]
@@ -89,31 +88,21 @@ gets decoupled from any time system. \cite{apachekafka} \cite{JK-TheLog}
 Apache Kafka handles a own log for every topic whereas the log contains all
 published messages as single records. Compared to traditional messaging systems,
 Kafka does not delete a record after consumption, actually it makes no difference
- whether or not they have been consumed. As we see later every consumer
-controls its position of the log by its own. Instead Kafka holds record within a
-defined window of data before it deletes the tail of the log. An additional
-feature called log compaction can be activated to reduce the amount of messages
+ whether or not they have been consumed. As we see later, every consumer
+controls its position of the log by its own. Kafka can hold records within a
+defined time window before it deletes the oldest records of the log.
+Further more, an additional feature called log compaction can be activated to reduce the amount of messages
 which need to be deleted by removing only obsolete records. \cite{apachekafka} \cite{JK-TheLog}
 
-Facing the challenges of large distributed systems, a log must scale well. For
-improving scalability and fault tolerance, Kafka can divide a log in multiple
-partition. 
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.5\textwidth]{images/log_anatomy.png}
-    \caption{Partitioned Log \cite{apachekafka}}
-    \label{fig:the-log}
-\end{figure}
-
 Logs originally come from databases where they are used to for replication
-whereas the log includes records of what happened. Describing every replica by
-the maximum log entry it has processed, the problem of coordinating
-states of getting replicas is getting much easier. Apache Kafka uses this
-approach for consumption of messages. Every consumer knows its actual offset and
-advance it linearly as it reads messages from the log. The log can be seen as a
+whereas the log includes records of what happened. Every change or update of a
+log leads to a new state that represents a version including all the updates
+done in past. Describing every replica by the latest log entry it has processed, 
+the problem of coordinating states of distributed replicas is getting much easier.
+Apache Kafka uses this approach for consumption of messages. Every consumer knows its actual offset and
+increases it linearly as it reads messages from the log. The log can be seen as a
 re-playable record of history whereas a consumer also can reset to an older
-offset to reprocess. \cite{JK-TheLog}
+state---by using the offset---to reprocess. \cite{JK-TheLog}
 
 \begin{figure}[H]
     \centering
@@ -123,6 +112,10 @@ offset to reprocess. \cite{JK-TheLog}
 \end{figure}
 
 \section{Components}
+
+\subsection{Consumer / Producer}
+- consumer / producer grouping
+
 \subsection{Persistance}
 Apache Kafka stores all data immediately to a persistent log
 (\ref{intro-kafka-log}) 
@@ -145,10 +138,30 @@ directly from the memory. This duration should be set according to of one's own
 needs. In fact, the memory stays persistent during a restart of the Kafka
 service but won't if the server restarts for example. In the latter scenario,
 Apache Kafka will restore all data from the disk to the memory.
-\\ \\
+\cite{apachekafka} \\ \\
 One drawback following this model of not immediately writing data to disk can not be
 omitted. A small number of messages can be lost in the event of a hard server
-failure before messages are transfered to the Kafka brokers or flushed to disk. 
+failure before messages are transfered to the Kafka brokers or flushed to disk.
+\cite{goodhope2012building}
+
+\subsection{Partitioning}
+Facing the challenges of large distributed systems, a log must scale well. For
+improving scalability and fault tolerance, Kafka can divide a log in multiple
+partitions and is a way to parallelize the consumption of the messages, whereas
+the total number of partitions in a broker cluster need to be at least the same
+as the number of consumers (or producers) in a consumer (or producer) group.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/log_anatomy.png}
+    \caption{Partitioned Log \cite{apachekafka}}
+    \label{fig:the-log}
+\end{figure}
+
+Each member---be it on consumer or producer side---will split the burden of
+processing the topic between themselves according to the partitioning so that
+one member will only be concerned with messages in the partition itself is
+assigned to. 
 
 \subsection{Message Delivery}
 
