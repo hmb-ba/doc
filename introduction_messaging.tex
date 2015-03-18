@@ -188,6 +188,37 @@ which we can adapt for a message based environment by using the common terms.
 
 %\subsection{Transformation}
 
+\subsection{Characteristics}
+As described a messaging system has its strengths in interoperability and louse
+coupling of distributed computers. A message broker in turn has also many further
+characteristic where we have described the most related to our work as follows:  
+
+\begin{description}
+    \item [Architecture] \hfill \\
+    {Publish Subscribe / Message Delivery:  Pull or Push / }
+        \item [Scalability] \hfill \\
+    {Ability to dynamically increase performance depending on work load.  }
+    \item [Latency]\hfill \\
+    {Elapsed time it takes to process a single message for consumption.  }
+    \item [Reliability / Fault Tolerant] \hfill \\
+        {Ability to recovery after a failure with minimal message loss.
+        Possibility to build redundancy through clustering and replication strategy such as
+    master slave or state machine replication. }
+    \item [Independence] \hfill \\
+    { Independence to specific technologies or systems. The more independent a
+        message broker is, the better it can be integrated in a existing
+        environment. The use of standards and effective standardized interfaces
+        promotes independence.}
+    \item [Persistency] \hfill \\ 
+        {Ability to offer durable and persistent messages although the broker
+            systems restarts or consumer is inactive for longer period of time
+            (for instance batch processing system). }
+    \item [Throughput] \hfill \\
+        {Proportion of messages which can be sent to a broker to the amount of
+        messages which can be consumed in a fixed time interval.}
+
+\end{description}
+
 \subsection{Publish / Subscribe Channel} 
 Basically, a channel is equivalent to the managed queues we described so far. In
 a channel one application can write messages and another one reads that
@@ -208,3 +239,4 @@ of having multiple consumers of a message channel, is decisive for using a
 message broker in environment where we want to process the same stream of
 data in multiple ways. We will go in deeper detail to stream processing in the
 following chapter. \cite{EIP03}
+
