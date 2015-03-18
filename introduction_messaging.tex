@@ -196,9 +196,16 @@ characteristic where we have described the most related to our work as follows:
 \begin{description}
     \item [Architecture] \hfill \\
     { A fundamental design decision for a message broker is whether consumers
-    should pull data from brokers or brokers should push data to consumers. In a
-push-based system consumers  }
-        \item [Scalability] \hfill \\
+    should pull data from brokers or brokers should push data to consumers. This
+has direct impacts to the performance of a broker system whereas in a push-based
+environment the consumers can be the bottleneck when its consumption rate falls
+below the rate of production. In a pull-based system consumers which fall back
+can catch up at any time whereas the risk of bottleneck lies at the broker thus
+ a message broker should scale well. On the other hand in a pull-based
+ environment a consumer never knows whether a message is ready for consumption
+ or not. In worst case this ends up with a read loop where the consumer
+ constantly need to check the queue. }
+    \item [Scalability] \hfill \\
     {Ability to dynamically increase performance depending on work load.  }
     \item [Latency]\hfill \\
     {Elapsed time it takes to process a single message for consumption.  }
@@ -218,7 +225,6 @@ push-based system consumers  }
     \item [Throughput] \hfill \\
         {Proportion of messages which can be sent to a broker to the amount of
         messages which can be consumed in a fixed time interval.}
-
 \end{description}
 
 \subsection{Publish / Subscribe Channel} 
