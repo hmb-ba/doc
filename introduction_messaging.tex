@@ -229,7 +229,11 @@ can catch up at any time whereas the risk of bottleneck lies at the broker thus
 \item [Fault Tolerance] \hfill \\
         {Ability to recovery after a failure with minimal message loss.
         Possibility to build redundancy through clustering and replication strategy such as
-    master slave or state machine replication. }
+        master slave\todo{gls} or state machine replication\todo{gls}. It is a significant
+    characteristic how a message broker syncs its replications and decides which
+    of the nodes to get active if the master fails. Also it is important that in case of
+failure the system can recover as quickly as possible and with minimal
+throughput deficit.   }
         \item [Persistency] \hfill \\ 
         {Ability to offer durable and persistent messages although the broker
             systems restarts, crashes or consumer is inactive for longer period of time

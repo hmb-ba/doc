@@ -116,7 +116,7 @@ offset to reprocess. \cite{JK-TheLog}
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.4\textwidth]{images/state-machine-replication.png}
-    \caption{Log used for replication \cite{JK-TheLog}}
+    \caption{Peers can sync their state with the log \cite{JK-TheLog}}
     \label{fig:the-log}
 \end{figure}
 
@@ -149,8 +149,26 @@ omitted. A small number of messages can be lost in the event of a hard server
 failure before messages are transfered to the Kafka brokers or flushed to disk. 
 
 \subsection{Message Delivery}
-
+\label{kafka-message-delivery}
+\todo[inline]{kafka = pull based model}
+\todo[inline]{kafa's guarantees regarding message delivery}
 \subsection{Replication}
+To hold the defined guarantees (\ref{kafka-message-delivery}) regarding to system
+or network failures, Apache Kafka supports \gls{replication} on the level of log
+partitions \todo{ref}. Thereby it can replicate specific topics across a configurable
+number of other other Kafka nodes. Every topic has a defined leader node which
+is active in normal operation. A leader node can have zero or more followers
+which are responsible for replicating the entries of the leader log. The followers
+do this by simply act as a normal Kafka consumer of the leader node and
+constantly update their own log so that it is identical. Every incoming message
+needs to be replicated by every follower node before any other consumer can get
+it. A fully replicated message is considered as "commited". This guarantees that
+the consumer need not worry about potentially seeing a message that could be
+lost if the leader fails. \cite{apachekafka}
+
+\todo[inline]{illustration}
+
+\todo[inline]{zookeeper}
 
 \subsection{Compression}
 
