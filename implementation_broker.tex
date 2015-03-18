@@ -1,0 +1,24 @@
+\chapter{Implementation Broker}
+
+\section{Persistence}
+
+- for each topic a folder
+- separate folders over partitions (1;2) -> topic\_0; topic\_1
+- file name: offset of the first message it contains (next file: S bytes (max log size, given in configuration) from previous file)
+- file format: sequence of log entries
+- log entry: N (4 byte integer -> message length) followed by message (N message bytes)
+- message: unique identifier (64 bit integer offset -> byte position of the start of this message in the stream of all messages ever sent to that topic on that partition)
+
+On-disk format of a message:
+
+offset: 8 bytes
+message length : 4 bytes (value: 1+4+n) 
+magic value  : 1 byte
+crc            : 4 bytes
+payload        : n bytes
+    ?:              : 1 byte
+    ?:              : 4 bytes
+    message length  : 4 bytes
+    message         : n bytes
+
+

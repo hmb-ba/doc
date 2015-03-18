@@ -120,35 +120,30 @@ offset to reprocess. \cite{JK-TheLog}
 
 \section{Components}
 \subsection{Persistance}
-- disk are fast with linear writes -> example: 7200rpm raid5 ~600MB/s
-- operating system read/write ahead
-- keep page cache staying warm and store compact byte structure rather than individual objects
-- maintaining coherency between the cache and filesystem in the OS
-- All data is immediately written to a persistent log on the filesystem without necessarily flushing to disk. In effect this just means that it is transferred into the kernel's pagecache.see also: https://www.varnish-cache.org/trac/wiki/ArchitectNotes
-- Instead of  a per-consumer queue with an associated BTree or other general-purpose random access data structures
-  a persistent queue could be built on simple reads and appends to files
-  This structure has the advantage that all operations are O(1) and reads do not block writes or each other.
-- performance is completely decoupled from the data size
-- unlimited disk space without any performance penalty means that we can provide some features like retain messages for a relative long period (say a week)
-
-- for each topic a folder
-- separate folders over partitions (1;2) -> topic\_0; topic\_1
-- file name: offset of the first message it contains (next file: S bytes (max log size, given in configuration) from previous file)
-- file format: sequence of log entries
-- log entry: N (4 byte integer -> message length) followed by message (N message bytes)
-- message: unique identifier (64 bit integer offset -> byte position of the start of this message in the stream of all messages ever sent to that topic on that partition)
-
-On-disk format of a message:
-
-offset: 8 bytes
-message length : 4 bytes (value: 1+4+n) 
-magic value  : 1 byte
-crc            : 4 bytes
-payload        : n bytes
-    ?:              : 1 byte
-    ?:              : 4 bytes
-    message length  : 4 bytes
-    message         : n bytes
+Apache Kafka stores all data immediately to a persistent log\todo{ref to log} 
+and therefore relies heavily on the file system \todo{gls}.
+Instead of flushing incoming messages from producers directly to the disks, the
+data is stored as a compact byte structure within the page cache \todo{gls}.
+\\ \\
+The process of copying the data to the disk is handled by the operating system
+that will not only use linear reads and writes \todo{gls} as a pattern for heavy
+optimization but also provides read-ahead und write-behind\todo{gls} techniques.
+The latter will prefetch data in large block multiples and group smaller logical
+writes into large physical writes. Thus, a SATA RAID-5 \todo{gls} of six 7200rpm
+disks will achieve a performance of 600MB/s in writes.
+\\ \\
+As a result of of the mentioned factors of using the file system and relying on
+pagecache leads to the fact that Apache Kafa claims access to all free memory.
+Doing so will result in a cache of up to 28-30GB on a 32GB machine. In a default
+setup, data is kept in memory for 7 days to provide data required for processing
+directly from the memory. This duration should be set according to of one's own
+needs. In fact, the memory stays persistent during a restart of the Kafka
+service but won't if the server restarts for example. In the latter scenario,
+Apache Kafka will restore all data from the disk to the memory. i
+\\ \\
+One drawback of this model of not immediately writing data to disk can not be
+omitted. A small number of messages can be lost in the event of a hard server
+failure before messages are transfered to the Kafka brokers or flushed to disk. 
 
 \subsection{Message Delivery}
 
