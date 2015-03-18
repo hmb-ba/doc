@@ -21,7 +21,7 @@ Initially at LinkedIn the landscape was overwhelmed by the complexity due to
 point-to-point (\ref{intro-messaging-pointtopoint})
 pipelines that delivered data to a single destination with no
 integration between. Messages were written to aggregated files and then copied
-to ETL servers and further loaded into data warehousing and batch
+to ETL servers (data integration) and further loaded into data warehousing and batch
 processing (\ref{intro-datastream-batchprocessing})
 clusters. Thus, this service included the lack of real-time data access which
 is---especially for a data driven company that populates activity-driven news
@@ -29,7 +29,7 @@ feeds---an essential requirement. In fact, this fragility and complexity of this
 pipeline lead to inevitable delays in adding new types of activity data.
 Besides the feature wise limitations, also the detection time of operational
 problems increased over time due to the ever-increasing pressure on the latency
-of the data warehouse ETL processes. This could have been solved solved with
+of the data warehouse processes. This could have been solved with
 stream processing systems (\ref{intro-datastream-streamprocessing}) but again, 
 due to the lack of any central platform (\ref{intro-datastream-centralplatform})
 that can provide continuous data, was not supported at this point.
