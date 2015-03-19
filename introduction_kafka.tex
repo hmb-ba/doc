@@ -114,14 +114,16 @@ fact, the producer sends data directly to the leader of a partition on the
 broker. In order to help the producer finding the correct server and partition
 leader, Kafka can answer a request for meta-data about which servers are alive
 and where the leaders for the partitions of a topic are at any given time. Thus
-the producer can direct its requests appropriately.
+the producer can direct its requests appropriately. \cite{apachekafka}
 \\ \\
-Like the consumer, also the producer supports batching
-(\ref{intro-kafka-components-batching}) of messages whereas it can be configured
-to accumulate no more than a fixed number of messages and to wait no longer than
-some fixed latency bound (e.g. 64 kilobytes or 10 milliseconds). Thus, batching
-allows fewer but larger I/O operations on the servers and results in higher
-throughput. 
+The Kafka producer client can be configured to send messages in either a
+synchronous or asynchronous fashion. The asynchronous mode allows the client to
+batch (\ref{intro-kafka-components-batching}) small messages into larger data
+chunks before sending it over the network. This can be configured to accumulate
+no more than a fixed number of messages and to wait no longer than some fixed
+latency bound (e.g. 64 kilobytes or 10 milliseconds). Thus, batching allows
+fewer but larger I/O operations on the servers and results in higher throughput.
+\cite{apachekafka} \cite{goodhope2012building}
 
 \subsection{Consumer}
 
@@ -154,7 +156,7 @@ advantage Kafka relies on the pull-model results in the possibility of
 aggressive batching of data sent to the consumer (see
 \ref{intro-kafka-components-batching}). Apache Kafka avoids the naive approach
 of busy-waiting for data to arrive but rather allows the consumer request to
-block in a \gls{long poll}.
+block in a \gls{long poll}. \cite{apachekafka}
 \\ \\
 Unlike most other messaging systems Apache Kafka does not keep track about what
 messages have been consumed on the broker and thus does not rely on any
@@ -166,6 +168,7 @@ benefit, a consumer can rewind back to an old offset and re-consume data.
 
 
 \subsection{Persistance}
+\label{kafka-persistence}
 Apache Kafka stores all data immediately to a persistent log
 (\ref{intro-kafka-log}) 
 and therefore relies heavily on the \gls{file system}.
@@ -271,13 +274,17 @@ the replica that registers first becomes the new leader.
 \subsection{Batching}
 \label{intro-kafka-components-batching}
 
-%\subsection{The Producer}
-
-%\subsection{The Consumer}
-%While many brokered message queue systems have the broker maintain the state of
-%its consumers, Kafka does not.
-
-\subsubsection{Grouping}
+The trade-off between latency and throughput is addressed in Apache Kafka by
+grouping small messages together--referred to as batching. Rather on relying
+Nagle's algorithm on a TCP level, batching on the producer side is implemented
+at the application level which allows precise timeout and message count
+threshold that triggers the send. The broker itself does not do further batching
+of filesystem writes but rather relies on the file system fully (as described in
+\ref{kafka-persistence}) which brings an improvement as significant as it would
+not make sense to further try to improve manually. Consumer data fetch requests
+are also batched effectively as well by allowing the user to pull data from many
+topics and partitions in a single request to avoid small requests on low-volume
+topics. \cite{goodhope2012building}
 
 \subsubsection{Ordering (offset)}
 
