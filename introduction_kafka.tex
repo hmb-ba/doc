@@ -52,13 +52,6 @@ custom piece of messaging infrastructure targeting high-volume scale-out
 deployment and thus serve batch and stream processing systems. 
 \cite{goodhope2012building}
 
-
-\section{Characteristics}
-- Zitat: One key feature of Kafka is its functional simplicity. While there is a
-lot of sophisticated engineering under the covers, Kafka’s general functionality
-is relatively straightforward. Part of this simplicity comes from its
-independence from any other applications (excepting Apache ZooKeeper)
-
 \section{Use Cases}
 \begin{description}
     \item [Traditional message broker]
@@ -210,6 +203,7 @@ Kafka cluster size. \cite{apachekafka}
 
 
 \subsection{Replication}
+\label{kafka-replication}
 To hold the defined guarantees (\ref{kafka-guarantees}) regarding to system
 or network failures, Apache Kafka supports \gls{replication} on the level of log
 partitions (\ref{kafka-partitioning}). Thereby it can replicate specific topics
@@ -276,23 +270,32 @@ the replica that registers first becomes the new leader.
 As resume from the descriptions above we list guarantees of Kafka regarding
 message delivery, fault tolerance and ordering. 
 
-Message delivery :
-- 
+\begin{description}
 
-Fault Tolerance:
-- guarantee that any successfully published message will not be lost and can be
- consumed
-- A topic with replication factor N, will tolerate  N-1 Server failures without
-losing any messages to the log 
-- no guarantee for producer, that message is published in case of network error
-(will be added in later version)
+\item[Delivery Model] \hfill \\
+    Kafka guarantees at-least-once delivery by default and allows the user to
+    implement at most once delivery by disabling retries on the producer and
+    committing its offset prior to processing a batch of messages. Exactly-once
+    delivery requires co-operation with the destination storage system but Kafka
+    provides the offset which makes implementing this
+    straight-forward.\cite{apachekafka}
 
-Ordering guarantees: 
- - Messages from producer to a topic partition will be appendend in the order
- (controlled by offset number)
- they are sent
- -Consumer sees messages in the order they are stored in the log 
- -
+\item[Fault Tolerance] \hfill \\
+    It is guaranteed that any successfully published message will not be lost
+    and can be consumed. Further, a topic with replication
+    (\ref{kafka-replication}) factor N will tolerate N-1 server failures without
+    losing any messages. However there is no guarantee for the producer, that
+    a message is fully published in case of a network error. A feature which
+    enables the producer to retry publishing a message as idempotent
+    \todo{gls} request may be added in a later version of Kafka. \cite{apachekafka}
 
-\section{Configuration Management (Zookeeper)}
-\subsection{PAXO Algorithm}
+\item[Message Ordering] \hfill \\
+    Thanks to the use of a log with sequential numbers for each entry (offset),
+    Apache Kafka guarantees that messages from a producer to a topic partition
+    will be appended in the order they are sent as well consumers see messages
+    in the order they are stored in the log. \cite{apachekafka}
+
+\end{description}
+
+%\section{Configuration Management (Zookeeper)}
+%\subsection{PAXO Algorithm}
