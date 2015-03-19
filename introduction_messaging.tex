@@ -229,12 +229,13 @@ can catch up at any time whereas the risk of bottleneck lies at the broker thus
     {Elapsed time it takes to process a single message for consumption.  }
 \item [Fault Tolerance] \hfill \\
         {Ability to recovery after a failure with minimal message loss.
-        Possibility to build redundancy through clustering and replication strategy such as
-        master slave\todo{gls} or state machine replication\todo{gls}. It is a significant
-    characteristic how a message broker syncs its replications and decides which
-    of the nodes to get active if the master fails. Also it is important that in case of
-failure the system can recover as quickly as possible and with minimal
-throughput deficit.   }
+            Possibility to build redundancy through clustering\todo{gls} and
+            replication strategy such as master slave\todo{gls} or state machine
+            replication\todo{gls}. It is a significant characteristic how a
+            message broker syncs its replications and elect which of the nodes
+            to get active if the master fails. Also it is important that in case
+            of failure the system can recover as quickly as possible and with
+            minimal throughput deficit.   }
         \item [Persistency] \hfill \\ 
         {Ability to offer durable and persistent messages although the broker
             systems restarts, crashes or consumer is inactive for longer period of time

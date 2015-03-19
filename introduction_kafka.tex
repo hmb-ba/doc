@@ -184,8 +184,13 @@ omitted. A small number of messages can be lost in the event of a hard server
 failure before messages are transfered to the Kafka brokers or flushed to disk.
 \cite{goodhope2012building}
 
+<<<<<<< HEAD
 \subsection{Partitioning} 
 
+=======
+\subsection{Partitioning}
+\label{kafka-partitioning}
+>>>>>>> 59816b773cc3bb7d736af6ff174e45e360093999
 Facing the challenges of large distributed systems, a log must scale well. For
 improving scalability and fault tolerance, Kafka can divide a log in multiple
 partitions and is a way to parallelize the consumption of the messages, whereas
@@ -212,24 +217,57 @@ Kafka cluster size. \cite{apachekafka}
 \label{kafka-message-delivery}
 \todo[inline]{kafka = pull based model}
 \todo[inline]{kafa's guarantees regarding message delivery}
+
+- guarantee that any successfully published message will not be lost and can be
+ consumed
+
 \subsection{Replication}
-To hold the defined guarantees (\ref{kafka-message-delivery}) regarding to
-system or network failures, Apache Kafka supports \gls{replication} on the level
-of log partitions \todo{ref}. Thereby it can replicate specific topics across a
-configurable number of other other Kafka nodes. Every topic has a defined leader
-node which is active in normal operation. A leader node can have zero or more
-followers which are responsible for replicating the entries of the leader log.
-The followers do this by simply act as a normal Kafka consumer of the leader
-node and constantly update their own log so that it is identical. Every incoming
-message needs to be replicated by every follower node before any other consumer
-can get it. A fully replicated message is considered as "commited". This
-guarantees that the consumer need not worry about potentially seeing a message
-that could be lost if the leader fails. \cite{apachekafka}
 
-\todo[inline]{illustration}
+To hold the defined guarantees (\ref{kafka-message-delivery}) regarding to system
+or network failures, Apache Kafka supports \gls{replication} on the level of log
+partitions (\ref{kafka-partitioning}). Thereby it can replicate specific topics
+across a configurable number of other other Kafka servers (a.k.a. nodes). Every
+topic has defined a leader node which is active in normal operation. Producers
+send data directly to the broker that is leader. A leader node can have zero or
+more followers which are responsible for replicating the entries of the active
+log. The followers do this by simply act as a normal Kafka consumer of the
+leader node and constantly update their own log so that it is identical.
+\cite{apachekafka}
 
+\todo[inline]{illustration} 
 
-\todo[inline]{zookeeper}
+If a leader node crashes, Kafka needs to choose a new one from among the
+followers. Instead using the common algorithm of quroum replication \todo{gls}, it
+has its own approach called in-sync replicas which is based on primary-backup
+replication\todo{gls}. In this algorithm the leader node
+constantly keeps track of its followers by managing a set of \textit{in-sync}
+nodes, called ISR (in-sync replicas). If one of these nodes crashes or falls
+behind in replicating, the leader will dynamically remove it from its ISR. If a
+follower comes back and catches up to the actual state the leader will reinsert
+it. \textbf{Only members of this set can be elected as new leader}. An incoming
+message needs to be replicated by every \textit{in-sync} follower before any
+other consumer can get it. A fully replicated message is considered as
+"commited". This guarantees that the consumer need not worry about potentially
+seeing a message that could be lost if the leader fails. \cite{apachekafka}
+\cite{kafka-wiki-replication}
+
+Apache Kafka always runs with Apache Zookeeper \todo{ref} as underlying manager for all
+Kafka nodes. It handles the coordination between the leader and follower nodes
+and also notifies producer and consumer about the presence or failure of brokers in a
+Kafka system. The latter leads producers and consumers to coordinate their work
+with different brokers. Regarding to the replication of Kafka nodes, Zookeeper
+also handles the leader election in case of failure. Thereby a leader node
+constantly informs Zookeeper about changes in his ISR set. If the leader node
+crashes all surviving followers register itself in Zookeeper whereas
+the replica that registers first becomes the new leader.
+\cite{kafka-wiki-replication} \cite{ArtKafkaInfoQ}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/kafka-replication-zookeeper.png}
+    \caption{Zookeeper as underlying broker manager \cite{ArtKafkaInfoQ}}
+    \label{fig:the-log}
+\end{figure}\todo{better figure}
 
 \subsection{Compression}
 
