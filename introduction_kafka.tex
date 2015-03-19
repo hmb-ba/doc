@@ -162,7 +162,8 @@ as the number of consumers (or producers) in a consumer (or producer) group.
 Each member---be it on consumer or producer side---will split the burden of
 processing the topic between themselves according to the partitioning so that
 one member will only be concerned with messages in the partition itself is
-assigned to. 
+assigned to. Thus, the throughput of the system will scale linearly with the
+Kafka cluster size. \cite{apachekafka}
 
 \subsection{Message Delivery}
 \label{kafka-message-delivery}
