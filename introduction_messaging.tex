@@ -189,12 +189,13 @@ which we can adapt for a message based environment by using the common terms.
 %\subsection{Transformation}
 
 \subsection{Characteristics}
+\label{intro-messaging-characteristics}
 As described a messaging system has its strengths in interoperability and louse
 coupling of distributed computers. A message broker in turn has also many further
 characteristic where we have described the most related to our work as follows:  
 
 \begin{description}
-    \item [Architecture] \hfill \\
+    \item [Consumption Model] \hfill \\
     { A fundamental design decision for a message broker is whether consumers
     should pull data from brokers or brokers should push data to consumers. This
 has direct impacts to the performance of a broker system whereas in a push-based
@@ -243,7 +244,8 @@ throughput deficit.   }
         messages which can be consumed in a fixed time interval.}
 \end{description}
 
-\subsection{Publish / Subscribe Channel} 
+\subsection{Publish / Subscribe Channel}
+\label{intro-messaging-publishsubscribe}
 Basically, a channel is equivalent to the managed queues we described so far. In
 a channel one application can write messages and another one reads that
 information from it. Because a message broker can handle multiple clients with
