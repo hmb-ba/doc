@@ -113,8 +113,48 @@ state---by using the offset---to reprocess. \cite{JK-TheLog}
 
 \section{Components}
 
-\subsection{Consumer / Producer}
-- consumer / producer grouping
+\subsection{Consumer}
+
+Apache Kafka introduces the concept of \textit{consumer groups} where consumers
+label themselves with a consumer group name, and each message is delveried to
+one consumer instance within each subscribing consumer group. Consumer groups
+can be in separate processes or on separate machines.
+\\ \\
+In fact, this concept generalizes traditional queuing (\ref{intro-messaging-mom})
+and publish-subscribe model (\ref{intro-messaging-publishsubscribe}).
+If all consumer instances have the same consumer
+group, then it works just like a traditional queue balancing over the consumers.
+On the other hand, if all the consumer instances have different consumer groups,
+it works like publish-subscribe.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/consumer-groups.png}
+    \caption{A two server Kafka cluster hosting four partitions with two consumer groups. Consumer group A has two instances and group B has four \cite{apachekafka}}
+    \label{fig:the-log}
+\end{figure}
+
+A consumer specifies its offset in the log within each request sent to the
+broker and in return will receive back a chunk of log beginning from that
+position. This leads to the fact that Kafka relies on the pull-model (as
+described in \ref{intro-messaging-characteristics}) in order to reach a maximum
+performance on the consumption side. As a side effect, the broker will freed
+from additional complexity regarding consumer handling from the broker. Another
+advantage Kafka relies on the pull-model results in the possibility of
+aggressive batching of data sent to the consumer (see
+\ref{intro-kafka-components-batching}). Apache Kafka avoids the naive approach
+of busy-waiting for data to arrive but rather allows the consumer request to
+block in a \gls{long poll}.
+\\ \\
+Unlike most other messaging systems Apache Kafka does not keep track about what
+messages have been consumed on the broker and thus does not rely on any
+acknowledgements from the consumer. Instead, the position of a consumer is just
+a single integer on a partition which defines the offset of the next message to
+consume (see also \ref{intro-kafka-log}). As a side benefit, a consumer can rewind 
+back to an old offset and re-consume data.
+\cite{apachekafka}
+
+\subsection{Producer}
 
 \subsection{Persistance}
 Apache Kafka stores all data immediately to a persistent log
@@ -151,6 +191,9 @@ improving scalability and fault tolerance, Kafka can divide a log in multiple
 partitions and is a way to parallelize the consumption of the messages, whereas
 the total number of partitions in a broker cluster need to be at least the same
 as the number of consumers (or producers) in a consumer (or producer) group.
+Each partition is consumed by exactly one consumer (in a consumer group) and by
+doing so, Kafka ensures that the consumer is the only reader of that partition
+and consumes the data in order.
 
 \begin{figure}[H]
     \centering
@@ -216,6 +259,7 @@ the replica that registers first becomes the new leader.
 \subsection{Compression}
 
 \subsection{Batching}
+\label{intro-kafka-components-batching}
 
 %\subsection{The Producer}
 
