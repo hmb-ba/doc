@@ -165,16 +165,9 @@ one member will only be concerned with messages in the partition itself is
 assigned to. Thus, the throughput of the system will scale linearly with the
 Kafka cluster size. \cite{apachekafka}
 
-\subsection{Message Delivery}
-\label{kafka-message-delivery}
-\todo[inline]{kafka = pull based model}
-\todo[inline]{kafa's guarantees regarding message delivery}
-
-- guarantee that any successfully published message will not be lost and can be
- consumed
 
 \subsection{Replication}
-To hold the defined guarantees (\ref{kafka-message-delivery}) regarding to system
+To hold the defined guarantees (\ref{kafka-guarantees}) regarding to system
 or network failures, Apache Kafka supports \gls{replication} on the level of log
 partitions (\ref{kafka-partitioning}). Thereby it can replicate specific topics
 across a configurable number of other other Kafka servers (a.k.a. nodes). Every
@@ -233,6 +226,29 @@ the replica that registers first becomes the new leader.
 \subsubsection{Grouping}
 
 \subsubsection{Ordering (offset)}
+
+\section{Guarantees}
+\label{kafka-guarantees}
+As resume from the descriptions above we list guarantees of Kafka regarding
+message delivery, fault tolerance and ordering. 
+
+Message delivery :
+- 
+
+Fault Tolerance:
+- guarantee that any successfully published message will not be lost and can be
+ consumed
+- A topic with replication factor N, will tolerate  N-1 Server failures without
+losing any messages to the log 
+- no guarantee for producer, that message is published in case of network error
+(will be added in later version)
+
+Ordering guarantees: 
+ - Messages from producer to a topic partition will be appendend in the order
+ (controlled by offset number)
+ they are sent
+ -Consumer sees messages in the order they are stored in the log 
+ -
 
 \section{Configuration Management (Zookeeper)}
 \subsection{PAXO Algorithm}
