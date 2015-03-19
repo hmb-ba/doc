@@ -113,10 +113,27 @@ state---by using the offset---to reprocess. \cite{JK-TheLog}
 
 \section{Components}
 
+\subsection{Producer}
+
+A producer can publish data to a topic of their choice and is responsible for
+choosing which message will be assigned to which partition within a topic. In
+fact, the producer sends data directly to the leader of a partition on the
+broker. In order to help the producer finding the correct server and partition
+leader, Kafka can answer a request for meta-data about which servers are alive
+and where the leaders for the partitions of a topic are at any given time. Thus
+the producer can direct its requests appropriately.
+\\ \\
+Like the consumer, also the producer supports batching
+(\ref{intro-kafka-components-batching}) of messages whereas it can be configured
+to accumulate no more than a fixed number of messages and to wait no longer than
+some fixed latency bound (e.g. 64 kilobytes or 10 milliseconds). Thus, batching
+allows fewer but larger I/O operations on the servers and results in higher
+throughput. 
+
 \subsection{Consumer}
 
 Apache Kafka introduces the concept of \textit{consumer groups} where consumers
-label themselves with a consumer group name, and each message is delveried to
+label themselves with a consumer group name, and each message is delivered to
 one consumer instance within each subscribing consumer group. Consumer groups
 can be in separate processes or on separate machines.
 \\ \\
@@ -150,11 +167,10 @@ Unlike most other messaging systems Apache Kafka does not keep track about what
 messages have been consumed on the broker and thus does not rely on any
 acknowledgements from the consumer. Instead, the position of a consumer is just
 a single integer on a partition which defines the offset of the next message to
-consume (see also \ref{intro-kafka-log}). As a side benefit, a consumer can rewind 
-back to an old offset and re-consume data.
+consume (see also \ref{intro-kafka-log}) for each specific consumer. As a side
+benefit, a consumer can rewind back to an old offset and re-consume data.
 \cite{apachekafka}
 
-\subsection{Producer}
 
 \subsection{Persistance}
 Apache Kafka stores all data immediately to a persistent log
