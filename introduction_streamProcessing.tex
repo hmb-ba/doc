@@ -1,5 +1,19 @@
 \chapter{Introduction to Event Streaming}
 
+In previous chapter we defined what a message broker basically is, therefore we
+can imagine how Apache Kafka works. Because Apache Kafka is build for big data
+environments \todo{big data erklären} there is often mention of terms like Event or
+Stream. When we want to understand what what Apache Kafka actually is for an
+how it is used, we need to know what an Event Stream is.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{images/evenstreaming-intro.png}
+    \caption{Event Streaming terms}
+    \label{fig:evenstreaming-intro}
+\end{figure}
+
+\section{Purpose}
 The view of data as rows of databases or single files changes when one thinks
 about what a business actually does with the generated data. Where retail
 generates orders they lead to sales, shipments and so on, a financial institution will
@@ -162,7 +176,7 @@ current collected data and is being outdated at the end of it's computation, the
 speed layer closes this gap by constantly processing the most recent data in
 near real-time fashion. \cite{marz2015big} \cite{PrpSvyOfDSPS}
 
-\section{Stream Broker}
+\section{Stream}
 \subsection{Need for a common data stream}
 Any system which is dependent on a continuous input of data, requires a delivery
 system that can provide data constantly as stream (can be

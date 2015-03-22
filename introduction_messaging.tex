@@ -1,5 +1,27 @@
 \chapter{Introduction to Messaging} 
 
+Before we can understand what Apache Kafka is, we first need to
+know how messaging basically works and what a message broker is. Also there are other
+important terms related to messaging we want do declare. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.35\textwidth]{images/messaging-intro.png}
+    \caption{Messaging terms}
+    \label{fig:MBig:the-log}
+\end{figure}
+
+In advance, we start with the definition of the term distributed systems. A distributed system
+consists of a collection of multiple autonomous components, connected through
+network, which enables to coordinate  (e.g. computers) their activities and to
+share resources. To a user, these systems are perceived as a single, integrated
+computing facility. Other than centralised systems, distributed systems has it's
+advantages in economics, performance and scalability and reliability. In fact,
+this approach allows us to build reliable applications, scaled using low cost
+computers and thus can serve massive performance needs whether on demand or
+continuously.\cite{POSA1}\cite{TAN06}
+\todo{gls?
+}
 \section{Message Oriented Middleware}
 \label{intro-messaging-mom}
 Introducing an intermediate component between distributed
@@ -91,7 +113,7 @@ dynamically registration of endpoints, determining location of target system
 (a.k.a. routing) and performing of the communication as well transformation of a
 message from one format to another.\cite{MSDNIntegration} \\
 
-\subsection{Broker Pattern}
+\subsection{Definition}
 As initial point for the detailed definition of a message broker we take the
 \textit{Broker Pattern} of  \textit{Patterns of Software Architecture Volume1}
 which can be used to structure distributed systems with decoupled components.
@@ -245,12 +267,16 @@ can catch up at any time whereas the risk of bottleneck lies at the broker thus
         messages which can be consumed in a fixed time interval.}
 \end{description}
 
-\subsection{Publish / Subscribe Channel}
+\subsection{Publish-Subscribe}
+\subsubsection{Message Channel}
 \label{intro-messaging-publishsubscribe}
+
 Basically, a channel is equivalent to the managed queues we described so far. In
 a channel one application can write messages and another one reads that
 information from it. Because a message broker can handle multiple clients with
 variable behaviour we can differ between different channel.a
+
+
 
 Sending messages to the broker in form of publishing to a specific topic and on
 the other hand receiving messages only for the specified topic, is called
