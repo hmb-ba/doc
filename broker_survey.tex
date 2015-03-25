@@ -28,8 +28,8 @@ defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
     which the most important are STOMP: Streaming Text Oriented messaging
     Protocol and AMQP: Advanced Messaging Queuing Protocol. Incoming messages
     are placed in a queue whereas this message can further be stored in memory
-    or on a disk. The latter model of persistence will underperform when you
-    have a large number of queues which need to access the disk simultaneously.
+    or on a disk. The latter model of persistence will underperform when there is 
+    a large number of queues which need to access the disk simultaneously.
     \cite{rabbitmq}
 
     In a RabbitMQ Cluster, queues are created and live in a single node, and all
@@ -39,7 +39,7 @@ defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
     messages between master and a mirrored slave, so the slave can take over if the
     master has died. \cite{wickramarachchi2012andes}
 
-    What RabbitMQ clustering doesn't do is provide guarantees against message loss.
+    What RabbitMQ clustering does not do is provide guarantees against message loss.
     When a Rabbit cluster node dies, the messages in queues on that
     node can disappear. This is because RabbitMQ doesn't replicate the contents
     of queues throughout the cluster. They live only on the node that owns the
@@ -47,7 +47,7 @@ defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
     }
     \item [Active MQ] \hfill \\
     {
-    pache ActiveMQ is an open source message broker written in Java
+    Apache ActiveMQ is an open source message broker written in Java
     together with a full Java Message Service (JMS) client. 
 
     The messages are stored in a data log (called journal), which are individual
@@ -107,14 +107,13 @@ defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
     well as the ability to read and/or replay records in the same order to
     multiple Amazon Kinesis Applications.
     \cite{amazonKinesis} \cite{amazonKinesisFAQ} 
-    }
-
+    
    \begin{figure}[H]
      \centering
      \includegraphics[width=0.7\textwidth]{images/amazon-kinesis.png}
          \caption{Amazon Kinesis aggregates events and interacts with other AWS
          Cloud services \cite{amazonKinesis}}
-        \label{fig:amazon-kinesi}
+        \label{fig:amazon-kinesis}
     \end{figure}
     }
     \item [Scribe] \hfill \\
@@ -133,7 +132,7 @@ defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
     \begin{figure}[H]
      \centering
      \includegraphics[width=0.4\textwidth]{images/flume-architecture.png}
-         \caption{Apache Flume general architecture \cite{apacheflumeDoc}}
+     \caption{Apache Flume general architecture \cite{apacheflumeDoc}} 
         \label{fig:flume-architecture}
     \end{figure}
 
@@ -145,5 +144,27 @@ defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
 
 \todo[inline]{Welches System passt für welchen Anwendungsfall und welche nicht
 (Gründe)}
+
+\begin{table}[h]
+    \begin{tabular}{|p{3cm}|p{3cm}|p{3cm}|p{3cm}|l|l|l|}
+        \hline
+                                                                 & \textbf{ActiveMQ}                                 & \textbf{Apache Kafka}                              & \textbf{Apache Flume}                   & \textbf{Amazon Kinesis}                   & \textbf{Amazon SQS}                                     & \textbf{RabbitMQ}                               \\ \hline
+        \multicolumn{1}{|l|}{\textbf{Maker}}                     & \multicolumn{1}{l|}{Apache Foundation}            & \multicolumn{1}{l|}{LinkedIn}                      & \multicolumn{1}{l|}{Cloudera}           & \multicolumn{1}{l|}{Amazon}               & \multicolumn{1}{l|}{Amazon}                             & \multicolumn{1}{l|}{Pivolat Software}           \\ \hline
+        \multicolumn{1}{|l|}{\textbf{Written in}}                & \multicolumn{1}{l|}{Java}                         & \multicolumn{1}{l|}{Scala}                         & \multicolumn{1}{l|}{Java}               & \multicolumn{1}{l|}{-}                    & \multicolumn{1}{l|}{-}                                  & \multicolumn{1}{l|}{Erlang}                     \\ \hline
+        \multicolumn{1}{|l|}{\textbf{License}}                   & \multicolumn{1}{l|}{Apache License 2.0}           & \multicolumn{1}{l|}{Apache License 2.0}            & \multicolumn{1}{l|}{Apache License 2.0} & \multicolumn{1}{l|}{}                     & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{Mozilla Public Licence}     \\ \hline
+        \multicolumn{1}{|l|}{\textbf{Type}}                      & \multicolumn{1}{l|}{Traditional Message Broker}   & \multicolumn{1}{l|}{Message Broker Event Stream} & \multicolumn{1}{l|}{Event Stream}       & \multicolumn{1}{l|}{Event Stream (Cloud)} & \multicolumn{1}{l|}{Messaging Queue Service (Cloud)}    & \multicolumn{1}{l|}{Traditional Message Broker} \\ \hline
+        \multicolumn{1}{|l|}{\textbf{Protocols / Standards}}     & \multicolumn{1}{l|}{JMS / AMQP}                   & \multicolumn{1}{l|}{}                              & \multicolumn{1}{l|}{}                   & \multicolumn{1}{l|}{}                     & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{AMQP}                       \\ \hline
+        \multicolumn{1}{|l|}{\textbf{Ordering guarantee}}        & \multicolumn{1}{l|}{}                             & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{l|}{}                   & \multicolumn{1}{c|}{X}                    & \multicolumn{1}{l|}{no}                                 & \multicolumn{1}{l|}{}                           \\ \hline
+        \multicolumn{1}{|l|}{\textbf{Delivery Semantic}}         & \multicolumn{1}{l|}{Al Least Once / Exactly Once} & \multicolumn{1}{l|}{At Least Once}                 & \multicolumn{1}{l|}{At Least Once}      & \multicolumn{1}{l|}{At Least Once}        & \multicolumn{1}{l|}{Exactly once}                       & \multicolumn{1}{l|}{}                           \\ \hline
+        \multicolumn{1}{|l|}{\textbf{Public-Subscribe}}          & \multicolumn{1}{c|}{X}                            & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{c|}{}                   & \multicolumn{1}{c|}{X}                    & \multicolumn{1}{c|}{X (in combination with Amazon SNS)} & \multicolumn{1}{c|}{X}                          \\ \hline
+        \multicolumn{1}{|l|}{\textbf{Pull Consumption}}          & \multicolumn{1}{l|}{}                             & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{l|}{}                   & \multicolumn{1}{l|}{}                     & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{}                           \\ \hline
+        \multicolumn{1}{|l|}{\textbf{Push Consumption}}          & \multicolumn{1}{l|}{}                             & \multicolumn{1}{c|}{}                              & \multicolumn{1}{c|}{X}                  & \multicolumn{1}{l|}{}                     & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{}                           \\ \hline
+        \multicolumn{1}{|l|}{\textbf{Longterm Persistence}}      & \multicolumn{1}{c|}{X}                            & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{c|}{X}                  & \multicolumn{1}{c|}{X}                    & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{}                           \\ \hline
+        \multicolumn{1}{|l|}{\textbf{Stream Processing Clients}} & \multicolumn{1}{l|}{}                             & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{l|}{}                   & \multicolumn{1}{c|}{}                     & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{}                           \\ \hline
+        \multicolumn{1}{|l|}{\textbf{Storage Clients}}           & \multicolumn{1}{l|}{}                             & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{c|}{X}                  & \multicolumn{1}{l|}{}                     & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{}                           \\ \hline
+        \multicolumn{1}{|l|}{\textbf{Clustering}}                & \multicolumn{1}{l|}{}                             & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{l|}{}                   & \multicolumn{1}{c|}{X}                    & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{}                           \\ \hline
+                                                                 &                                                   &                                                    &                                         &                                           &                                                         &                                                 \\ \hline
+    \end{tabular}
+\end{table}
 \end{landscape}
 
