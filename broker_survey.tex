@@ -1,16 +1,21 @@
 \chapter{Survey of Message Broker implementations} 
 \label{survey-broker}
-In previous chapters we first discussed the traditional messaging broker as it hosts a queue
-for simply move data between distributed clients without losing messages or
-requiring each component to be always available. Regarding to our second topic,
-the streaming of big data we defined an advanced broker with special abilities
-optimized for further processing events in real-time. 
+In previous chapters we first discussed the traditional messaging broker as it
+hosts a queue for simply move data between distributed clients without losing
+messages or requiring each component to be always available. Regarding to our
+second topic, the streaming of big data we saw that a stream is actually an
+abstract version of a message broker with special abilities optimized for
+further processing events in real-time. 
 
 In the following survey we want to compare implementations of the most related
-broker system by first defining relevant characteristics and compare the
-features of each product after.
+broker system by mainly compare the following characteristics---which we already
+defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
 
-\section{Relevant Characteristics}
+\begin{itemize}
+\item Consumption Model 
+     \item Delivery Reliability 
+         \item Fault Tolerance
+\end{itemize}
 
 \section{Implementations}
 %\subsection{Traditional Message Broker}
@@ -25,8 +30,8 @@ features of each product after.
     need to access the disk simultaneously. 
     (https://www.rabbitmq.com/persistence-conf.html)
 
-
-    In a RabbitMQ Cluster, queues are
+    Several RabbitMQ servers on a local network can be clustered together,
+    forming a single logical broker.   In a RabbitMQ Cluster, queues are
     created and live in a single node, and all nodes know about
     all the queues. When a node receives a request to a queue
     that is not available in the current node, it routes the request
@@ -46,7 +51,7 @@ features of each product after.
     queue.
     (http://www.cybershovel.com/b/RabbitMQinAction.pdf
     http://pdf.th7.cn/down/files/1312/RabbitMQ%20in%20Action.pdf?yundunkey=1c4e3306d3a07226a40e927b533a8c1841426173782_179979013)
-
+    
     }
     \item [Active MQ] \hfill \\
         {Note: Apache ActiveMQ is an open source message broker written in Java
@@ -99,14 +104,34 @@ distributed stream processing using EC2. \\
     
  }
     \item [Scribe] \hfill \\
-    { Push based}
+    { Push based, no pub-sub, static configuration}
     \item [Kastrell] \hfill \\
-    {}
+    {no clustering; no pub-sub}
     \item [Apache Flume] \hfill \\
-    {Flume is a distributed logging service specializing on being a reliable way
-    of getting stream and log data into HDFS. Push based}
+    {Flume is a distributed service specialized on being a reliable way
+    of getting event data into HDFS. The typical deployment consists of a number of
+    logical nodes, arranged into three tiers. The first tier is the agent tier.
+    Agent nodes are typically installed on the machines that generate the data and
+    are the initial point of contact with Flume. They forward data to the
+    next tier of collector nodes, which aggregate the separate data flows and
+    forward them to the final storage tier. Flume is push based and does not support
+    public-subscribe semantics. Therefore Apache Flume can not be used as
+    traditional message broker. \cite{apacheflumeDoc}
+
+    \begin{figure}[H]
+     \centering
+     \includegraphics[width=0.4\textwidth]{images/flume-architecture.png}
+         \caption{Apache Flume general architecture \cite{apacheflumeDoc}}
+        \label{fig:flume-architecture}
+    \end{figure}
+
+    }
 \end{description}
 
+\begin{landscape}
 \section{Conslusion}
 
-\todo[inline]{Welches System passt für welchen Anwendungsfall und welche nicht (Gründe)}
+\todo[inline]{Welches System passt für welchen Anwendungsfall und welche nicht
+(Gründe)}
+\end{landscape}
+

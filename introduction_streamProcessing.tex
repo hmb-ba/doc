@@ -177,7 +177,7 @@ current collected data and is being outdated at the end of it's computation, the
 speed layer closes this gap by constantly processing the most recent data in
 near real-time fashion. \cite{marz2015big} \cite{PrpSvyOfDSPS}
 
-\section{Stream}
+\section{Centralized Event Stream}
 \subsection{Need for a common data stream}
 Any system which is dependent on a continuous input of data, requires a delivery
 system that can provide data constantly as stream (can be
@@ -266,16 +266,12 @@ is described in Section \ref{intro-messaging-pointtopoint}.
 \subsection{Central Platform as Solution}
 \label{intro-datastream-centralplatform}
 A more elegant and reliable approach to solve the mentioned problems would be to
-introduce a broker as described in Section \ref{intro-messaging-broker}, that is 
-able to support both batch and real-time consumption and thus is able to hold
-the described requirements given in table \ref{table:requirements-batch-stream}. 
-This broker can act as a single data repository to isolated consumers and gives
-access to any data that is required, as shown in figure
-\ref{fig:datapipeline_simple} In a survey (Chapter \ref{survey-broker}) we examine the limits of
-traditional message brokers and the needs for lately introduced broker systems
-such as Apache Kafka\cite{apachekafka}, Scribe\cite{scribe} or
-Flume\cite{apacheflume} and further try to compare and categorize those
-systems after their strengths and weaknesses.
+introduce a central platform, that is able to support both batch and real-time
+consumption and thus is able to hold the described requirements given in table
+\ref{table:requirements-batch-stream}. This system which can act as a single
+data repository to isolated consumers and gives access to any data that is
+required, as shown in figure \ref{fig:datapipeline_simple}. It aggregates
+incoming events and represents an even stream for any its consumers. 
 
 \begin{figure}[H]
     \centering
@@ -284,29 +280,46 @@ systems after their strengths and weaknesses.
     \label{fig:datapipeline_simple}
 \end{figure}
 
-However, in this constellation integrating a new data system---be it a data source or a data destination---is fairly 
-simple. Connecting it to a single channel attached to the broker is all what is needed 
-to be done. Besides the loosely coupled components, with this architecture
-it becomes possible to centralize the process of data integration by doing so
-in a standardized way, directly within the broker. Thus, a huge factor of complexity 
-over the system landscape is being reduced. In fact, this opens up a whole new
-set of possibilities in organizational scalability, which is being discussed in
-Chapter \ref{intro-log}. 
-\\ \\
-In the following Chapter \ref{intro-kafka} we examine capabilities for Apache Kafka
-related to the functionalities of a message broker. This gives not only a more concrete 
-background of the components of a state of the art message broker implementation but also 
-serves as a basis for the survey which is followed in Chapter
-\ref{survey-broker}.
+In this constellation integrating a new data system---be it a data
+source or a data destination---is fairly simple. Connecting it to a single
+channel attached to the central platform is all what is needed to be done. Besides the
+loosely coupled components, with this architecture it becomes possible to
+centralize the process of data integration by doing so in a standardized way,
+directly within the stream. Thus, a huge factor of complexity over the system
+landscape is being reduced. In fact, this opens up a whole new set of
+possibilities in organizational scalability. 
 
-\section{Conclusion}
-
+\newpage
+\section{Link to Message Brokers}
+As solution for a modern big data environment with huge amount of event data
+which needs to be processed in different systems we need platform which acts as
+mediator by handles the incoming event as stream and provide them to several
+consumers (\ref{intro-datastream-centralplatform}). This seems to be very similar to
+the definition of a message broker (\ref{intro-messaging-broker}) and indeed
+these two concepts can be compared. Actually an event stream can be realised
+with an underlying message broker and as we already described \todo{ref}, events
+can be considered as messages with the event data as payload. In this point of
+view the central stream platform is nothing else than a message broker which
+handles incoming events, persist them in a queue and provide them for the
+consumers which can be stream or batch processing systems. 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1.0\textwidth]{images/messaging-vs-streaming.png}
-    \caption{Terminology ordered}
+    \includegraphics[width=0.8\textwidth]{images/messaging-vs-streaming.png}
+    \caption{Event Stream vs Messaging}
     \label{fig:messaging-vs-streaming}
 \end{figure}
+Depending on the guarantees a message broker implementation provides the more it
+is predestined for an event stream environment than others. In a survey (Chapter
+\ref{survey-broker}) we examine the limits of traditional message brokers and
+the needs for lately introduced systems such as Apache Kafka\cite{apachekafka},
+Scribe\cite{scribe} or Flume\cite{apacheflume} and further try to compare and
+categorize those systems after their strengths and weaknesses.
+
+In the following Chapter \ref{intro-kafka} we examine capabilities for Apache
+Kafka related to the functionalities of acting as a centralized event stream
+platform. This gives not only a more concrete background of the components of a
+state of the art message broker implementation but also serves as a basis for
+the survey which is followed in Chapter \ref{survey-broker}.
 
 %\section{Notes}
 
