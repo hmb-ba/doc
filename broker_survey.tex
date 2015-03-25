@@ -47,44 +47,34 @@ defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
     }
     \item [Active MQ] \hfill \\
     {
-    Note: Apache ActiveMQ is an open source message broker written in Java
+    pache ActiveMQ is an open source message broker written in Java
     together with a full Java Message Service (JMS) client. 
-    
-    The Replicated
-    LevelDB Store uses Apache ZooKeeper to pick a master from a set of broker
-    nodes configured to replicate a LevelDB Store. Then synchronizes all slave
-    LevelDB Stores with the master keeps them up to date by replicating all
-    updates from the master. 
-    
-    ActiveMQ will preserve the order of messages sent
-    by a single producer to all consumers on a topic. If there is a single
-    consumer on a queue then the order of messages sent by a single producer
-    will be preserved as well. 
-    
-    Journal: To achieve high performance of durable
-    messaging in ACtiveMQ V4.x we strongly recommend you use our high
-    performance journal - which is enabled by default. This works rather like a
-    database; messages (and transcation commits/rollbacks and message
-    acknowledgements) are written to the journal as fast as is humanly possible
-    - then at intervals we checkpoint the journal to the long term persistence
-    storage (in this case JDBC).Kind of. 
-    A message can be loaded directly from the journal if it was swapped out of memory.
-    
-    The journal cannot be used, however, to recover a durable subscription as it
-    does not keep an ordered index of messages per durable sub. So when a durable
-    sub is activated, the journal checkpoints to flush any messages in the journal
-    to the long term store and then the long term store is used to recover the
-    durable subscription.Brokers cannot share a journal. Each must be
-configured with it's own journal. Broker Clustering: The most common mental model of clustering in
-a JMS context is that there is a collection of JMS brokers and a JMS client
-will connect to one of them; then if the JMS broker goes down, it will
-f we just run multiple brokers on a network and tell the clients about them
-using either static discovery or dynamic discovery, then clients can easily
-failover from one broker to another. However, stand alone brokers don't know
-about consumers on other brokers; so if there are no consumers on a certain
-broker, messages could just pile up without being consumedauto-reconnect to
-another broker. } 
 
+    The messages are stored in a data log (called journal), which are individual
+    files. When all messages in a data log have been successfully consumed, the
+    data log file is marked as being ready to be deleted - or archived in a
+    periodical cleanup cycle. Then at intervals the journal can be copied to a
+    long term persistence storage (e.g. JDBC). Also, multiple brokers nodes
+    cannot share a journal. Each must be configured with it's own journal. The
+    journal cannot be used, however, to recover messages as it does not keep an
+    ordered index. So the long term store is used to recover the durable
+    subscription. Additionally a separate in-memory reference store holds
+    references from those messages residing in the data log to improve
+    performance.
+
+    In a clustered long term persistence setup, Apache Zookeeper
+    is used to pick a master from a set of broker nodes configured to replicate
+    a LevelDB Store. Then synchronizes all slave LevelDB Stores with the master
+    keeps them up to date by replicating all updates from the master. 
+
+    ActiveMQ will preserve the order of messages sent by a single producer to
+    all consumers on a topic. If there is a single consumer on a queue then the
+    order of messages sent by a single producer will be preserved as well.
+    However due to multi-threading and asynchronous processing, the messages
+    from different producers could arrive in different consumers in different
+    orders. 
+    \cite{activemq}
+    }
 \end{description}
 
 
