@@ -90,35 +90,56 @@ another broker. }
 
 %\subsection{Streaming Broker}
 \begin{description}
-    \item [Apache Kafka] \hfill \\
-        { (What it is) (Creator) (License) (Characteristics according features) Fault-tolerance: Beim conumse kann keine message verloren gehen da log durable, nur bei procuder kann es sein }
+    \item [Amazon SQS] \hfill \\
+    {
+        Amazon Simple Queuing Service is a cloud service which offers a simple messaging queue for
+        move data between distributed systems. SQS guarantees reliability
+        by redeliver messages in case of failure. If a message successfully
+        processed by a consumer it will be deleted out of the queue.  Amazon SQS
+        does not guarantee a strict ordering of messages. All messages are
+        stored redundantly on multiple servers and in multiple data centers,
+        which means that no single computer or network failure
+        renders SQS messages inaccessible.\cite{amazonSQS} \cite{amazonSQSFaq} 
+
+        SQS as itself can not provide a publish subscribe behaviour as we
+        have in typical message brokers. But in combination with the Amazon
+        Simple  Notification Service (SNS) it
+        is possible to create topics which are linked to SQS queues where
+        consumers can register itself and only receive message from a specific
+        topic. \cite{amazonSqsPubSub}
+     }
     \item [Amazon Kinesis] \hfill \\
-    { Amazon Kinesis is a service for real-time processing of streaming big
-    data. You can push data from many data producers, rapidly and continuously
-as it is generated into Amazon Kinesis, which offers a reliable, highly
-scalable service to capture, and store the data. ping that connects all their
-distributed systems—DynamoDB, RedShift, S3, etc.—as well as the basis for
-distributed stream processing using EC2. \\
- Kinesis keeps messages just for 24 hours no Log Compaction. Thus it cannot be
- used for checkpointing and state store changelogging. Another service must be
- used for durable storage.\\
-    
- }
+    { 
+    Amazon Kinesis is a cloud service for streaming event
+    data for further processing which is very similar to Apache Kafka. Producer
+    applications push data continuously to the Kinesis broker where the messages
+    are keept for 24 hours in memory. Kinesis provides ordering of records, as
+    well as the ability to read and/or replay records in the same order to
+    multiple Amazon Kinesis Applications.
+    \cite{amazonKinesis} \cite{amazonKinesisFAQ} 
+    }
+
+   \begin{figure}[H]
+     \centering
+     \includegraphics[width=0.7\textwidth]{images/amazon-kinesis.png}
+         \caption{Amazon Kinesis aggregates events and interacts with other AWS
+         Cloud services \cite{amazonKinesis}}
+        \label{fig:amazon-kinesi}
+    \end{figure}
+    }
     \item [Scribe] \hfill \\
     { Push based, no pub-sub, static configuration}
     \item [Kastrell] \hfill \\
     {no clustering; no pub-sub}
     \item [Apache Flume] \hfill \\
-    {Flume is a distributed service specialized on being a reliable way
-    of getting event data into HDFS. The typical deployment consists of a number of
-    logical nodes, arranged into three tiers. The first tier is the agent tier.
-    Agent nodes are typically installed on the machines that generate the data and
-    are the initial point of contact with Flume. They forward data to the
-    next tier of collector nodes, which aggregate the separate data flows and
-    forward them to the final storage tier. Flume is push based and does not support
-    public-subscribe semantics. Therefore Apache Flume can not be used as
-    traditional message broker. \cite{apacheflumeDoc}
-
+    {Flume is a distributed service specialized on being a reliable way of
+    getting event data into HDFS \todo{gls}. The typical deployment consists
+    of a number of logical nodes, arranged into three tiers. The first tier
+    is the agent tier. Agent nodes are typically installed on the machines
+    that generate the data and are the initial point of contact with Flume.
+    They forward data to the next tier of collector nodes, which aggregate the
+    separate data flows and forward them to the final storage tier. Flume is
+    push based and does not support public-subscribe semantics. \cite{apacheflumeDoc}
     \begin{figure}[H]
      \centering
      \includegraphics[width=0.4\textwidth]{images/flume-architecture.png}
