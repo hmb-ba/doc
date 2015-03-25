@@ -82,21 +82,20 @@ defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
 \begin{description}
     \item [Amazon SQS] \hfill \\
     {
-        Amazon Simple Queuing Service is a cloud service which offers a simple messaging queue for
-        move data between distributed systems. SQS guarantees reliability
-        by redeliver messages in case of failure. If a message successfully
-        processed by a consumer it will be deleted out of the queue.  Amazon SQS
-        does not guarantee a strict ordering of messages. All messages are
-        stored redundantly on multiple servers and in multiple data centers,
-        which means that no single computer or network failure
-        renders SQS messages inaccessible.\cite{amazonSQS} \cite{amazonSQSFaq} 
+    Amazon Simple Queuing Service is a cloud service which offers a simple
+    message queue for move data between distributed systems. SQS guarantees
+    reliability by redeliver messages in case of failure. If a message is
+    successfully processed by a consumer it will be deleted out of the queue.
+    Amazon SQS does not guarantee a strict ordering of messages. All messages
+    are stored redundantly on multiple servers and in multiple data center.
+    \cite{amazonSQS} \cite{amazonSQSFaq} 
 
-        SQS as itself can not provide a publish subscribe behaviour as we
-        have in typical message brokers. But in combination with the Amazon
-        Simple  Notification Service (SNS) it
-        is possible to create topics which are linked to SQS queues where
-        consumers can register itself and only receive message from a specific
-        topic. \cite{amazonSqsPubSub}
+    SQS as itself can not provide a publish subscribe behaviour as we
+    have in typical message brokers. But in combination with the Amazon
+    Simple  Notification Service (SNS) it
+    is possible to create topics which are linked to SQS queues where
+    consumers can register itself and only receive message from a specific
+    topic. \cite{amazonSqsPubSub}
      }
     \item [Amazon Kinesis] \hfill \\
     { 
