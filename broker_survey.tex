@@ -139,31 +139,37 @@ defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
 \end{description}
 
 \begin{landscape}
-\section{Conslusion}
+\section{Overview}
 
+\begin{table}[h]
+    \begin{tabular}{|p{3cm}|p{3cm}|p{3cm}|p{3cm}|p{3cm}|p{3cm}|p{3cm}|}
+        \hline
+                                  & \textbf{ActiveMQ}                     & {\textbf{Apache Kafka}}         & \textbf{Apache Flume}  & \textbf{Amazon Kinesis} & \textbf{Amazon SQS}                                     & \textbf{RabbitMQ}          \\ \hline
+        \textbf{Maker}                     & Apache Foundation            &LinkedIn                      & Cloudera               & Amazon                  & Amazon                                                  & Pivolat Software           \\ \hline
+        \textbf{Written in}                & Java                         & Scala                         & Java                   & -                       & -                                                       & Erlang                     \\ \hline
+        \textbf{License}                   & Apache License 2.0           & Apache License 2.0            & Apache License 2.0     &                         &                                                         & Mozilla Public Licence     \\ \hline
+        \textbf{Type}                      & Traditional Message Broker   & Message Broker / Event Stream & Event Stream           & Event Stream (Cloud)    & Messaging Queue Service (Cloud)                         & Traditional Message Broker \\ \hline
+        \textbf{Standards            }     & JMS / AMQP                   &                               &                        &                         &                                                         & AMQP                       \\ \hline
+        \textbf{Ordering-Guarantee}        &                              &     \multicolumn{1}{c|}{X}     &                        & \multicolumn{1}{c|}{X}  & no                                                      &                            \\ \hline
+        \textbf{Delivery-Semantic}         & At Least Once, Exactly Once  & At Least Once                 & At Least Once          & At Least Once           & Exactly once                                            &                            \\ \hline
+        \textbf{Public-Subscribe}          & \multicolumn{1}{c|}{X}       & \multicolumn{1}{c|}{X}                                                 & \multicolumn{1}{c|}{}  & \multicolumn{1}{c|}{X}  & X* & \multicolumn{1}{c|}{X}     \\ \hline
+        \textbf{Pull-Consumption}          &                              &                                                   &                        &                         &                                                         &                            \\ \hline
+        \textbf{Push-Consumption}          &                              &  \multicolumn{1}{c|}{X}                                                   & \multicolumn{1}{c|}{X} &                         &                                                         &                            \\ \hline
+        \textbf{Longterm-Persistence}      & \multicolumn{1}{c|}{X}       &  \multicolumn{1}{c|}{X}                                                & \multicolumn{1}{c|}{X} & \multicolumn{1}{c|}{X}  &                                                         &                            \\ \hline
+        \textbf{Streamprocessing Clients}  &                              &  \multicolumn{1}{c|}{X}                                                 &                        & \multicolumn{1}{c|}{}   &                                                         &                            \\ \hline
+        \textbf{Storage Clients}           &                              &  \multicolumn{1}{c|}{X}                                               & \multicolumn{1}{c|}{X} &                         &                                                         &                            \\ \hline
+        \textbf{Clustering}                &                              &  \multicolumn{1}{c|}{X}                                                    &                        & \multicolumn{1}{c|}{X}  &                                                         &                            \\ \hline
+    \end{tabular}
+\end{table}
+
+\end{landscape}
+
+\section{Conclusion}
 \todo[inline]{Welches System passt für welchen Anwendungsfall und welche nicht
 (Gründe)}
 
-\begin{table}[h]
-    \begin{tabular}{|p{3cm}|p{3cm}|p{3cm}|p{3cm}|l|l|l|}
-        \hline
-                                                                 & \textbf{ActiveMQ}                                 & \textbf{Apache Kafka}                              & \textbf{Apache Flume}                   & \textbf{Amazon Kinesis}                   & \textbf{Amazon SQS}                                     & \textbf{RabbitMQ}                               \\ \hline
-        \multicolumn{1}{|l|}{\textbf{Maker}}                     & \multicolumn{1}{l|}{Apache Foundation}            & \multicolumn{1}{l|}{LinkedIn}                      & \multicolumn{1}{l|}{Cloudera}           & \multicolumn{1}{l|}{Amazon}               & \multicolumn{1}{l|}{Amazon}                             & \multicolumn{1}{l|}{Pivolat Software}           \\ \hline
-        \multicolumn{1}{|l|}{\textbf{Written in}}                & \multicolumn{1}{l|}{Java}                         & \multicolumn{1}{l|}{Scala}                         & \multicolumn{1}{l|}{Java}               & \multicolumn{1}{l|}{-}                    & \multicolumn{1}{l|}{-}                                  & \multicolumn{1}{l|}{Erlang}                     \\ \hline
-        \multicolumn{1}{|l|}{\textbf{License}}                   & \multicolumn{1}{l|}{Apache License 2.0}           & \multicolumn{1}{l|}{Apache License 2.0}            & \multicolumn{1}{l|}{Apache License 2.0} & \multicolumn{1}{l|}{}                     & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{Mozilla Public Licence}     \\ \hline
-        \multicolumn{1}{|l|}{\textbf{Type}}                      & \multicolumn{1}{l|}{Traditional Message Broker}   & \multicolumn{1}{l|}{Message Broker Event Stream} & \multicolumn{1}{l|}{Event Stream}       & \multicolumn{1}{l|}{Event Stream (Cloud)} & \multicolumn{1}{l|}{Messaging Queue Service (Cloud)}    & \multicolumn{1}{l|}{Traditional Message Broker} \\ \hline
-        \multicolumn{1}{|l|}{\textbf{Protocols / Standards}}     & \multicolumn{1}{l|}{JMS / AMQP}                   & \multicolumn{1}{l|}{}                              & \multicolumn{1}{l|}{}                   & \multicolumn{1}{l|}{}                     & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{AMQP}                       \\ \hline
-        \multicolumn{1}{|l|}{\textbf{Ordering guarantee}}        & \multicolumn{1}{l|}{}                             & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{l|}{}                   & \multicolumn{1}{c|}{X}                    & \multicolumn{1}{l|}{no}                                 & \multicolumn{1}{l|}{}                           \\ \hline
-        \multicolumn{1}{|l|}{\textbf{Delivery Semantic}}         & \multicolumn{1}{l|}{Al Least Once / Exactly Once} & \multicolumn{1}{l|}{At Least Once}                 & \multicolumn{1}{l|}{At Least Once}      & \multicolumn{1}{l|}{At Least Once}        & \multicolumn{1}{l|}{Exactly once}                       & \multicolumn{1}{l|}{}                           \\ \hline
-        \multicolumn{1}{|l|}{\textbf{Public-Subscribe}}          & \multicolumn{1}{c|}{X}                            & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{c|}{}                   & \multicolumn{1}{c|}{X}                    & \multicolumn{1}{c|}{X (in combination with Amazon SNS)} & \multicolumn{1}{c|}{X}                          \\ \hline
-        \multicolumn{1}{|l|}{\textbf{Pull Consumption}}          & \multicolumn{1}{l|}{}                             & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{l|}{}                   & \multicolumn{1}{l|}{}                     & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{}                           \\ \hline
-        \multicolumn{1}{|l|}{\textbf{Push Consumption}}          & \multicolumn{1}{l|}{}                             & \multicolumn{1}{c|}{}                              & \multicolumn{1}{c|}{X}                  & \multicolumn{1}{l|}{}                     & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{}                           \\ \hline
-        \multicolumn{1}{|l|}{\textbf{Longterm Persistence}}      & \multicolumn{1}{c|}{X}                            & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{c|}{X}                  & \multicolumn{1}{c|}{X}                    & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{}                           \\ \hline
-        \multicolumn{1}{|l|}{\textbf{Stream Processing Clients}} & \multicolumn{1}{l|}{}                             & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{l|}{}                   & \multicolumn{1}{c|}{}                     & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{}                           \\ \hline
-        \multicolumn{1}{|l|}{\textbf{Storage Clients}}           & \multicolumn{1}{l|}{}                             & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{c|}{X}                  & \multicolumn{1}{l|}{}                     & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{}                           \\ \hline
-        \multicolumn{1}{|l|}{\textbf{Clustering}}                & \multicolumn{1}{l|}{}                             & \multicolumn{1}{c|}{X}                             & \multicolumn{1}{l|}{}                   & \multicolumn{1}{c|}{X}                    & \multicolumn{1}{l|}{}                                   & \multicolumn{1}{l|}{}                           \\ \hline
-                                                                 &                                                   &                                                    &                                         &                                           &                                                         &                                                 \\ \hline
-    \end{tabular}
-\end{table}
-\end{landscape}
+
+
+
+
 
