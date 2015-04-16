@@ -35,7 +35,7 @@ pull-based consumption, the consumer fetch its messages with a constantly reques
     \centering
    \includegraphics[width=0.85\textwidth]{images/concept_consumer.png}
     \caption{Concept of Architecture Prototype Part II}
-    \label{fig:conept-consumer}
+    \label{fig:concept-consumer}
 \end{figure}
 
 \begin{table}[h]
@@ -48,3 +48,26 @@ V   & Transmitting byte string back to consumer                             \\
 VI  & Parse response from broker to get messages                           
 \end{tabular}
 \end{table}
+
+\section{Logical architecture}
+The application has three main parts namely the broker, console-producer and console-consumer.
+Each part is built in its own self-contained cabal package. To reduce code duplication and 
+dependency between the clients and the broker code, functionality like the 
+implementation of the Kafka protocol, are stored in a own cabal package namely Kafka. 
+
+\begin{figure}[H]
+    \centering
+   \includegraphics[width=0.85\textwidth]{images/logical-architecture.png}
+    \caption{Package structure and dependencies}
+    \label{fig:logical-architecture}
+\end{figure}
+
+\subsection{Kafka.Protocol}
+
+\subsection{Kafka.Client}
+
+\subsection{Broker.Internal}
+
+
+
+
