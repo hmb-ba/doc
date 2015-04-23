@@ -2,6 +2,55 @@
 
 \section{Introduction}
 
+\section{Prototype}
+For demonstrating the architecture of this project we implement an architecture
+prototype which shows basic functionality of producing a message from a client A
+to persisting the message in a  topic specific log at the broker and in turn consuming it from another
+client B. It fully implements the produce and fetch request with their
+appropriate responses of the Kafka protocol for communication over network.
+Therefore the producer and consumer clients are compatible with original Apache
+Kafka broker.
+
+The functionality of the architecture prototype can be split in two cases.
+Case one covers producing a message and persisting in the brokers log:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/concept_producer.png}
+    \caption{Concept of Architecture Prototype Part I}
+    \label{fig:conept-producer}
+\end{figure}
+
+\begin{table}[h]
+\begin{tabular}{ll}
+1  & Packing input message in data structure                                                          \\
+2  & Serializing of data structure to byte string. The algorithm implements the Kafka protocol.       \\
+3 & Transmitting byte string via TCP socket over network                                             \\
+4  & Receiving and parsing byte string back to data structure                                         \\
+5   & Write Message into topic specific log. The resulting file has same structure than the Kafka Log has.
+\end{tabular}
+\end{table}
+
+Case two covers the part of consuming from a specific topic. Because Kafka works with 
+pull-based consumption, the consumer fetch its messages with a constantly requesting it. 
+
+\begin{figure}[H]
+    \centering
+   \includegraphics[width=0.7\textwidth]{images/concept_consumer.png}
+    \caption{Concept of Architecture Prototype Part II}
+    \label{fig:concept-consumer}
+\end{figure}
+
+\begin{table}[h]
+\begin{tabular}{ll}
+1  & Continuously send fetch request to broker implementing Kafka protocol \\
+2  & Parse fetch request to data structure                                 \\
+3  & Read messages from log of specified topic                             \\
+4  & Serialize messages as response into byte string.                      \\
+5  & Transmitting byte string back to consumer                             \\
+6  & Parse response from broker to get messages                           
+\end{tabular}
+\end{table}
+
 \section{Components}
 Basically, the architecture consists of two main components namely the broker and
 the client, whereas the client can act as producer or consumer. The broker is a
@@ -48,81 +97,116 @@ implementation.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.6\textwidth]{images/architecture-components.png}
+    \includegraphics[width=0.55\textwidth]{images/architecture-components.png}
     \caption{Components of the architecture}
     \label{fig:architecture-components.png}
 \end{figure}
 
 \section{Protocol}
 \label{sec-protocol}
-\todo[inline]{allgemeine beschreibung und Aufbau der veschiedenen Requests }
+For communicating over network we implement a binary protocol based on tcp. The
+structure of the protocol is identical to the open sourced Apacke Kafka protocol
+version 0.8.x. \todo{ref}The protocol offers six different apis which each of it is
+defined with a request response message pair. The client initiates a socket connection and then
+writes a sequence of request messages and reads back the corresponding response
+message. 
 
-\section{Prototype}
-For demonstrating the architecture of this project we implement an architecture
-prototype which shows basic functionality of producing a message from a client A
-to persisting the message in a  topic specific log at the broker and in turn consuming it from another
-client B. It fully implements the produce and fetch request with their
-appropriate responses of the Kafka protocol for communication over network.
-Therefore the producer and consumer clients are compatible with original Apache
-Kafka broker.
-
-The functionality of the architecture prototype can be split in two cases.
-Case one covers producing a message and persisting in the brokers log:
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{images/concept_producer.png}
-    \caption{Concept of Architecture Prototype Part I}
-    \label{fig:conept-producer}
-\end{figure}
+\subsection{Primitive Types}
+All messages are size delimited and are made up of the following primitive
+types: 
 
 \begin{table}[h]
-\begin{tabular}{ll}
-I   & Packing input message in data structure                                                          \\
-II  & Serializing of data structure to byte string. The algorithm implements the Kafka protocol.       \\
-III & Transmitting byte string via TCP socket over network                                             \\
-IV  & Receiving and parsing byte string back to data structure                                         \\
-V   & Write Message into topic specific log. The resulting file has same structure than the Kafka Log has.
+\begin{tabular}{| p{3cm}| p{7cm} | l |}
+\hline
+\textbf{Type} & \textbf{Description} & \textbf{Variations} \\ \hline
+Fixed Width Primitives     & Signed integers stored in big endian order.                                                                                                                                     & int8, int16, int32, int64 \\ \hline
+Variable Length Primitives & Consist of a signed integer giving a length N followed by N bytes of content. A length of -1 indicates null. String uses an int16 for its size, and bytes uses an int32.        & bytes, string             \\ \hline
+Arrays                     & Repeated structures. Always be encoded as an int32 size containing the length N followed by N,repetitions of the structure which can itself be made up of other,primitive types &                           \\ \hline
 \end{tabular}
 \end{table}
 
-Case two covers the part of consuming from a specific topic. Because Kafka works with 
-pull-based consumption, the consumer fetch its messages with a constantly requesting it. 
+\subsection{Common Message Format}
+The message as unit of transported data has the following common structure of a
+message set which is used for all api's which transport message data.
+Furthermore this format happens to be used both for the on-disk storage on the
+broker and the on-the-wire format.
 
 \begin{figure}[H]
     \centering
-   \includegraphics[width=0.6\textwidth]{images/concept_consumer.png}
-    \caption{Concept of Architecture Prototype Part II}
-    \label{fig:concept-consumer}
+    \includegraphics[width=0.7\textwidth]{images/protocol-messageSet.png}
+    \caption{Message Set format as common data structure}
+    \label{fig:protocol-request-header.png}
 \end{figure}
 
-\begin{table}[h]
-\begin{tabular}{ll}
-I   & Continuously send fetch request to broker implementing Kafka protocol \\
-II  & Parse fetch request to data structure                                 \\
-III & Read messages from log of specified topic                             \\
-IV  & Serialize messages as response into byte string.                      \\
-V   & Transmitting byte string back to consumer                             \\
-VI  & Parse response from broker to get messages                           
-\end{tabular}
-\end{table}
+\subsection{Common Request and Response Header}
+Each request and response has its same header fields independent for which api they are used. 
+The last part of the format (either request or response) is individual to the particular api which is used. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/protocol-request-header.png}
+    \caption{Common Request Header}
+    \label{fig:protocol-request-header.png}
+\end{figure}
 
-\section{Modules}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/protocol-response-header.png}
+    \caption{Common Request Header}
+    \label{fig:protocol-response-header.png}
+\end{figure}
+
+\subsection{Metadata API}
+Describes the currently available brokers, their host and port information, and
+gives information about which broker hosts which partitions.
+
+\textbf{Not implemented yet}
+
+\subsection{Produce API}
+Send messages to the broker.
+
+\textbf{Not implemented yet}
+
+\subsection{Fetch API}
+Fetchs / Consumes messages from the broker.
+\subsection{Offset API}
+Get information about the available offsets for a given topic partition
+
+\textbf{Not implemented yet}
+
+\subsection{Offset Commit API}
+Commit a set of offsets for a consumer group
+
+\textbf{Not implemented yet}
+
+\subsection{Offset Commit API}
+Fetch a set of offsets for a consumer group
+
+\textbf{Not implemented yet}
+
+\section{Packages, Modules and Dependencies}
+\todo[inline]{how did we structure the executables ans libraries}
+
 The application has three main parts namely the broker, protocol implementation
 and the client api. 
 %Each part is built in its own self-contained cabal package.
 
 \begin{figure}[H]
     \centering
-   \includegraphics[width=0.85\textwidth]{images/logical-architecture.png}
+   \includegraphics[width=0.7\textwidth]{images/logical-architecture.png}
     \caption{Package structure and dependencies}
     \label{fig:logical-architecture}
 \end{figure}
 
-\subsection{Protocol}
+\subsection{Protocol Implementation}
 \todo[inline]{Encode / Decode / Types }
 
 \subsection{Client (API)}
- 
+
+\section{Error Handling}
+
+\section{Testing}
+hspec 
+
 \section{Client Examples}
 This example shows a very basic console client which either can act as producer
 by sending a producer request or as a consumer by sending a fetch request. After
@@ -168,10 +252,5 @@ can decode it with the API function decodePrResponse.
 Consumer: Send a fetch request with given offset to the broker. Analog to the producer request 
 the api function packFtRqMessage packs the input into a protocol conform fetch request and sendRequest passes it via socket to the broker. 
 \todo{code not final yet}
-\section{Error
-Handling}
-
-\section{Testing}
-hspec 
 
 
