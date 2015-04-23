@@ -107,43 +107,66 @@
 %     breaklines=true,                             % Umbruch langer Zeilen
 %     showstringspaces=false,                      % Spezielles Zeichen für Leerzeichen
 % }
-\lstset {
- frame=rlbt,
- rulesepcolor=\color{black},
- showspaces=false,showtabs=false,tabsize=2,
- %numberstyle=\tiny,numbers=left,
- basicstyle=\ttfamily\footnotesize,
- stringstyle=\color{sh_string},
- keywordstyle = \color{sh_keyword}\bfseries,
- commentstyle=\color{darkgreen}\itshape,
- captionpos=b,
- %lineskip=-0.1em,
- showstringspaces=false,
- escapebegin={\lstsmallmath}, escapeend={\lstsmallmathend},
- breaklines=true, % breakatwhitespace=true,
- prebreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\rhookswarrow}},
- % postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}
-}
-\lstnewenvironment{code}{\lstset{language=Haskell}}{}
+%\lstset {
+% frame=rlbt,
+% rulesepcolor=\color{black},
+% showspaces=false,showtabs=false,tabsize=2,
+% %numberstyle=\tiny,numbers=left,
+% basicstyle=\ttfamily\footnotesize,
+% stringstyle=\color{sh_string},
+% keywordstyle = \color{sh_keyword}\bfseries,
+% commentstyle=\color{darkgreen}\itshape,
+% captionpos=b,
+% %lineskip=-0.1em,
+% showstringspaces=false,
+% escapebegin={\lstsmallmath}, escapeend={\lstsmallmathend},
+% breaklines=true, % breakatwhitespace=true,
+% prebreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\rhookswarrow}},
+% % postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}
+%}
+%\lstnewenvironment{code}{\lstset{language=Haskell}}{}
+%
+%\newcommand{\inputlisting}[2][]{%
+%  \lstinputlisting[caption={\texttt{\detokenize{#2}}},#1]{#2}%
+%}
 
-\newcommand{\inputlisting}[2][]{%
-  \lstinputlisting[caption={\texttt{\detokenize{#2}}},#1]{#2}%
-}
-
-\lstdefinelanguage{XML}
-{
-  basicstyle=\ttfamily\footnotesize,
-  morestring=[b]",
-  moredelim=[s][\bfseries\color{maroon}]{<}{\ },
-  moredelim=[s][\bfseries\color{maroon}]{</}{>},
-  moredelim=[l][\bfseries\color{maroon}]{/>},
-  moredelim=[l][\bfseries\color{maroon}]{>},
-  morecomment=[s]{<?}{?>},
-  morecomment=[s]{<!--}{-->},
-  commentstyle=\color{darkgreen},
-  stringstyle=\color{blue},
-  identifierstyle=\color{red}
+%\lstdefinelanguage{XML}
+%{
+%  basicstyle=\ttfamily\footnotesize,
+%  morestring=[b]",
+%  moredelim=[s][\bfseries\color{maroon}]{<}{\ },
+%  moredelim=[s][\bfseries\color{maroon}]{</}{>},
+%  moredelim=[l][\bfseries\color{maroon}]{/>},
+%  moredelim=[l][\bfseries\color{maroon}]{>},
+%  morecomment=[s]{<?}{?>},
+%  morecomment=[s]{<!--}{-->},
+%  commentstyle=\color{darkgreen},
+%  stringstyle=\color{blue},
+%  identifierstyle=\color{red}
+%}
+\lstset{
+  frame=none,
+  xleftmargin=2pt,
+  stepnumber=1,
+  numbers=left,
+  numbersep=5pt,
+  numberstyle=\ttfamily\tiny\color[gray]{0.3},
+  belowcaptionskip=\bigskipamount,
+  captionpos=b,
+  escapeinside={*'}{'*},
+  language=haskell,
+  tabsize=2,
+  emphstyle={\bf},
+  commentstyle=\it,
+  stringstyle=\mdseries\rmfamily,
+  showspaces=false,
+  keywordstyle=\bfseries\rmfamily,
+  columns=flexible,
+  basicstyle=\small\sffamily,
+  showstringspaces=false,
+  morecomment=[l]\%,
 }
 
 \makeglossaries
+
 \include{glossar}
