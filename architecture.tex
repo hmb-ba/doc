@@ -237,9 +237,42 @@ system}{https://wiki.haskell.org/Type}, more concrete using data types created
 for our need using the named fields - also known as \fnurl{record
 syntax}{http://en.wikibooks.org/wiki/Haskell/More_on_datatypes}.
 
-Given this, a further step of abstraction is introduced by creating types for the binary representation of a protocol field.
-The actual type for the data fields in the protocol have to match an unsigned integer type of its length. This can easily be done using the \fnurl{Data.Word}{http://hackage.haskell.org/package/base-4.7.0.2/docs/Data-Word.html} library.
-However, while repetitive writing \textit{WordX} (where is stands for 8-, 16-, 32-, or 64 bit) is rather intuitive, creating aliases using the \textit{type} keyword will result in better readable code, as well as structure of the implemented protocol.
+Given this, a further step of abstraction is introduced by creating types for
+the binary representation of a protocol field. The actual type for the data
+fields in the protocol have to match an unsigned integer type of its length.
+This can easily be done using the
+\fnurl{Data.Word}{http://hackage.haskell.org/package/base-4.7.0.2/docs/Data-Word.html}
+library. However, while repetitive writing \textit{WordX} (where is stands for
+8-, 16-, 32-, or 64 bit) is rather intuitive, creating aliases using the
+\textit{type} keyword will result in better readable code, as well as structure
+of the implemented protocol.
+
+As a result, a typical data type is described as follows, while details are
+hidden for demonstration purposes.:
+
+\begin{lstlisting}
+-- more
+data Partition =
+    ----------------------
+    -- ProduceRequest (pr)
+    ----------------------
+    RqPrPartition
+    { rqPrPartitionNumber :: !PartitionNumber
+    , rqPrMessageSetSize  :: !MessageSetSize
+    , rqPrMessageSet      :: [MessageSet]
+    }
+    |
+    ----------------------
+    -- FetchRequest (ft)
+    ----------------------
+    RqFtPartition
+    { rqFtPartitionNumber :: !PartitionNumber
+    , rqFtFetchOffset     :: !Offset
+    , rqFtMaxBytes        :: !MaxBytes
+    }
+    |
+-- more
+\end{lstlisting}
 
 \subsection{Encode / Decode}
 
