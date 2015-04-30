@@ -43,6 +43,11 @@
 \usepackage{pgf-umlsd}
 \usepgflibrary{arrows} % for pgf-umlsd
 
+\usepackage{hyperref}
+\newcommand\fnurl[2]{%
+  \href{#2}{#1}\footnote{\url{#2}}%
+}
+
 % \let\stdsection\section
 % \renewcommand\section{\newpage\stdsection}
 

@@ -198,7 +198,50 @@ and the client api.
 \end{figure}
 
 \subsection{Protocol Implementation}
-\todo[inline]{Encode / Decode / Types }
+
+\subsubsection{Types}
+
+The design of the Apache Kafka protocol allows to make a distinction between three kind of types:
+\begin{enumerate}
+  \item Related to request
+  \item Related to response
+  \item Related to data (for either request or response but can also be used for the \fnurl{Apache Kafka Log}{http://kafka.apache.org/documentation.html\#log} component since log files (on-disk) hold the same structure)
+\end{enumerate}
+
+As for request and response related types we had to introduce an own naming
+convention. As a matter of fact, not every field of some kind of request or
+response will be unique. For more than once, there is a field that will
+represent a \textit{topicName} for example. Thus, naming the field \textit{
+topicName} would have been the obvious solution but since the record syntax in
+Haskell won't allow to use the same name for a field twice - even in different
+data types - we defined unique prefixes for each request and response as being
+listed in the following table:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{API}            & \textbf{Request (Rq)} & \textbf{Response (Rs)} \\ \hline
+Metadata API (Md)       & MetadataRequest       & MetadataResponse       \\ \hline
+Produce API (Pr)        & ProduceRequest        & ProduceResponse        \\ \hline
+Fetch API (Ft)          & FetchRequest          & FetchResponse          \\ \hline
+Offset API (Of)         & OffsetRequest         & OffsetResponse         \\ \hline
+Offset Commit API (Ofc) & OffsetCommitRequest   & OffsetCommitResponse   \\ \hline
+Offset Fetch API (Oft)  & OffsetFetchRequest    & OffsetFetchResponse    \\ \hline
+\end{tabular}
+\end{table}
+
+As mentioned before, the representation of the protocol structure is
+implemented using the Haskell \fnurl{type
+system}{https://wiki.haskell.org/Type}, more concrete using data types created
+for our need using the named fields - also known as \fnurl{record
+syntax}{http://en.wikibooks.org/wiki/Haskell/More_on_datatypes}.
+
+Given this, a further step of abstraction is introduced by creating types for the binary representation of a protocol field.
+The actual type for the data fields in the protocol have to match an unsigned integer type of its length. This can easily be done using the \fnurl{Data.Word}{http://hackage.haskell.org/package/base-4.7.0.2/docs/Data-Word.html} library.
+However, while repetitive writing \textit{WordX} (where is stands for 8-, 16-, 32-, or 64 bit) is rather intuitive, creating aliases using the \textit{type} keyword will result in better readable code, as well as structure of the implemented protocol.
+
+\subsection{Encode / Decode}
 
 \subsection{Client (API)}
 
