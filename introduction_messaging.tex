@@ -24,7 +24,7 @@ performance needs whether on demand or continuously.\cite{POSA1}\cite{TAN06}
 
 Although distributed systems have many advantages, compared to local
 applications there are a lot of challenges (as mentioned later) that need to be
-assumed by developers. Messaging is an approach to deal with these difficulties.
+assumed by developers. Messaging is an approach to deal with such difficulties.
 It integrates distributed applications to an overall system by providing message
 queues for communication between them. One application can publish its messages
 to the queue and another application can asynchronously read from it at any time.
@@ -41,7 +41,8 @@ with reliable delivery.
 \end{figure}
 \newpage
 Peter Deutsch originally defined fundamental fallacies of distributed computing
-\todo{ref} which still are relevant today. Messaging mainly faces the
+which still are relevant today.\cite{fallaciesOfDs} Messaging
+simplifies the development of distributed systems by mainly faces the
 following:
 
 \begin{enumerate}
@@ -58,9 +59,6 @@ following:
        but it always has the confirmation of the middleware that the data has put in a
        message queue. In case of failure the messaging system can initiate
        appropriate actions to delegate a failed transmission.}   
-   %\item{\textbf{The Latency is zero:o:} \hfill \\
-   %     .
-   %     }
     \item{\textbf{Fallacy: Bandwidth is infinite and the Latency is zero } \hfill \\
         Communicating over network is significant slower than local operations.
         A distributed system has to deal with delays and interruptions of any
@@ -70,24 +68,15 @@ following:
         message. This loose coupling in time is achieved by working with queues
         as data structure (first-in-first-out).
         }
-    %\item{\textbf{The network is secure:} \hfill \\
-    %       .
-    %    }
     \item{\textbf{Fallacy: Topology doesn't change} \hfill \\
         Applications, systems and topologies changes over time, and in most
         scenarios these often affects the collaborating components in the
         distributed network too. Therefore distributed nodes should be decoupled as
         far as possible. In messaging this is also achieved with the underlying
-        middleware. The sender and receiver do not communicate do not need to
-        know them directly. They always communicate via the middleware software.
-        In case of significant changes, only the interface to the messaging
-        system needs to be updated. }
-    %\item{\textbf{There is one administrator}  \hfill \\
-    %    .
-    %    }
-    %\item{\textbf{Transport cost is zero } \hfill \\
-    %    .
-    %    }
+        middleware.(\ref{intro-messaging-mom}) The sender and receiver do not
+        communicate do not need to know them directly. They always communicate
+        via the middleware software. In case of significant changes, only the
+        interface to the messaging system needs to be updated. }
     \item{\textbf{Fallacy: The network is homogeneous}\hfill \\
         In real world, application are always different. In distributed systems
         data need to be transmitted between nodes which use different
@@ -117,12 +106,10 @@ following:
 
     }
  
-\end{enumerate}
-%https://blogs.oracle.com/jag/resource/Fallacies.html
+\end{enumerate}\cite{EIP03}
+
 %http://blog.fogcreek.com/eight-fallacies-of-distributed-computing-tech-talk/
 %http://www.rgoarchitects.com/Files/fallacies.pdf
-
-% Facing the problem of a slow network, Collaborating applications must agree on a common message forma
 
 \newpage
 \section{Message Oriented Middleware}
@@ -134,8 +121,7 @@ reduces the close coupling of other communication styles just based on
 \gls{Socket}s or RMI. This additional component can be named as messaging system
 or message-oriented middleware (MOM) and is all about passing \gls{Msg}s in any
 format from one application to another whereas the parties do not need to knows
-each other directly.   \cite{PprIBMIntro} \cite{TAN06}
-
+each other directly. \cite{TAN06}
 The MOM provides a specific API for both the sender as well for the receiver:
 \begin{table}[H]
 \centering
