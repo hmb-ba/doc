@@ -149,10 +149,32 @@ data Partition =
 -- more
 \end{lstlisting}
 
+\section{Subsystems}
 
-\section{Request Handling}
+\subsection{Channeling}
+
+Control.Concurrent.Chan
+
+\subsubsection{Request Channel (ReqChan)}
+
+\subsubsection{Response Channel (ResChan)}
+
+TODO: tell why this extra channel is needed and request channel cannot be used instead.
+
+\subsection{Network Layer}
+
+TODO: introduction to tasks of networking layer, then ref to socket server implementation
+
+\subsection{API Layer}
+
+TODO: introduction to tasks of api layer, then ref to request and error handling
+
+\subsection{Log Subsystem}
+
+TODO: introduction to tasks of log subsystem, then ref to persistance section
 
 
+\section{Socket server implementation}
 
 \begin{figure}[H]
     \centering
@@ -160,6 +182,10 @@ data Partition =
     \caption{Broker request handling concept}
     \label{fig:broker-activity.png}
 \end{figure}
+
+TODO: tell about Network.Socket
+
+\section{Request Handling}
 
 \begin{figure}[H]
     \centering
@@ -186,8 +212,11 @@ data Partition =
     \label{fig:broker-error-activity-detail.png}
 \end{figure}
 
+TODO: Either, Control.Monad.Error, Custom error types
 
 \section{Persistence}
+
+\subsection{Indexing}
 
 \subsection{Storage Layout}
 
@@ -209,6 +238,8 @@ payload        : n bytes
     ?:              : 4 bytes
     message length  : 4 bytes
     message         : n bytes
+
+\subsection{Read / Write}
 
 \subsection{Optimization}
 
