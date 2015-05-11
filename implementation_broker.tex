@@ -1,5 +1,155 @@
 \chapter{Implementation Broker}
 
+\section{Protocol implementation}
+\label{sec-protocol}
+\subsection{Primitive Types}
+All messages are size delimited and are made up of the following primitive
+types: 
+
+\begin{table}[h]
+\begin{tabular}{| p{3cm}| p{7cm} | l |}
+\hline
+\textbf{Type} & \textbf{Description} & \textbf{Variations} \\ \hline
+Fixed Width Primitives     & Signed integers stored in big endian order.                                                                                                                                     & int8, int16, int32, int64 \\ \hline
+Variable Length Primitives & Consist of a signed integer giving a length N followed by N bytes of content. A length of -1 indicates null. String uses an int16 for its size, and bytes uses an int32.        & bytes, string             \\ \hline
+Arrays                     & Repeated structures. Always be encoded as an int32 size containing the length N followed by N,repetitions of the structure which can itself be made up of other,primitive types &                           \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Common Message Format}
+The message as unit of transported data has the following common structure of a
+message set which is used for all api's which transport message data.
+Furthermore this format happens to be used both for the on-disk storage on the
+broker and the on-the-wire format.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/protocol-messageSet.png}
+    \caption{Message Set format as common data structure}
+    \label{fig:protocol-request-header.png}
+\end{figure}
+
+\subsection{Common Request and Response Header}
+Each request and response has its same header fields independent for which api they are used. 
+The last part of the format (either request or response) is individual to the particular api which is used. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/protocol-request-header.png}
+    \caption{Common Request Header}
+    \label{fig:protocol-request-header.png}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/protocol-response-header.png}
+    \caption{Common Request Header}
+    \label{fig:protocol-response-header.png}
+\end{figure}
+
+\subsection{Metadata API}
+Describes the currently available brokers, their host and port information, and
+gives information about which broker hosts which partitions.
+
+\textbf{Not implemented yet}
+
+\subsection{Produce API}
+Send messages to the broker.
+
+\textbf{Not implemented yet}
+
+\subsection{Fetch API}
+Fetchs / Consumes messages from the broker.
+\subsection{Offset API}
+Get information about the available offsets for a given topic partition
+
+\textbf{Not implemented yet}
+
+\subsection{Offset Commit API}
+Commit a set of offsets for a consumer group
+
+\textbf{Not implemented yet}
+
+\subsection{Offset Commit API}
+Fetch a set of offsets for a consumer group
+
+\textbf{Not implemented yet}
+
+\subsection{Types}
+
+The design of the Apache Kafka protocol allows to make a distinction between three kind of types:
+\begin{enumerate}
+  \item Related to request
+  \item Related to response
+  \item Related to data (for either request or response but can also be used for the \fnurl{Apache Kafka Log}{http://kafka.apache.org/documentation.html\#log} component since log files (on-disk) hold the same structure)
+\end{enumerate}
+
+As for request and response related types we had to introduce an own naming
+convention. As a matter of fact, not every field of some kind of request or
+response will be unique. For more than once, there is a field that will
+represent a \textit{topicName} for example. Thus, naming the field \textit{
+topicName} would have been the obvious solution but since the record syntax in
+Haskell won't allow to use the same name for a field twice - even in different
+data types - we defined unique prefixes for each request and response as being
+listed in the following table:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{API}            & \textbf{Request (Rq)} & \textbf{Response (Rs)} \\ \hline
+Metadata API (Md)       & MetadataRequest       & MetadataResponse       \\ \hline
+Produce API (Pr)        & ProduceRequest        & ProduceResponse        \\ \hline
+Fetch API (Ft)          & FetchRequest          & FetchResponse          \\ \hline
+Offset API (Of)         & OffsetRequest         & OffsetResponse         \\ \hline
+Offset Commit API (Ofc) & OffsetCommitRequest   & OffsetCommitResponse   \\ \hline
+Offset Fetch API (Oft)  & OffsetFetchRequest    & OffsetFetchResponse    \\ \hline
+\end{tabular}
+\end{table}
+
+As mentioned before, the representation of the protocol structure is
+implemented using the Haskell \fnurl{type
+system}{https://wiki.haskell.org/Type}, more concrete using data types created
+for our need using the named fields - also known as \fnurl{record
+syntax}{http://en.wikibooks.org/wiki/Haskell/More_on_datatypes}.
+
+Given this, a further step of abstraction is introduced by creating types for
+the binary representation of a protocol field. The actual type for the data
+fields in the protocol have to match an unsigned integer type of its length.
+This can easily be done using the
+\fnurl{Data.Word}{http://hackage.haskell.org/package/base-4.7.0.2/docs/Data-Word.html}
+library. However, while repetitive writing \textit{WordX} (where is stands for
+8-, 16-, 32-, or 64 bit) is rather intuitive, creating aliases using the
+\textit{type} keyword will result in better readable code, as well as structure
+of the implemented protocol.
+
+As a result, a typical data type is described as follows, while details are
+hidden for demonstration purposes.:
+
+\begin{lstlisting}
+-- more
+data Partition =
+    ----------------------
+    -- ProduceRequest (pr)
+    ----------------------
+    RqPrPartition
+    { rqPrPartitionNumber :: !PartitionNumber
+    , rqPrMessageSetSize  :: !MessageSetSize
+    , rqPrMessageSet      :: [MessageSet]
+    }
+    |
+    ----------------------
+    -- FetchRequest (ft)
+    ----------------------
+    RqFtPartition
+    { rqFtPartitionNumber :: !PartitionNumber
+    , rqFtFetchOffset     :: !Offset
+    , rqFtMaxBytes        :: !MaxBytes
+    }
+    |
+-- more
+\end{lstlisting}
+
+
 \section{Request Handling}
 
 
