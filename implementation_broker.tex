@@ -153,13 +153,26 @@ data Partition =
 
 \subsection{Channeling}
 
-Control.Concurrent.Chan
+The
+\fnurl{Control.Concurrent.Chan}{http://hackage.haskell.org/package/base-4.8.0.0/docs/Control-Concurrent-Chan.html}
+package provides a one-way FIFO communication channel. In
+our case, this concept is being used to separate the
+three mentioned subsystems from each other. The fact that
+\textit{chan} is unbounded brings a risk. While
+\textit{writeChan} -- which is being used to write to a
+channel -- succeeds immediately, there is a chance that the
+consuming thread is not able to read the same amount of
+data in a given time and thus the channel will grow in
+an unchecked manner. \cite{o2008real}
+
+TODO: sanctions? do we have to block the producer for a short time?
+
+TODO: tell why 2 separate channels are better than 1 two-way
 
 \subsubsection{Request Channel (ReqChan)}
 
 \subsubsection{Response Channel (ResChan)}
 
-TODO: tell why this extra channel is needed and request channel cannot be used instead.
 
 \subsection{Network Layer}
 
