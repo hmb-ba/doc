@@ -199,6 +199,8 @@ over sockets using the
 module which exposes the \fnurl{C socket
 API}{http://pubs.opengroup.org/onlinepubs/7908799/xns/syssocket.h.html}.
 
+\subsection{Socket connection establishment}
+
 The following figure (\ref{fig:broker-activity}) shows the abstract view of how
 the socket connection between a client and the broker establishes so that a
 communication between those two counterparts can proceed.
@@ -210,12 +212,39 @@ communication between those two counterparts can proceed.
     \label{fig:broker-activity}
 \end{figure}
 
+\subsubsection{Create Socket}
+
 First of all, the initialization process of a socket happens on the server by providing the following configuration parameters:
 \begin{description}
   \item[Protocol Familiy] \textit{AF\_INET}, for network protocol IPv4
   \item[Socket Type] \textit{Stream}, which provides sequenced, reliable, two-way, connection-based byte streams.
   \item[Protocol Number] \textit{0}, which indicates that the caller does not want to specify the protocol and will leave it up to the service provider.
 \end{description}
+
+\subsubsection{Bind Socket}
+
+After the configuration is set, the socket has to be associated with an address
+structure which is a constellation of an IP Address and Port. The constructor
+\textit{SockAddrInet} of the data type \textit{SockAddr} takes the following
+two arguments:
+
+\begin{description}
+  \item[Port Number] 4343
+  \item[Host Address] iNADDR\_ANY, which binds the socket to all interfaces
+\end{description}
+
+TODO: static but could be done with dynamic configuration
+
+\subsubsection{Listen}
+
+While the socket is created and bound to an interface, the socket state can be
+entered into listening state. The only configuration parameter which has to be
+considered is the maximum number of queued connections they are requesting to
+be accepted -- also called backlog. While this parameter is not critical in the
+constellation of this broker, we set the queue length to \textbf{50}, which is
+also the default value in the Java SocketServer implementation. \textit{Note,
+that the focus remains on the amount of data being processed rather than the
+number of clients being served.}
 
 \section{Request Handling}
 
