@@ -189,14 +189,33 @@ TODO: introduction to tasks of log subsystem, then ref to persistance section
 
 \section{Socket server implementation}
 
+One of the most fundamental parts of a message broker are sockets. While a
+socket is an endpoint of a bidirectional inter-process communication flow, each
+connection established to the broker is basically a socket connection. That
+being said, it is important to provide a reliable socket server implementation
+which will serve correctly under a heavy load. Haskell provides full control
+over sockets using the
+\fnurl{Network.Socket}{https://hackage.haskell.org/package/network-2.3.0.7/docs/Network-Socket.html}
+module which exposes the \fnurl{C socket
+API}{http://pubs.opengroup.org/onlinepubs/7908799/xns/syssocket.h.html}.
+
+The following figure (\ref{fig:broker-activity}) shows the abstract view of how
+the socket connection between a client and the broker establishes so that a
+communication between those two counterparts can proceed.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/broker-activity.png}
     \caption{Broker request handling concept}
-    \label{fig:broker-activity.png}
+    \label{fig:broker-activity}
 \end{figure}
 
-TODO: tell about Network.Socket
+First of all, the initialization process of a socket happens on the server by providing the following configuration parameters:
+\begin{description}
+  \item[Protocol Familiy] \textit{AF\_INET}, for network protocol IPv4
+  \item[Socket Type] \textit{Stream}, which provides sequenced, reliable, two-way, connection-based byte streams.
+  \item[Protocol Number] \textit{0}, which indicates that the caller does not want to specify the protocol and will leave it up to the service provider.
+\end{description}
 
 \section{Request Handling}
 
