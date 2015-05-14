@@ -1,0 +1,36 @@
+\chapter{Specification}
+\section{Purpose}
+The prestudy of this thesis gives an insight in the fundamentals of messaging, especially
+the purpose of message brokers for big data event streaming. We also compare
+the most related broker implementations and provide detailed information about Apache
+Kafka. The second part of this work is focusing on the implementation of a message
+broker in the functional program language Haskell\todo{ref}. The goal is to get
+use of the advantages of the functional paradigm regarding to the resulting
+throughput performance. By using the example of Apache Kafka the main purpose
+lies on building a server application which implements the main functionality of
+Apache Kafka. 
+
+\section{Functionality}
+\begin{table}[h]
+\begin{tabular}{lll}
+\textbf{Functionality}       & \textbf{Description} & \textbf{Part of Thesis} \\
+Server Implementation        &                      & yes                     \\
+Wire Protocol Implementation &                      & yes                     \\
+API for Haskell Clients      &                      & yes                     \\
+Thin Haskell Clients         &                      & yes                     \\
+Producing Messages           &                      & yes                     \\
+Consuming Messages           &                      & yes                     \\
+Log Persistency              &                      & yes                     \\
+Error Handling               &                      & yes                     \\
+Message Batching             &                      & yes                     \\
+Message Compression          &                      & no                      \\
+Partitioning                 &                      & partly                  \\
+Broker Replication           &                      & no                      \\
+Broker Recovery              &                      & no                      \\
+Consumer Groups              &                      & no                      \\
+Zookeeper Integration        &                      & no                     
+\end{tabular}
+\end{table}
+
+\section{Non functional Requirements}
+
