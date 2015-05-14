@@ -149,45 +149,7 @@ data Partition =
 -- more
 \end{lstlisting}
 
-\section{Subsystems}
-
-\subsection{Channeling}
-
-The
-\fnurl{Control.Concurrent.Chan}{http://hackage.haskell.org/package/base-4.8.0.0/docs/Control-Concurrent-Chan.html}
-package provides a one-way FIFO communication channel. In
-our case, this concept is being used to separate the
-three mentioned subsystems from each other. The fact that
-\textit{chan} is unbounded brings a risk. While
-\textit{writeChan} -- which is being used to write to a
-channel -- succeeds immediately, there is a chance that the
-consuming thread is not able to read the same amount of
-data in a given time and thus the channel will grow in
-an unchecked manner. \cite{o2008real}
-
-TODO: sanctions? do we have to block the producer for a short time?
-
-TODO: tell why 2 separate channels are better than 1 two-way
-
-\subsubsection{Request Channel (ReqChan)}
-
-\subsubsection{Response Channel (ResChan)}
-
-
-\subsection{Network Layer}
-
-TODO: introduction to tasks of networking layer, then ref to socket server implementation
-
-\subsection{API Layer}
-
-TODO: introduction to tasks of api layer, then ref to request and error handling
-
-\subsection{Log Subsystem}
-
-TODO: introduction to tasks of log subsystem, then ref to persistance section
-
-
-\section{Socket server implementation}
+\section{Network Subsystem}
 
 One of the most fundamental parts of a message broker are sockets. While a
 socket is an endpoint of a bidirectional inter-process communication flow, each
@@ -246,7 +208,7 @@ also the default value in the Java SocketServer implementation. \textit{Note,
 that the focus remains on the amount of data being processed rather than the
 number of clients being served.}
 
-\section{Request Handling}
+\section{API Subsystem (Request Handling)}
 
 \begin{figure}[H]
     \centering
@@ -275,7 +237,7 @@ number of clients being served.}
 
 TODO: Either, Control.Monad.Error, Custom error types
 
-\section{Persistence}
+\section{Log Subsystem}
 
 \subsection{Indexing}
 

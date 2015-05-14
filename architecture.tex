@@ -54,23 +54,25 @@ are made.
 \end{figure}
 
 \begin{description}
-    \item [(1) Packing Produce Request:] 
-    {Getting input data to protocol conform data structure.}
-    \item [(2) Serializing and send Produdce Request:]  
-        {Encoding data structure to an binary  string and transmit over a tcp
-        socket to the broker.}
-    \item [(3) Parsing and Handling Produce Request:] 
-        {Broker receives the binary string and parse it back to the appropriate
-        data structure. The request handler of the  broker checks the
-        API Key of the request. If it is a produce request, the containg
-        message will be written to the appropriate topic log.}
-    \item [(4) Send Produce Response:]  
-        {A response is packed, serialized and transmitted back to the client.
-            The response contains an error code which has the value 0 if everything worked well
-        otherwise another value for a specific problem. }
-    \item [(5) Parse Produce Response:] 
-        {Producer client receives a binary string and parses it to valid response data
-        structure }
+    \item [(1)] 
+        {Packing Produce Request: Getting input data to protocol conform data structure.}
+    \item [(2)] 
+        {Serializing and send Produdce Request: Encoding data structure to an
+            binary  string and transmit over a tcp socket to the broker.}
+    \item [(3)] 
+        {Parsing and Handling Produce Request: Broker receives the binary string
+            and parse it back to the appropriate data structure. The request
+            handler of the  broker checks the API Key of the request. If it is a
+            produce request, the containg message will be written to the
+            appropriate topic log.}
+    \item [(4)] 
+        {Send Produce Response: A response is packed, serialized and transmitted
+            back to the client. The response contains an error code which has
+            the value 0 if everything worked well otherwise another value for a
+            specific problem. }
+    \item [(5)] 
+        {Parse Produce Response: Producer client receives a binary string and
+            parses it to valid response data structure }
 \end{description}
 
 \subsection{Consumer Client}
@@ -85,21 +87,22 @@ fetchs it desired messages through requesting it at any time.
 \end{figure}
 
 \begin{description}
-    \item [(1) Continously send fetch request:] {Consumer client sends fetch
+    \item [(1)] 
+        {Continously send fetch request: Consumer client sends fetch
         requests in configurable intervall as binary string to the broker. } 
-    {Getting input data to protocol conform data structure.}
-    \item [(2) Parsing and handling fetch request:]]  
-        {Broker receives the binary string and parse it back to the appropriate
-        data structure. The request handler of the broker checks the
-        API Key of the request. If it is a fetch request, the broker reads
-        messages of the requested topic and packs it to a fetch response. 
-        message will be written to the appropriate topic log.}
-    \item [(3) Send fetch response:]  
-        {The fetch request which contains the requested messages is send back to
-        the consumer client.}
-    \item [(4) Parse Response:] 
-        {Consumer client receives a binary string and parses it to valid response data
-        structure }
+    \item [(2)] 
+        {Parsing and handling fetch request: Broker receives the binary string
+            and parse it back to the appropriate data structure. The request
+            handler of the broker checks the API Key of the request. If it is a
+            fetch request, the broker reads messages of the requested topic and
+            packs it to a fetch response. message will be written to the
+            appropriate topic log.}
+    \item [(3)] 
+        {Send fetch response: The fetch request which contains the requested
+        messages is send back to the consumer client.}
+    \item [(4)] 
+        {Parse Response:Consumer client receives a binary string and parses it
+        to valid response data structure }
 \end{description}
 
 \section{Design decisions}
@@ -112,6 +115,9 @@ defined with a request-response message pair. The client initiates a socket conn
 writes a sequence of request messages and reads back the corresponding response
 message. 
 
+TODO: What design desicions we made regarding the protocol? (Types, Serializer,
+Parser). 
+
 \subsection{Separation} 
 Both, the client and broker component need to use the same underlying protocol for
 communication. Therefore we provide a third component which fully implements the Apache Kafka
@@ -120,11 +126,13 @@ This component fully separates the clients from the broker. It also allows to
 use the clients with other Kafka based broker implementations, especially Apache
 Kafka itself. 
 
-A broker system should have as many client implementations as possible to
-support interoperability. As basic clients a simple console-producer and
-console-consumer is provided. To support the development of other clients a
-another component which act as common client api is introduced. It provides
-common functionality to simplify the use of the protocol implementation. 
+To support interoperability we want to simplify the implementation of a broker
+client. Therefore we provide a client library which provides functionalities to
+easily implement a Haskell client. The goal of this, is to be able to
+setup a client without knowing too much details about the Apache Kafka protocol
+itself. We therefore provide separate types to construct a message very easily.
+In the background we then pack the input to the appropriate Request/Response
+Message. 
 
 \begin{figure}[H]
     \centering
@@ -134,12 +142,62 @@ common functionality to simplify the use of the protocol implementation.
 \end{figure}
 
 \subsection{Broker Subsystems}
-The broker server application is devided into three subsystems. 
+We decided to divide the broker server application into three subsystems to
+clarify the program flow from receiving data from network to handling the
+requests and accessing the message log. 
+\subsubsection{Network Layer}
+
+TODO: introduction to tasks of networking layer, then ref to socket server implementation
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{images/design-subsystems.png}
+    \caption{Three subsystems of broker server application}
+    \label{fig:architecture-subsystems.png}
+\end{figure}
+
+\subsubsection{API Layer}
+
+TODO: introduction to tasks of api layer, then ref to request and error handling
+
+\subsubsection{Log Subsystem}
+
+TODO: introduction to tasks of log subsystem, then ref to persistance section
+
 
 \subsection{Broker Threading}
 TODO: Threading and channeling concept 
 
-\subsection{Persistency}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/design-threading.png}
+    \caption{Threading concept which channeling}
+    \label{fig:architecture-threading.png}
+\end{figure}
+
+\subsubsection{Channeling}
+For transfering data between the threads of the subsystem API and Network, we
+decided to use channels. The
+\fnurl{Control.Concurrent.Chan}{http://hackage.haskell.org/package/base-4.8.0.0/docs/Control-Concurrent-Chan.html}
+package provides a one-way FIFO communication channel. In
+our case, this concept is being used to separate the
+three mentioned subsystems from each other. The fact that
+\textit{chan} is unbounded brings a risk. While
+\textit{writeChan} -- which is being used to write to a
+channel -- succeeds immediately, there is a chance that the
+consuming thread is not able to read the same amount of
+data in a given time and thus the channel will grow in
+an unchecked manner. \cite{o2008real}
+
+TODO: sanctions? do we have to block the producer for a short time?
+
+TODO: tell why 2 separate channels are better than 1 two-way
+
+TODO: Request Channel (ReqChan)
+
+TODO: Response Channel (ResChan)
+
+\subsection{Persistence}
 TODO: persistet in ordered Logs
 
 
@@ -163,8 +221,6 @@ TODO: persistet in ordered Logs
 %\subsection{Encode / Decode}
 
 %\subsection{Client (API)}
-
-\section{Error Handling}
 
 \section{Testing}
 hspec 
