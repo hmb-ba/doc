@@ -166,7 +166,23 @@ TODO: introduction to tasks of log subsystem, then ref to persistance section
 
 
 \subsection{Broker Threading}
-TODO: Threading and channeling concept 
+Regarding threading we mainly focus on the network layer. To support multiple
+connections from different clients the acceptor socket forks a new thread for
+processing incoming data whenever a new connection is established. We realized
+that we need to process incoming data as fast as possible because if the limit
+of the socket buffer is reached, the throughput on the network drops
+dramatically. Therefore the processor threads only receive a
+particular request (based on the first 4 bytes which determines request size)
+and forward it to the request handler thread. Thereby, the request handler is a worker
+thread which just works off the received request and produces appropriate
+responses. Responses are sent to a pool of responder threads where one of them simply send the
+response back to the connected client.
+...
+
+TODO: Possibility to defined a pool of request handler worker threads.
+Probably we implement it, if not we have to give a statement. 
+
+TODO: Responder pool not implemented yet (only one responder at the moment)
 
 \begin{figure}[H]
     \centering
