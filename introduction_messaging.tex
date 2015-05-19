@@ -205,6 +205,7 @@ message from one format to another.\cite{MSDNIntegration} \\
 %die Funktionalität von Bus und Broker zusammen zu Broker
 
 \section{Message Broker in Detail}
+\subsection{The Broker Pattern }
 As initial point for the detailed definition of a message broker we take the
 \textit{Broker Pattern} of  \textit{Patterns of Software Architecture Volume1}
 which can be used to structure distributed systems with decoupled components.
@@ -251,6 +252,18 @@ which we can adapt for a message based environment by using the common terms.
         messages it calls services within the consumer component. }
 \end{description}
 
+\subsection{Consumption Model}
+A fundamental design decision of a message broker is whether consumers
+    should pull data from brokers or brokers should push data to consumers. This
+    has direct impacts to the performance of a broker system whereas in a
+    push-based environment the consumers can be the bottleneck when its
+    consumption rate falls below the rate of production. In a pull-based system
+    consumers which fall back can catch up at any time whereas the risk of
+    bottleneck lies at the broker thus a message broker should scale well. On
+    the other hand in a pull-based environment a consumer never knows whether a
+    message is ready for consumption or not. In worst case this ends up with a
+    read loop where the consumer constantly need to check the queue. 
+
 \begin{figure}[H]
     \centering
      \begin{sequencediagram}
@@ -261,31 +274,75 @@ which we can adapt for a message based environment by using the common terms.
         \newinst[1]{consumerProx}{Consumer API}
         \newinst[1]{consumer}{Consumer}
         \begin{messcall}
-            {producer}{(1) Send Request}{producerProx}{}
+            {producer}{(1) Send Data}{producerProx}{}
         \end{messcall}
         \begin{call}
-            {producerProx}{(2) Pack data}{producerProx}{}
+            {producerProx}{(2) Pack data to Message}{producerProx}{}
         \end{call}
         \begin{messcall}
-            {producerProx}{(3) Transmit message}{broker}{}
+            {producerProx}{(3) Transmit Message}{broker}{}
         \end{messcall}
         \begin{call}
-            {broker}{(4) Find Consumer}{broker}{}
+            {broker}{(4) Write Message to internal Queue}{broker}{}
         \end{call}
         \begin{messcall}
-            {broker}{(5) Deliver Message}{consumerProx}{} 
+            {broker}{(5) Deliver Message to single forward destination}{consumerProx}{} 
         \end{messcall}
         \begin{call}
-            {consumerProx}{(6) Unpack Data}{consumerProx}{}
+            {consumerProx}{(6) Unpack Message}{consumerProx}{}
         \end{call}
         \begin{messcall}
-            {consumerProx}{(7) Forward Message}{consumer}{}
+            {consumerProx}{(7) Forward Data}{consumer}{}
         \end{messcall}
     \end{sequencediagram}
-    \caption{General structure of the Broker Pattern with Event-Based
-    Consumer}
+    \caption{Basic flow of a Broker event based consumption}
     \label{fig:MB-SSD-1}
 \end{figure}
+
+\begin{figure}[H]
+    \centering
+     \begin{sequencediagram}
+        %\newthread{broker}{Broker}
+         \newinst[1]{producer}{Producer}
+         \newinst[1]{producerProx}{Producer API}
+         \newinst[1]{broker}{Broker}
+        \newinst[1]{consumerProx}{Consumer API}
+        \newinst[1]{consumer}{Consumer}
+        \begin{messcall}
+            {producer}{(1) Send Data}{producerProx}{}
+        \end{messcall}
+        \begin{call}
+            {producerProx}{(2) Pack data to Message}{producerProx}{}
+        \end{call}
+        \begin{messcall}
+            {producerProx}{(3) Transmit Message}{broker}{}
+        \end{messcall}
+        \begin{call}
+            {broker}{(4) Write Message to internal Queue}{broker}{}
+        \end{call}
+        \begin{messcall}
+            {consumer}{(5) Get Data}{consumerProx}{}
+        \end{messcall}
+        \begin{messcall}
+            {consumerProx}{(6) Request Message}{broker}{} 
+        \end{messcall}
+        \begin{call}
+            {broker}{(7) Get latest Message from internal Queue}{broker}{}
+        \end{call}
+        \begin{messcall}
+            {broker}{(8) Deliver Message}{consumerProx}{} 
+        \end{messcall}
+        \begin{call}
+            {consumerProx}{(9) Unpack Message}{consumerProx}{}
+        \end{call}
+        \begin{messcall}
+            {consumerProx}{(10) Forward Data}{consumer}{}
+        \end{messcall}
+    \end{sequencediagram}
+    \caption{Basic flow of a Broker with polling based consumption}
+    \label{fig:MB-SSD-1}
+\end{figure}
+
 %We saw that a \textit{Broker} acts like a mediator between to collaborating
 %applications which do not need to know each other. The same does a message
 %broker, of course in a message-oriented distributed system whereas the broker
@@ -300,33 +357,44 @@ which we can adapt for a message based environment by using the common terms.
 %\subsection{Routing and Communicating}
 
 %\subsection{Transformation}
-\subsection{Publish-Subscribe}
+%\subsection{Publish-Subscribe}
+\subsection{Topic and Subscription Model}
 \label{intro-messaging-publishsubscribe}
-
-Basically, a channel is equivalent to the managed queues we described so far. In
-a channel one application can write messages and another one reads that
-information from it. Because a message broker can handle multiple clients with
-variable behaviour we can differ between different channel.a
-
-
-
-Sending messages to the broker in form of publishing to a specific topic and on
-the other hand receiving messages only for the specified topic, is called
-publish/subscribe. In contrast to a one-to-one channel, the message broker
-requires the abilities to match messages on an application based level to act as
-a gateway for topic related messages. Based on the informations provided within
-the messages, the broker is being able to provide the messages to the client
-acting as a subscriber \cite{TAN06}. In fact, the publish/subscribe channel
-delivers a copy of the topic related messages to the output channel. This also
-means that there can be more than one client that consumes the topic specific
+Message Broker systems are persisting incoming messages in an enhanced type of a
+message queue, namely topic. A topic allows the broker to deliver a message to
+multiple independent consumers. Sending messages to the broker in form of
+publishing to a specific topic and on the other hand receiving messages only for
+the specified topic, is called publish/subscribe. In contrast to a one-to-one
+queue, the message broker requires the abilities to match messages on an
+application based level to act as a gateway for topic related messages. Based on
+the informations provided within the messages, the broker is being able to
+provide the messages to the client acting as a subscriber. In fact,
+this publish/subscribe queue delivers a copy of the topic related messages to
+the output channel. This also means that there can be more than one client that
+consumes the topic specific
 messages and thus there can be more than one subscriber. Especially this feature
 of having multiple consumers of a message channel, is decisive for using a
 message broker in environment where we want to process the same stream of
 data in multiple ways. We will go in deeper detail to stream processing in the
-following chapter. \cite{EIP03}
+following chapter. \cite{EIP03} \cite{TAN06}
 
-%\todo[inline]{Beschreibung und Sequenzdiagram: Consumer meldet sich für den
-%Empfang beim Broker an } 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/topic-subscription.png}
+    \caption{Broker forwards published messages to subscribers}
+    \label{fig:topic-subscription}
+\end{figure}
+
+\subsection{Reliable Delivery}
+A reliable delivery of messages can promise a specific behaviour to producer
+    and consumer. A message broker typically supports one ore more of the
+    following guarantees.
+    \textit{At most once} guarantees that messages may be lost but are never
+    redelivered. \textit{At least once} is defined that messages are never lost
+    but may be redelivered. The \textit{Exactly once} semantic which is very
+    typical guarantees that each message is delivered only once. Broker system
+    which use the \textit{In Order} semantic deliver messages to the consumer in
+    the strict same order they are sent from the producer to the broker. 
 
 \section{Challenges of a Messaging System}
 \label{intro-messaging-characteristics}
@@ -338,29 +406,6 @@ A message broker in turn has also many further
 characteristic where we have described the most related to our work as follows:  
 
 \begin{description}
- \item [Consumption Model] \hfill \\
-    { A fundamental design decision for a message broker is whether consumers
-    should pull data from brokers or brokers should push data to consumers. This
-has direct impacts to the performance of a broker system whereas in a push-based
-environment the consumers can be the bottleneck when its consumption rate falls
-below the rate of production. In a pull-based system consumers which fall back
-can catch up at any time whereas the risk of bottleneck lies at the broker thus
- a message broker should scale well. On the other hand in a pull-based
- environment a consumer never knows whether a message is ready for consumption
- or not. In worst case this ends up with a read loop where the consumer
- constantly need to check the queue. \cite{apachekafka} }
-    \item [Delivery Reliability] \hfill \\
-    {
-    A reliable delivery of messages can promise a specific behaviour to producer
-    and consumer. A message broker typically supports one ore more of the
-    following guarantees.
-    \textit{At most once} guarantees that messages may be lost but are never
-    redelivered. \textit{At least once} is defined that messages are never lost
-    but may be redelivered. The \textit{Exactly once} semantic which is very
-    typical guarantees that each message is delivered only once. Broker system
-    which use the \textit{In Order} semantic deliver messages to the consumer in
-    the strict same order they are sent from the producer to the broker. 
-    }
     \item [Independence] \hfill \\
     { Independence to specific technologies or systems. The more independent a
         message broker is, the better it can be integrated in a existing

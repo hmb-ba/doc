@@ -292,7 +292,7 @@ possibilities in organizational scalability.
 \newpage
 \section{Link to Message Brokers}
 As solution for a modern big data environment with huge amount of event data
-which needs to be processed in different systems we need platform which acts as
+which needs to be processed in different systems we need a platform which acts as
 mediator by handles the incoming event as stream and provide them to several
 consumers (\ref{intro-datastream-centralplatform}). This seems to be very similar to
 the definition of a message broker (\ref{intro-messaging-broker}) and indeed
@@ -300,16 +300,20 @@ these two concepts can be compared. Actually an event stream can be realised
 with an underlying message broker and as we already described \todo{ref}, events
 can be considered as messages with the event data as payload. In this point of
 view the central stream platform is nothing else than a message broker which
-handles incoming events, persist them in a queue and provide them for the
-consumers which can be stream or batch processing systems. 
+handles incoming events, persist them in an ordered queue and provide them for the
+consumers which can be stream or batch processing systems.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{images/messaging-vs-streaming.png}
     \caption{Event Stream vs Messaging}
     \label{fig:messaging-vs-streaming}
 \end{figure}
-Depending on the guarantees a message broker implementation provides the more it
-is predestined for an event stream environment than others. In a survey (Chapter
+The question if a message broker implementation is predestined for a big data
+event stream environments is depending on its guarantees and performance. In
+comparison to standard integration platform where a few applications communicate with each
+other, the main challenge for a message broker in big data environment, is the
+very high amount of data which needs to handled. The main demands are high
+throughput and reliability in case of failures. In a survey (Chapter
 \ref{survey-broker}) we examine the limits of traditional message brokers and
 the needs for lately introduced systems such as Apache Kafka\cite{apachekafka},
 Scribe\cite{scribe} or Flume\cite{apacheflume} and further try to compare and
