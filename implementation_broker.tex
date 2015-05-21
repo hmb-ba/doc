@@ -149,6 +149,10 @@ data Partition =
 -- more
 \end{lstlisting}
 
+\subsection{Encoding}
+
+\subsection{Decoding}
+
 \section{Network Subsystem}
 
 One of the most fundamental parts of a message broker are sockets. While a
@@ -208,6 +212,57 @@ also the default value in the Java SocketServer implementation. \textit{Note,
 that the focus remains on the amount of data being processed rather than the
 number of clients being served.}
 
+\subsection{Receive data}
+To receive data from socket buffer we use the function recv from
+Network.Socket.ByteString.Lazy library which provides access to the unix socket
+interface. Because we work with a binary protocol and need to parse the data
+from binary data directly, this module is much more efficient than the string
+based network functions. We take the lazy variant of the library because the
+input gets directly parsed by our lazy based encoder \todo{ref}.
+
+Because we want to handle each request individually we explicitly read
+only the exact amount of bytes which is needed get one particular request from
+the socket buffer. To get the size of a whole request we read the first four
+bytes which determines the request size according to the protocol and parse it
+to an numeral value.
+
+\begin{lstlisting}
+import qualified Network.Socket.ByteString.Lazy as S 
+import qualified Data.ByteString.Lazy as BL
+
+recvFromSock :: (Socket, SockAddr) -> IO BL.ByteString
+recvFromSock (sock, sockaddr) =  do 
+    respLen <- S.recv sock (4 :: Int64
+    let parsedLen = getLength respLen
+    req <- recvExactly sock parsedLength 
+    where
+        getLength = runGet \$ fromIntegral <\$> getWord32be
+\end{lstlisting}
+
+After getting the size of a particular request, this determined amount of bytes
+is received from socket. Because of the blocking semantics of unix sockets and
+tcp packet fragmentation it is not guaranteed, that the len argument to the recv
+system call gets the exactly number of bytes of the whole request. The call may produce
+less data than specified. Therefore we implement the following function to get
+the data in
+chunks until the entire request is read. 
+
+\begin{lstlisting}
+recvExactly :: Socket -> Int64 -> IO BL.ByteString 
+recvExactly sock size = BL.concat . reverse <\$> loop [] 0 
+  where
+    loop chunks bytesRead
+        | bytesRead >= size = return chunks
+        | otherwise = do  
+            chunk <- S.recv sock (size - bytesRead)
+            if BL.null chunk 
+              then return chunks 
+              else loop (chunk:chunks) \$! bytesRead + BL.length chunk 
+\end{lstlisting}
+
+\subsection{Send data}
+
+
 \section{API Subsystem (Request Handling)}
 
 \begin{figure}[H]
@@ -217,25 +272,6 @@ number of clients being served.}
     \label{fig:broker-activity-detail.png}
 \end{figure}
 
-
-\section{Error Handling}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{images/broker-error-activity.png}
-    \caption{Broker error handling concept}
-    \label{fig:broker-error-activity.png}
-\end{figure}
-
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{images/broker-error-activity-detail.png}
-    \caption{Broker handling concept in detail}
-    \label{fig:broker-error-activity-detail.png}
-\end{figure}
-
-TODO: Either, Control.Monad.Error, Custom error types
 
 \section{Log Subsystem}
 
