@@ -298,7 +298,65 @@ payload        : n bytes
     message length  : 4 bytes
     message         : n bytes
 
-\subsection{Read / Write}
+\subsection{Write a log}
+
+Writing data, type of MessageSet \todo{ref to type}, to a log is the
+fundamental process behind the scenes of handling a ProduceRequest \todo{ref
+to request}. But before actually writing data to the file system, several
+steps come in between they will contribute significantly to the concept of
+Apache Kafka's Log system \todo{ref to kafka log}. This section will describe
+the implementation details of the mentioned steps in the order of occurrence.
+
+\subsubsection{Base Offset}
+P
+The incoming request -- which is at this point already parsed -- contains the
+topic as well as the partition number for the given set of messages. Thus, we
+can identify the location of the related log file. Given the location we do
+not know which file we actually have to write the messages to at this point.
+The file we want to write to is the one named after the highest offset,
+which is why we do not get around reading the content of this directory and
+proceed string transformations to identify the correct offset and thus the
+file to write to. Handling the case of where no file exists follows
+to the creation of a new log with the offset of zero.
+
+Here Haskell can perform it's beauty. To get the list of all offsets within
+the directory, the function \textit{offsetFromFileName} extracts the offset
+as an \textit{Int} from a \textit{String}. As an example,
+\textit{"00000000000000000005.log" :: String } will be transformed to
+\textit{0000000000000000005 :: Int}:
+
+\begin{lstlisting}
+offsetFromFileName :: [Char] -> Int
+offsetFromFileName = read . reverse . snd . splitAt 4 . reverse
+\end{lstlisting}
+
+The offset can be mapped over a filtered list of strings, which will
+give the list of all offsets within the directory. The filter function
+basically omits the files other than \textit{".log"} as well as the root
+directories, typically \textit{".", ".."}:
+
+\begin{lstlisting}
+getBaseOffsets :: (TopicStr, Int) -> IO [BaseOffset]
+getBaseOffsets (t, p) = do
+dirs <- getDirectoryContents $ getLogFolder (t, p)
+return $ map (offsetFromFileName) (filter (isLogFile) (filterRootDir dirs))
+\end{lstlisting}
+
+Finally, the highest offset or zero will be given:
+
+\begin{lstlisting}
+maxOffset' :: [Int] -> Int
+maxOffset' [] = 0
+maxOffset' [x] = x
+maxOffset' xs = maximum xs
+
+getLastBaseOffset :: (TopicStr, Int) -> IO BaseOffset
+getLastBaseOffset (t, p) = do
+bos <- getBaseOffsets (t, p)
+return $ maxOffset' bos
+\end{lstlisting}
+
+\subsection{Read from log}
 
 \subsection{Optimization}
 
