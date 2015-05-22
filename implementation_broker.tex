@@ -298,28 +298,60 @@ payload        : n bytes
     message length  : 4 bytes
     message         : n bytes
 
+\subsection{Types}
+
+\begin{table}[H]
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Type synonym} & \textbf{Parameter}           & \textbf{Description}                     \\ \hline
+TopicStr              & String                       & Parsed topic name as String              \\ \hline
+PartitionNr           & Int                          & Parsed partition number as Int           \\ \hline
+FilemessageSet        & {[}MessageSet{]}             &                                          \\ \hline
+OffsetIndex           & {[}OffsetPosition{]}         &                                          \\ \hline
+LogSegment            & (Log, OffsetIndex)           &                                          \\ \hline
+RelativeOffset        & Word32                       & 4 Byte offset relative to the BaseOffset \\ \hline
+FileOffset            & Word32                       & 4 Byte physical offset of a Log file     \\ \hline
+OffsetPosition        & (RelativeOffset, FileOffset) & Tuple of relative and physical offset    \\ \hline
+BaseOffset            & Int                          & 8 Byte offset as Int                     \\ \hline
+\end{tabular}
+}
+\end{table}
+
 \subsection{Write a log}
 
 Writing data, type of MessageSet \todo{ref to type}, to a log is the
 fundamental process behind the scenes of handling a ProduceRequest \todo{ref
 to request}. But before actually writing data to the file system, several
-steps come in between they will contribute significantly to the concept of
-Apache Kafka's Log system \todo{ref to kafka log}. This section will describe
+steps come in between and will contribute significantly to the concept of
+Apache Kafka's Log system \todo{ref to kafka log}. This section describes
 the implementation details of the mentioned steps in the order of occurrence.
 
 \subsubsection{Base Offset}
-P
+
 The incoming request -- which is at this point already parsed -- contains the
 topic as well as the partition number for the given set of messages. Thus, we
-can identify the location of the related log file. Given the location we do
-not know which file we actually have to write the messages to at this point.
+can identify the location of the related log file. Given the location only, we yet do
+not know which file we actually have to.
 The file we want to write to is the one named after the highest offset,
-which is why we do not get around reading the content of this directory and
-proceed string transformations to identify the correct offset and thus the
-file to write to. Handling the case of where no file exists follows
+which is why we do not get around reading the content of this directory. While doing so,
+string transformations have to be applied to identify the correct offset and thus the
+file to write to. Handling the case where no file exists leads
 to the creation of a new log with the offset of zero.
+\\
 
-Here Haskell can perform it's beauty. To get the list of all offsets within
+Before applying filters and string transformations, the list of files has to be
+build. The library
+\fnurl{System.Directory}{http://hackage.haskell.org/package/directory-1.2.2.1/docs/System-Directory.html}
+provides the function \textit{getDirectoryContents} that takes a file path as a
+string and returns a list of all entires in the directory. This operation
+performs I/O and thus the return type is an IO monadic value. \textit{As
+described on
+\fnurl{hackage}{http://hackage.haskell.org/package/directory-1.2.2.1/docs/System-Directory.html\#v:getDirectoryContents},
+there are several causes why this operation may fail but at this point, we do
+not provide proper error handling.}
+
+Now Haskell can perform it's beauty. To get the list of all offsets within
 the directory, the function \textit{offsetFromFileName} extracts the offset
 as an \textit{Int} from a \textit{String}. As an example,
 \textit{"00000000000000000005.log" :: String } will be transformed to
@@ -330,10 +362,11 @@ offsetFromFileName :: [Char] -> Int
 offsetFromFileName = read . reverse . snd . splitAt 4 . reverse
 \end{lstlisting}
 
-The offset can be mapped over a filtered list of strings, which will
+The function \textit{offsetFromFileName} can be mapped over a filtered list of strings, which will
 give the list of all offsets within the directory. The filter function
-basically omits the files other than \textit{".log"} as well as the root
-directories, typically \textit{".", ".."}:
+basically omits the files other than the ones ending with \textit{".log"} as well as the root
+directories, typically \textit{".", ".."}.
+
 
 \begin{lstlisting}
 getBaseOffsets :: (TopicStr, Int) -> IO [BaseOffset]
@@ -342,19 +375,25 @@ dirs <- getDirectoryContents $ getLogFolder (t, p)
 return $ map (offsetFromFileName) (filter (isLogFile) (filterRootDir dirs))
 \end{lstlisting}
 
-Finally, the highest offset or zero will be given:
+Finally, the highest offset can be returned. If the list is empty -- and thus no log file 
+yet exists within the log folder -- zero will be returned.
 
 \begin{lstlisting}
-maxOffset' :: [Int] -> Int
-maxOffset' [] = 0
-maxOffset' [x] = x
-maxOffset' xs = maximum xs
+maxOffset :: [Int] -> Int
+maxOffset [] = 0
+maxOffset [x] = x
+maxOffset xs = maximum xs
 
 getLastBaseOffset :: (TopicStr, Int) -> IO BaseOffset
 getLastBaseOffset (t, p) = do
 bos <- getBaseOffsets (t, p)
-return $ maxOffset' bos
+return (maxOffset bos)
 \end{lstlisting}
+
+\subsubsection{Offset Position Index}
+
+With the information of the highest offset in the log directory, we do
+also now about the currently latest log file.
 
 \subsection{Read from log}
 
