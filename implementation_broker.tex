@@ -390,10 +390,32 @@ bos <- getBaseOffsets (t, p)
 return (maxOffset bos)
 \end{lstlisting}
 
-\subsubsection{Offset Position Index}
+\subsubsection{Last Offset Position}
 
-With the information of the highest offset in the log directory, we do
-also now about the currently latest log file.
+Given information of the highest offset for a specified topic name and partition, the next step leads to determine the latest entry of the index file -- which is named after this offset. The index file now will be parsed with the regard to identify the latest offset and physical position of the message that lies within the actual log file. In order to increase I/O performance the index file will be mapped into memory first using \fnurl{mmap}{http://man7.org/linux/man-pages/man2/mmap.2.html}. The resulting memory-mapped file implements demand paging which is an operation that copies a disk page into physical memory only if an attempt is made to access it or the page is not already in memory. This comes very handy in terms of Haskell's lazyness such as that a lazy ByteString can be taken as a result of this operation and thus memory consumption can be considered as moderate. But even more importantly, the amount of I/O operations will be decreased drastically for multiple lookups on the index file.
+
+Haskell provides the System.IO.MMap library which is an interface to mmap(2) system call under POSIX. 
+%todo ...DESCRIBE MMAP LIBRARY...
+
+\begin{lstlisting}
+getLastOffsetPosition :: (TopicStr, Int) -> BaseOffset -> IO OffsetPosition
+getLastOffsetPosition (t, p) bo = do 
+  let path = getPath (getLogFolder (t, p)) (indexFile bo)
+  -- check if file exists
+  bs <- mmapFileByteStringLazy path Nothing
+  case decodeIndex bs of
+    Left (bs, bo, e)   -> do
+        print e
+        return (0,0)
+    Right (bs, bo, ops) -> return (lastIndex ops)
+\end{lstlisting}
+
+\subsubsection{Last Log Offset}
+
+\subsubsection{Append Index}
+
+\subsubsection{Append Log}
+
 
 \subsection{Read from log}
 
