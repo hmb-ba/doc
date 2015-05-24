@@ -186,10 +186,13 @@ data Partition =
 \end{lstlisting}
 
 \subsection{Decode}
-There are many options in Haskell to encode or decode data to binary format. 
-As for binary serialization, we rely the Data.Binary library. Using the Get
-Monad (Data.Binary.Get) we are able to comfortably parse ByteString in it's big
-endian network order and decode it to appropriate types.
+There are libraries in Haskell to encode or decode data to or from binary format. 
+As for binary serialization, we rely the
+\fnurl{Data.Binary}{https://hackage.haskell.org/package/binary-0.4.1/docs/Data-Binary.html}
+library. Using the Get Monad (Data.Binary.Get) we are able to comfortably parse
+ByteString in it's big endian network order and decode it to appropriate types.
+The resulting functions remind of the original definition of the Kafka protocol
+as grammar. 
 
 As mentioned in previous section, every request or response has its same header
 fields. We provide a general function one for parsing a request and another for
@@ -229,8 +232,34 @@ parseList i p = do
             return (x:xs)
 \end{lstlisting}
 
-A sequence of MessageSets is a special case where the protocol does not provide a
-field which determines the number of elements. The is just a field which contains
+Because the format of a MessageSet is common for the transmission on wire as
+well for the persistence in the log we can use the same functions for both use cases:
+\begin{lstlisting}
+payloadParser :: Get Payload
+payloadParser = do
+  magic  <- getWord8
+  attr   <- getWord8
+  keylen <- getWord32be
+  paylen <- getWord32be
+  payload <- getByteString \$ fromIntegral paylen
+  return \$! Payload magic attr keylen paylen payload
+
+messageParser :: Get Message 
+messageParser = do 
+  crc    <- getWord32be
+  p      <- payloadParser
+  return \$! Message crc p
+
+messageSetParser :: Get MessageSet 
+messageSetParser = do 
+  offset <- getWord64be
+  len <- getWord32be 
+  message <- messageParser
+  return \$! MessageSet offset len message
+\end{lstlisting}
+
+A batched sequence of MessageSets is a special case where the protocol does not provide a
+field which determines the number of elements. There is just a field which contains
 the size in bytes of all message sets. Therefore we implemented an according
 list decoder for sequences of MessageSets:
 \begin{lstlisting}
@@ -245,8 +274,37 @@ parseMessageSets i = do
 
 \subsection{Encode}%
 Obviously the encode module provides the opposite functionalities as the decode
-module and was separated just for clarity. Thus we also rely on Data.Binary and use the
-Put Monad (Data.Binary.Put) to construct ByteStrings.
+module and was separated just for clarity. Thus we also rely on
+\fnurl{Data.Binary}{https://hackage.haskell.org/package/binary-0.4.1/docs/Data-Binary.html}
+and use the Put Monad (Data.Binary.Put) to construct ByteStrings.
+
+TODO: Build Request / Response
+
+TODO: Build List 
+
+Analog to the decode functions for MessageSets, the encode functions are
+used for request or responses as well for the persistence format for the log:
+
+\begin{lstlisting}
+buildldPayload :: Payload -> BL.ByteString 
+buildPayload e = runPut \$ do 
+  putWord8    \$ magic e
+  putWord8    \$ attr e
+  putWord32be \$ keylen \$ e
+  putWord32be \$ payloadLen  e
+  putByteString \$ payloadData e
+
+buildMessage :: Message -> BL.ByteString
+buildMessage e = runPut \$ do 
+  putWord32be \$ crc e
+  putLazyByteString \$ buildPayload \$ payload e 
+
+buildMessageSet :: MessageSet -> BL.ByteString
+buildMessageSet e = runPut \$ do 
+  putWord64be \$ offset e
+  putWord32be \$ len e
+  putLazyByteString \$ buildMessage \$ message e
+\end{lstlisting}
 
 \section{Client Library}
 
@@ -311,11 +369,12 @@ number of clients being served.}
 
 \subsection{Receive data}
 To receive data from socket buffer we use the function recv from
-Network.Socket.ByteString.Lazy library which provides access to the unix socket
-interface. Because we work with a binary protocol and need to parse the data
-from binary data directly, this module is much more efficient than the string
-based network functions. We take the lazy variant of the library because the
-input gets directly parsed by our lazy based encoder \todo{ref}.
+\fnurl{Network.Socket.ByteString.Lazy}{https://hackage.haskell.org/package/network-2.3.0.1/docs/Network-Socket-ByteString-Lazy.html}
+library which provides access to the unix socket interface. Because we work
+with a binary protocol and need to parse the data from binary data directly,
+this module is much more efficient than the string based network functions. We
+take the lazy variant of the library because the input gets directly parsed by
+our lazy based encoder \todo{ref}.
 
 Because we want to handle each request individually we explicitly read
 only the exact amount of bytes which is needed get one particular request from
