@@ -78,6 +78,61 @@ can itself be made up of other,primitive types & Data.List                      
 \end{tabular}
 \end{table}
 
+\subsubsection{Types related to request}
+Each request and response has its same header fields independent for which api they are used. 
+The last part of the format (either request or response) is individual to the particular api which is used. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/protocol-request-header.png}
+    \caption{Common Request Header}
+    \label{fig:protocol-request-header.png}
+\end{figure}
+
+\subsubsection{Types related to response}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/protocol-response-header.png}
+    \caption{Common Response Header}
+    \label{fig:protocol-response-header.png}
+\end{figure}
+
+\subsubsection{Types related to data}
+The actual transported data has a common structure,
+called a MessageSet. This format happens to be used both for the on-disk storage on the
+broker and the on-the-wire format. Therefore the broker do not need to perform
+any transformations to the actual message when persisting to the log or read
+from it. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/protocol-messageSet.png}
+    \caption{MessageSet format as common format for transported data}
+    \label{fig:protocol-request-header.png}
+\end{figure}
+
+%\subsection{API's}
+%\todo{-> verschieben in Kap Kafka detail? }
+%\subsubsection{Metadata API}
+%Describes the currently available brokers, their host and port information, and
+%gives information about which broker hosts which partitions.
+
+
+%\subsubsection{Fetch API}
+%Fetchs / Consumes messages from the broker.
+%\subsubsection{Offset API}
+%Get information about the available offsets for a given topic partition
+
+%\textbf{Not implemented yet}
+
+%\subsubsection{Offset Commit API}
+%Commit a set of offsets for a consumer group
+
+%\textbf{Not implemented yet}
+
+%\subsubsection{Offset Commit API}
+%Fetch a set of offsets for a consumer group
+
+%\textbf{Not implemented yet}
 \subsubsection{Naming convention}
 As for request and response related types we had to introduce an own naming
 convention. As a matter of fact, not every field of some kind of request or
@@ -130,72 +185,67 @@ data Partition =
 -- more
 \end{lstlisting}
 
-\subsubsection{Types related to data}
-The actual transported data has a common structure,
-called a MessageSet. This format happens to be used both for the on-disk storage on the
-broker and the on-the-wire format. Therefore the broker do not need to perform
-any transformations to the actual message when persisting to the log or read
-from it. 
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{images/protocol-messageSet.png}
-    \caption{MessageSet format as common format for transported data}
-    \label{fig:protocol-request-header.png}
-\end{figure}
-
-
-\subsubsection{Types related to request}
-Each request and response has its same header fields independent for which api they are used. 
-The last part of the format (either request or response) is individual to the particular api which is used. 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{images/protocol-request-header.png}
-    \caption{Common Request Header}
-    \label{fig:protocol-request-header.png}
-\end{figure}
-
-\subsubsection{Types related to response}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{images/protocol-response-header.png}
-    \caption{Common Response Header}
-    \label{fig:protocol-response-header.png}
-\end{figure}
-
-%\subsection{API's}
-%\todo{-> verschieben in Kap Kafka detail? }
-%\subsubsection{Metadata API}
-%Describes the currently available brokers, their host and port information, and
-%gives information about which broker hosts which partitions.
-
-
-%\subsubsection{Fetch API}
-%Fetchs / Consumes messages from the broker.
-%\subsubsection{Offset API}
-%Get information about the available offsets for a given topic partition
-
-%\textbf{Not implemented yet}
-
-%\subsubsection{Offset Commit API}
-%Commit a set of offsets for a consumer group
-
-%\textbf{Not implemented yet}
-
-%\subsubsection{Offset Commit API}
-%Fetch a set of offsets for a consumer group
-
-%\textbf{Not implemented yet}
-
 \subsection{Decode}
 There are many options in Haskell to encode or decode data to binary format. 
 As for binary serialization, we rely the Data.Binary library. Using the Get
 Monad (Data.Binary.Get) we are able to comfortably parse ByteString in it's big
 endian network order and decode it to appropriate types.
 
+As mentioned in previous section, every request or response has its same header
+fields. We provide a general function one for parsing a request and another for
+parsing a response. To determine the actual type of request, the protocol describes
+an API Key field which holds a numeric code which explicitly defines the type of
+request. Depending on the API key further parse functions will be called. The
+following code shows the function for parsing a request: 
+\begin{lstlisting}
+import Data.Binary.Get
+
+requestMessageParser :: Get RequestMessage 
+requestMessageParser = do 
+    apiKey        <- getWord16be
+    apiVersion    <- getWord16be
+    correlationId <- getWord32be
+    clientIdLen   <- getWord16be
+    clientId      <- getByteString \$ fromIntegral clientIdLen
+    request       <- case (fromIntegral apiKey) of
+        0 -> produceRequestParser
+        1 -> fetchRequestParser
+        3 -> metadataRequestParser
+        -- ... further API Codes 
+        _ -> -- Invalid API Key 
+    return \$ RequestMessage apiKey apiVersion correlationId clientIdLen
+    clientId request
+\end{lstlisting}
+
+Batching sequences are parsed as List whereas we implemented a general function
+which gets the list size (number of elements) and a parse function: 
+\begin{lstlisting}
+parseList :: Int -> (Get a) -> Get [a]
+parseList i p = do 
+  if (i < 1) 
+    then return []
+    else do x <- p
+            xs <- parseList (i-1) p
+            return (x:xs)
+\end{lstlisting}
+
+A sequence of MessageSets is a special case where the protocol does not provide a
+field which determines the number of elements. The is just a field which contains
+the size in bytes of all message sets. Therefore we implemented an according
+list decoder for sequences of MessageSets:
+\begin{lstlisting}
+parseMessageSets :: Int -> Get [MessageSet]
+parseMessageSets i = do
+    if (i < 1)
+    then return []
+    else do x <- messageSetParser
+            xs <- parseMessageSets \$ i - (fromIntegral \$ length \$ buildMessageSet x)
+            return (x:xs)
+\end{lstlisting}
+
 \subsection{Encode}%
-Obviously the serializer is provides the opposite functionalities as the parser
-and was separated just for clarity. Thus we also rely on Data.Binary and use the
+Obviously the encode module provides the opposite functionalities as the decode
+module and was separated just for clarity. Thus we also rely on Data.Binary and use the
 Put Monad (Data.Binary.Put) to construct ByteStrings.
 
 \section{Client Library}
