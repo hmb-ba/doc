@@ -278,6 +278,7 @@ recvExactly sock size = BL.concat . reverse <\$> loop [] 0
 \subsection{Indexing}
 
 \subsection{Storage Layout}
+\label{broker-storage}
 
 - for each topic a folder
 - separate folders over partitions (1;2) -> topic\_0; topic\_1
@@ -392,7 +393,7 @@ return (maxOffset bos)
 
 \subsubsection{Last Offset Position}
 
-Given information of the highest offset for a specified topic name and partition, the next step leads to determine the latest entry of the index file -- which is named after this offset. The index file now will be parsed with the regard to identify the latest offset and physical position of the message that lies within the actual log file. In order to increase I/O performance the index file will be mapped into memory first using \fnurl{mmap}{http://man7.org/linux/man-pages/man2/mmap.2.html}. The resulting memory-mapped file implements demand paging which is an operation that copies a disk page into physical memory only if an attempt is made to access it or the page is not already in memory. This comes very handy in terms of Haskell's lazyness such as that a lazy ByteString can be taken as a result of this operation and thus memory consumption can be considered as moderate. But even more importantly, the amount of I/O operations will be decreased drastically for multiple lookups on the index file.
+Given the highest offset for a specific topic name and partition, the next step leads to determine the latest entry of the index file -- which is named after this offset. The index file now will be parsed with the regard to identify the latest offset and physical position of the message that lies within the actual log file. In order to increase I/O performance the index file will be mapped into memory first using \fnurl{mmap}{http://man7.org/linux/man-pages/man2/mmap.2.html}. The resulting memory-mapped file implements demand paging which is an operation that copies a disk page into physical memory only if an attempt is made to access it or the page is not already in memory. This comes very handy in terms of Haskell's laziness such as that a lazy ByteString can be taken as a result of this operation and thus memory consumption can be considered as moderate. But even more importantly, the amount of I/O operations will be decreased drastically for multiple lookups on the index file.
 
 Haskell provides the System.IO.MMap library which is an interface to mmap(2) system call under POSIX. 
 %todo ...DESCRIBE MMAP LIBRARY...
@@ -411,6 +412,18 @@ getLastOffsetPosition (t, p) bo = do
 \end{lstlisting}
 
 \subsubsection{Last Log Offset}
+
+The last offset provided by the index file does not ensure that this is the last offset above all existing messages within the log. As described in the storage section (\ref{broker-storage}), index entries are created only after a certain amount of bytes has been passed. The gap between the last offset of the index and the last offset of the log will be resolved by parsing the messages between the two offsets where the last of those messages can finally be considered as the message that contains the highest offset above all messages. 
+
+Fortunately, the mmap wrapper function \textit{mmapFileByteStringLazy} takes a \textit{Maybe (Int64, Int64)} to specify the range of the file to be mapped. The range is defined by the offset, which is the beginning byte of the file region and the size tells the mapping length.
+\begin{lstlisting}
+getLastLogOffset :: (TopicStr, Int) -> BaseOffset -> OffsetPosition -> IO Offset
+getLastLogOffset (t, p) bo (rel, phys) = do
+  let path = getPath (logFolder t p) (logFile bo)
+  fs <- getFileSize path
+  bs <- mmapFileByteStringLazy path \$ Just (fromIntegral phys, (fromIntegral (fs) - fromIntegral phys))
+  return (lastOffset \$ runGet getLog bs)
+\end{lstlisting}
 
 \subsubsection{Append Index}
 
