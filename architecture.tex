@@ -141,7 +141,11 @@ Message.
     \label{fig:architecture-components.png}
 \end{figure}
 
-\subsection{Broker Subsystems}
+\subsection{Consumption Model}
+TODO: All requests are initiated by the client, and result in a corresponding
+response message from the server
+
+\subsection{Broker Layering}
 We decided to divide the broker server application into three subsystems to
 clarify the program flow from receiving data from network to handling the
 requests and accessing the message log. 
@@ -160,7 +164,7 @@ TODO: introduction to tasks of networking layer, then ref to socket server imple
 
 TODO: introduction to tasks of api layer, then ref to request and error handling
 
-\subsubsection{Log Subsystem}
+\subsubsection{Log}
 
 TODO: introduction to tasks of log subsystem, then ref to persistance section
 
