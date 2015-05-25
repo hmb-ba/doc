@@ -436,8 +436,31 @@ recvExactly sock size = BL.concat . reverse <\$> loop [] 0
 \subsection{Storage Layout}
 \label{broker-storage}
 
-- for each topic a folder
-- separate folders over partitions (1;2) -> topic\_0; topic\_1
+\subsubsection{Folder structure}
+
+The storage layout is exactly the same as the one defined for for Apache Kafka. \todo{link}
+As for now, the root location of the log is not configurable and set to the folder named \textbf{./log} within the installation directory of the broker.
+Each folder represents a partition of a specific topic whereas the name of the folder is a combination of the topic name and the partition number. 
+\\ \\
+For example the topic named \textit{myTopic} with the partitions \textit{0} and \textit{1} will result in the following folder structure:
+
+\begin{itemize}
+    \item ./log/myTopic\_0
+    \item ./log/myTopic\_1
+\end{itemize}
+
+\subsubsection{Files}
+
+There are two types of files they reside within the folder that specifies the topic and partition (see folder structure):
+
+\begin{description}
+    \item[*.index] Containing a sequence of index entries
+    \item[*.log] Containing a sequence of log entries
+\end{description}
+
+Both of the file types hold the same name which stays for the base offset and can be considered as an unique identifier. As it was defined for Apache Kafka, the base offset is the offset of the first log entry. Using this naming convention, viewing multiple log files provides information about what range of messages reside in which log. This is a very efficient way to perform a lookup which is needed for example to append new log messages or archive old messages.
+
+
 - file name: offset of the first message it contains (next file: S bytes (max log size, given in configuration) from previous file)
 - file format: sequence of log entries
 - log entry: N (4 byte integer -> message length) followed by message (N message bytes)
