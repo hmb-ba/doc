@@ -210,14 +210,14 @@ requestMessageParser = do
     apiVersion    <- getWord16be
     correlationId <- getWord32be
     clientIdLen   <- getWord16be
-    clientId      <- getByteString \$ fromIntegral clientIdLen
+    clientId      <- getByteString $ fromIntegral clientIdLen
     request       <- case (fromIntegral apiKey) of
         0 -> produceRequestParser
         1 -> fetchRequestParser
         3 -> metadataRequestParser
         -- ... further API Codes 
         _ -> -- Invalid API Key 
-    return \$ RequestMessage apiKey apiVersion correlationId clientIdLen
+    return $ RequestMessage apiKey apiVersion correlationId clientIdLen
     clientId request
 \end{lstlisting}
 
@@ -242,21 +242,21 @@ payloadParser = do
   attr   <- getWord8
   keylen <- getWord32be
   paylen <- getWord32be
-  payload <- getByteString \$ fromIntegral paylen
-  return \$! Payload magic attr keylen paylen payload
+  payload <- getByteString $ fromIntegral paylen
+  return $! Payload magic attr keylen paylen payload
 
 messageParser :: Get Message 
 messageParser = do 
   crc    <- getWord32be
   p      <- payloadParser
-  return \$! Message crc p
+  return $! Message crc p
 
 messageSetParser :: Get MessageSet 
 messageSetParser = do 
   offset <- getWord64be
   len <- getWord32be 
   message <- messageParser
-  return \$! MessageSet offset len message
+  return $! MessageSet offset len message
 \end{lstlisting}
 
 A batched sequence of MessageSets is a special case where the protocol does not provide a
@@ -269,7 +269,7 @@ parseMessageSets i = do
     if (i < 1)
     then return []
     else do x <- messageSetParser
-            xs <- parseMessageSets \$ i - (fromIntegral \$ length \$ buildMessageSet x)
+            xs <- parseMessageSets $ i - (fromIntegral $ length \$ buildMessageSet x)
             return (x:xs)
 \end{lstlisting}
 
@@ -288,23 +288,23 @@ used for request or responses as well for the persistence format for the log:
 
 \begin{lstlisting}
 buildldPayload :: Payload -> BL.ByteString 
-buildPayload e = runPut \$ do 
-  putWord8    \$ magic e
-  putWord8    \$ attr e
-  putWord32be \$ keylen \$ e
-  putWord32be \$ payloadLen  e
-  putByteString \$ payloadData e
+buildPayload e = runPut $ do 
+  putWord8    $ magic e
+  putWord8    $ attr e
+  putWord32be $ keylen $ e
+  putWord32be $ payloadLen  e
+  putByteString $ payloadData e
 
 buildMessage :: Message -> BL.ByteString
-buildMessage e = runPut \$ do 
-  putWord32be \$ crc e
-  putLazyByteString \$ buildPayload \$ payload e 
+buildMessage e = runPut $ do 
+  putWord32be $ crc e
+  putLazyByteString $ buildPayload $ payload e 
 
 buildMessageSet :: MessageSet -> BL.ByteString
-buildMessageSet e = runPut \$ do 
-  putWord64be \$ offset e
-  putWord32be \$ len e
-  putLazyByteString \$ buildMessage \$ message e
+buildMessageSet e = runPut $ do 
+  putWord64be $ offset e
+  putWord32be $ len e
+  putLazyByteString $ buildMessage $ message e
 \end{lstlisting}
 
 \section{Client Library}
@@ -393,7 +393,7 @@ recvFromSock (sock, sockaddr) =  do
     let parsedLen = getLength respLen
     req <- recvExactly sock parsedLength 
     where
-        getLength = runGet \$ fromIntegral <\$> getWord32be
+        getLength = runGet $ fromIntegral <$> getWord32be
 \end{lstlisting}
 
 After getting the size of a particular request, this determined amount of bytes
@@ -406,7 +406,7 @@ chunks until the entire request is read.
 
 \begin{lstlisting}
 recvExactly :: Socket -> Int64 -> IO BL.ByteString 
-recvExactly sock size = BL.concat . reverse <\$> loop [] 0 
+recvExactly sock size = BL.concat . reverse <$> loop [] 0 
   where
     loop chunks bytesRead
         | bytesRead >= size = return chunks
@@ -414,7 +414,7 @@ recvExactly sock size = BL.concat . reverse <\$> loop [] 0
             chunk <- S.recv sock (size - bytesRead)
             if BL.null chunk 
               then return chunks 
-              else loop (chunk:chunks) \$! bytesRead + BL.length chunk 
+              else loop (chunk:chunks) $! bytesRead + BL.length chunk 
 \end{lstlisting}
 
 \subsection{Send data}
@@ -664,8 +664,8 @@ getLastLogOffset :: (TopicStr, Int) -> BaseOffset -> OffsetPosition -> IO Offset
 getLastLogOffset (t, p) bo (rel, phys) = do
   let path = getPath (logFolder t p) (logFile bo)
   fs <- getFileSize path
-  bs <- mmapFileByteStringLazy path \$ Just (fromIntegral phys, (fromIntegral (fs) - fromIntegral phys))
-  return (lastOffset \$ runGet getLog bs)
+  bs <- mmapFileByteStringLazy path $ Just (fromIntegral phys, (fromIntegral (fs) - fromIntegral phys))
+  return (lastOffset $ runGet getLog bs)
 \end{lstlisting}
 
 \subsubsection{Append Index}
