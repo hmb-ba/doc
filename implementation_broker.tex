@@ -97,6 +97,7 @@ The last part of the format (either request or response) is individual to the pa
 \end{figure}
 
 \subsubsection{Types related to data}
+\label{impl-protocol-types-data}
 The actual transported data has a common structure,
 called a MessageSet. This format happens to be used both for the on-disk storage on the
 broker and the on-the-wire format. Therefore the broker do not need to perform
@@ -490,8 +491,15 @@ position the message resides within the log. Thus, log access of O(n) becomes po
 
 \subsubsection{Log on-disk format}
 
-- file name: offset of the first message it contains (next file: S bytes (max log size, given in configuration) from previous file)
-- file format: sequence of log entries
+The log contains a sequence of log entries whereas the on-disk format of a log
+entry is is part of the reason why the Apache Kafka becomes that valuable. In
+fact, the on-disk format is exactly the same as the format of the MessageSet
+(see \ref{impl-protocol-types-data}) transmitted with a ProduceRequest
+\todo{add requests to protocol and link this}. Thus, data does not have to be
+modified in any way and can directly be extracted and written to the file
+system.
+
+\todo{move the below to protocol}
 - log entry: N (4 byte integer -> message length) followed by message (N message bytes)
 - message: unique identifier (64 bit integer offset -> byte position of the start of this message in the stream of all messages ever sent to that topic on that partition)
 
