@@ -438,11 +438,14 @@ recvExactly sock size = BL.concat . reverse <\$> loop [] 0
 
 \subsubsection{Folder structure}
 
-The storage layout is exactly the same as the one defined for for Apache Kafka. \todo{link}
-As for now, the root location of the log is not configurable and set to the folder named \textbf{./log} within the installation directory of the broker.
-Each folder represents a partition of a specific topic whereas the name of the folder is a combination of the topic name and the partition number. 
-\\ \\
-For example the topic named \textit{myTopic} with the partitions \textit{0} and \textit{1} will result in the following folder structure:
+The storage layout is exactly the same as the one defined for for Apache Kafka.
+\todo{link} As for now, the root location of the log is not configurable and
+set to the folder named \textbf{./log} within the installation directory of the
+broker. Each folder represents a partition of a specific topic whereas the name
+of the folder is a combination of the topic name and the partition number. 
+
+For example the topic named \textit{myTopic} with the partitions \textit{0} and
+\textit{1} will result in the following folder structure:
 
 \begin{itemize}
     \item ./log/myTopic\_0
@@ -451,15 +454,41 @@ For example the topic named \textit{myTopic} with the partitions \textit{0} and 
 
 \subsubsection{Files}
 
-There are two types of files they reside within the folder that specifies the topic and partition (see folder structure):
+There are two types of files they reside within the folder that specifies the
+topic and partition (see folder structure):
 
 \begin{description}
-    \item[*.index] Containing a sequence of index entries
-    \item[*.log] Containing a sequence of log entries
+    \item[.index] Containing a sequence of index entries
+    \item[.log] Containing a sequence of log entries
 \end{description}
 
-Both of the file types hold the same name which stays for the base offset and can be considered as an unique identifier. As it was defined for Apache Kafka, the base offset is the offset of the first log entry. Using this naming convention, viewing multiple log files provides information about what range of messages reside in which log. This is a very efficient way to perform a lookup which is needed for example to append new log messages or archive old messages.
+Both of the file types hold the same name which stays for the base offset and
+can be considered as an unique identifier representing a 64 bit integer as a 20
+character file name. As it was defined for Apache Kafka, the base offset is the
+offset of the first log entry. For example if a log holds messages whereas the
+first message has the offset \textit{5 :: Int64} the file name of this log will
+be \textit{00000000000000000005.log} and the related index file
+\textit{00000000000000000005.index}.
 
+Using this naming convention and by
+viewing multiple log files one can extract information about what range of
+messages reside in which log. This is a very efficient way to perform a lookup
+which is needed for example to append new log messages or archive old messages.
+
+\subsubsection{Index on-disk format}
+
+An index entry consists of the following two fields whereas both of them are 4 bytes each:
+
+\begin{description}
+    \item[Relative offset] 4 Bytes offset relative to the base offset (file name)
+    \item[Physical position] 4 Bytes physical offset relative to the beginning of the log file
+\end{description}
+
+The relative offset of an index entry added with it's base offset represents an
+actual message within the log. The second information, the physical position then tells on what 
+position the message resides within the log. Thus, log access of O(n) becomes possible.
+
+\subsubsection{Log on-disk format}
 
 - file name: offset of the first message it contains (next file: S bytes (max log size, given in configuration) from previous file)
 - file format: sequence of log entries
@@ -542,10 +571,10 @@ offsetFromFileName :: [Char] -> Int
 offsetFromFileName = read . reverse . snd . splitAt 4 . reverse
 \end{lstlisting}
 
-The function \textit{offsetFromFileName} can be mapped over a filtered list of strings, which will
-give the list of all offsets within the directory. The filter function
-basically omits the files other than the ones ending with \textit{".log"} as well as the root
-directories, typically \textit{".", ".."}.
+The function \textit{offsetFromFileName} can be mapped over a filtered list of
+strings, which will give the list of all offsets within the directory. The
+filter function basically omits the files other than the ones ending with
+\textit{".log"} as well as the root directories, typically \textit{".", ".."}.
 
 
 \begin{lstlisting}
@@ -572,9 +601,24 @@ return (maxOffset bos)
 
 \subsubsection{Last Offset Position}
 
-Given the highest offset for a specific topic name and partition, the next step leads to determine the latest entry of the index file -- which is named after this offset. The index file now will be parsed with the regard to identify the latest offset and physical position of the message that lies within the actual log file. In order to increase I/O performance the index file will be mapped into memory first using \fnurl{mmap}{http://man7.org/linux/man-pages/man2/mmap.2.html}. The resulting memory-mapped file implements demand paging which is an operation that copies a disk page into physical memory only if an attempt is made to access it or the page is not already in memory. This comes very handy in terms of Haskell's laziness such as that a lazy ByteString can be taken as a result of this operation and thus memory consumption can be considered as moderate. But even more importantly, the amount of I/O operations will be decreased drastically for multiple lookups on the index file.
+Given the highest offset for a specific topic name and partition, the next step
+leads to determine the latest entry of the index file -- which is named after
+this offset. The index file now will be parsed with the regard to identify the
+latest offset and physical position of the message that lies within the actual
+log file. In order to increase I/O performance the index file will be mapped
+into memory first using
+\fnurl{mmap}{http://man7.org/linux/man-pages/man2/mmap.2.html}. The resulting
+memory-mapped file implements demand paging which is an operation that copies a
+disk page into physical memory only if an attempt is made to access it or the
+page is not already in memory. This comes very handy in terms of Haskell's
+laziness such as that a lazy ByteString can be taken as a result of this
+operation and thus memory consumption can be considered as moderate. But even
+more importantly, the amount of I/O operations will be decreased drastically
+for multiple lookups on the index file.
 
-Haskell provides the System.IO.MMap library which is an interface to mmap(2) system call under POSIX. 
+Haskell provides the System.IO.MMap library which is an interface to mmap(2)
+system call under POSIX. 
+
 %todo ...DESCRIBE MMAP LIBRARY...
 
 \begin{lstlisting}
@@ -590,11 +634,23 @@ getLastOffsetPosition (t, p) bo = do
     Right (bs, bo, ops) -> return (lastIndex ops)
 \end{lstlisting}
 
+%todo describe decodeIndex
+
 \subsubsection{Last Log Offset}
 
-The last offset provided by the index file does not ensure that this is the last offset above all existing messages within the log. As described in the storage section (\ref{broker-storage}), index entries are created only after a certain amount of bytes has been passed. The gap between the last offset of the index and the last offset of the log will be resolved by parsing the messages between the two offsets where the last of those messages can finally be considered as the message that contains the highest offset above all messages. 
+The last offset provided by the index file does not ensure that this is the
+last offset above all existing messages within the log. As described in the
+storage section (\ref{broker-storage}), index entries are created only after a
+certain amount of bytes has been passed. The gap between the last offset of the
+index and the last offset of the log will be resolved by parsing the messages
+between the two offsets where the last of those messages can finally be
+considered as the message that contains the highest offset above all messages. 
 
-Fortunately, the mmap wrapper function \textit{mmapFileByteStringLazy} takes a \textit{Maybe (Int64, Int64)} to specify the range of the file to be mapped. The range is defined by the offset, which is the beginning byte of the file region and the size tells the mapping length.
+Fortunately, the mmap wrapper function \textit{mmapFileByteStringLazy} takes a
+\textit{Maybe (Int64, Int64)} to specify the range of the file to be mapped.
+The range is defined by the offset, which is the beginning byte of the file
+region and the size tells the mapping length.
+
 \begin{lstlisting}
 getLastLogOffset :: (TopicStr, Int) -> BaseOffset -> OffsetPosition -> IO Offset
 getLastLogOffset (t, p) bo (rel, phys) = do
@@ -651,8 +707,9 @@ socket involves the following steps:
   \item Send kernel buffer to the socket
 \end{enumerate}
 
-With the help of the sendfile API \todo{ref} it is possible to 
-transfer bytes from a file channel to a socket channel, whereas the delivery process will result in the following steps:
+With the help of the sendfile API \todo{ref} it is possible to transfer bytes
+from a file channel to a socket channel, whereas the delivery process will
+result in the following steps:
 
 \begin{enumerate}
   \item Read data from storage (disk)
