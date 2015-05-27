@@ -119,6 +119,7 @@ TODO: What design desicions we made regarding the protocol? (Types, Serializer,
 Parser). 
 
 \subsection{Separation} 
+\label{sec:separation}
 Both, the client and broker component need to use the same underlying protocol for
 communication. Therefore we provide a third component which fully implements the Apache Kafka
 protocol \todo{ref} and provides the appropriate functions and types as library.

@@ -1,0 +1,350 @@
+\chapter{Implementation Protocol}
+\label{sec-protocol}
+First of all we started to implement the Kafka protocol \todo{ref}
+as data basis for all further functionality. The definition of the original
+protocol is given as context free grammar for the request and response binary
+format. Therefore it seemed likely to adopt the rules of the grammar to our
+protocol implementation by map them with the Haskell type system. In a second
+step we implemented encoder and decoder functions for getting messages from data
+structure to binary format and backwards. As decided in \ref{sic:seperation}, we
+also provide a client library to isolate client implementations from details
+about the protocol. 
+
+Therefore our protocol implementation consists of the following modules: 
+\begin{itemize}
+    \item {Types: Mapping the protocol definition with Haskell type system. }
+    \item {Decode: Provide functions to parse binary data to valid structure. }
+    \item {Encode: Provide functions to serialize a given structure to a binary
+        format. }
+    \item {Client: Provide functions to simplify a Haskell client.}
+\end{itemize}
+
+\section{Types}
+The design of the Apache Kafka protocol allows to make a distinction between three kind of types:
+\begin{enumerate}
+  \item Related to request
+  \item Related to response
+  \item Related to data (for either request or response but can also be used for the \fnurl{Apache Kafka Log}{http://kafka.apache.org/documentation.html\#log} component since log files (on-disk) hold the same structure)
+\end{enumerate}
+
+As mentioned before, the representation of the protocol structure is implemented using the Haskell \fnurl{type
+system}{https://wiki.haskell.org/Type}, more concrete using data types created
+for our need using the named fields - also known as \fnurl{record
+syntax}{http://en.wikibooks.org/wiki/Haskell/More_on_datatypes}. Given this, a
+further step of abstraction is introduced by creating types for the binary
+representation of a protocol field. 
+
+\subsection{Batching}
+\label{impl-prot-batching}
+A significant characteristic of the Kafka protocol is the ability to optimize
+efficiency due to the batching of multiple message in one single request. Both
+the API to send messages and the API to consume messages always work with a
+sequence of messages and not only a single message. It is also possible to batch
+messages across multiple topics and partitions. It is task of the client
+implementation to use this ability clever but it also can ignore it and sends everything
+one at a time. Batching leads to sequences of the same type in one request or response. Within
+the protocol format this is defined by an array type. In our protocol
+implementation the batching sequences are implemented with Haskell lists which
+contains N repetitions of another type. Sequences can also be nested. 
+
+As example, the following grammar rule of the original definition shows the
+support of batching in the protocol. A batching sequence of a structure A is
+shown as [A]:
+\begin{lstlisting}
+ProduceRequest => 
+    RequiredAcks Timeout [TopicName [Partition MessageSetSize MessageSet]]
+\end{lstlisting}
+
+\subsection{Primitive Types}
+
+The actual type for the data fields in the protocol have to match an unsigned
+integer type of its length. This can easily be done using the
+\fnurl{Data.Word}{http://hackage.haskell.org/package/base-4.7.0.2/docs/Data-Word.html}
+library. However, while repetitive writing \textit{WordX} (where is stands for
+8-, 16-, 32-, or 64 bit) is rather intuitive, creating aliases using the
+\textit{type} keyword will result in better readable code, as well as structure
+of the implemented protocol. 
+
+%Sumarized, all protocol related types are size delimited and
+%are made up of the following primitive types: 
+\begin{table}[H]
+    \begin{tabular}{| p{3cm}| p{7cm} | l |}
+\hline
+\textbf{Type} & \textbf{Description} & \textbf{Used Haskell Library} \\ \hline
+Fixed Width Primitives     & Signed integers stored in big endian order.
+& Data.Word8, Word16, Word32, Word64 \\ \hline
+Variable Length Primitives & Consist of a signed integer giving a length N
+followed by N bytes of content. A length of -1 indicates null. String uses an
+int16 for its size, and bytes uses an int32.        & Data.ByteString(.Lazy)             \\ \hline
+Arrays                     & Repeated structures. Always be encoded as an int32
+size containing the length N followed by N,repetitions of the structure which
+can itself be made up of other,primitive types & Data.List                          \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Types related to Request}
+\subsubsection{RequestMessage}
+A request message is the on-wire format of data which is getting from client to
+broker.
+
+Each request message has its same header fields independent for which API they are used. 
+The real payload of the request is individual to the particular API which is
+used. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/protocol-request-header.png}
+    \caption{Common Request Header}
+    \label{fig:protocol-request-header.png}
+\end{figure}
+
+\subsubsection{ProduceRequest}
+Request Payload for Produce API. Sends MessageSet's (see 
+\ref{impl-protocol-types-data}) to the broker. For efficiency it allows sending
+message sets intended for many topic partitions in a single request (see
+\ref{impl-prot-batching}) .
+
+\subsubsection{FetchRequest}
+Request Payload for Fetch API. Fetchs chunk of one or more logs for some
+topic-partitions. Defines a starting offset at which to begin fetch. 
+
+
+
+\subsection{Types related to Response}
+\subsubsection{ResponseMessage}
+A response message is the on-wire format of data which is getting from broker to
+client. 
+
+Each request message has its same header fields independent for which API they are used. 
+The real payload of the request is individual to the particular API which is
+used. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/protocol-response-header.png}
+    \caption{Common Response Header}
+    \label{fig:protocol-response-header.png}
+\end{figure}
+
+\subsubsection{ProduceResponse}
+Response Payload for Produce API. Sends an ErrorCode which determines whether a
+produce request for e specific topic-partition succeeded (ErrorCode 0 ) or ended
+in a particular failure. 
+
+\subsubsection{FetchResponse}
+Response Payload for Fetch API. Sends requested chunk of one ore more logs as
+sequence of MessageSet's (see \ref{impl-protocol-types-data}). 
+
+\subsection{Types related to Data}
+\label{impl-protocol-types-data}
+The actual transported data has a common structure,
+called a MessageSet. This format happens to be used both for the on-disk storage on the
+broker and the on-the-wire format. Therefore the broker do not need to perform
+any transformations to the actual message when persisting to the log or read
+from it. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/protocol-messageSet.png}
+    \caption{MessageSet format as common format for transported data}
+    \label{fig:protocol-request-header.png}
+\end{figure}
+
+%\subsection{API's}
+%\todo{-> verschieben in Kap Kafka detail? }
+%\subsubsection{Metadata API}
+%Describes the currently available brokers, their host and port information, and
+%gives information about which broker hosts which partitions.
+
+
+%\subsubsection{Fetch API}
+%Fetchs / Consumes messages from the broker.
+%\subsubsection{Offset API}
+%Get information about the available offsets for a given topic partition
+
+%\textbf{Not implemented yet}
+
+%\subsubsection{Offset Commit API}
+%Commit a set of offsets for a consumer group
+
+%\textbf{Not implemented yet}
+
+%\subsubsection{Offset Commit API}
+%Fetch a set of offsets for a consumer group
+
+%\textbf{Not implemented yet}
+\subsection{Naming convention}
+As for request and response related types we had to introduce an own naming
+convention. As a matter of fact, not every field of some kind of request or
+response will be unique. For more than once, there is a field that will
+represent a \textit{topicName} for example. Thus, naming the field \textit{
+topicName} would have been the obvious solution but since the record syntax in
+Haskell won't allow to use the same name for a field twice - even in different
+data types - we defined unique prefixes for each request and response as being
+listed in the following table:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{API}            & \textbf{Request (Rq)} & \textbf{Response (Rs)} \\ \hline
+Metadata API (Md)       & MetadataRequest       & MetadataResponse       \\ \hline
+Produce API (Pr)        & ProduceRequest        & ProduceResponse        \\ \hline
+Fetch API (Ft)          & FetchRequest          & FetchResponse          \\ \hline
+Offset API (Of)         & OffsetRequest         & OffsetResponse         \\ \hline
+Offset Commit API (Ofc) & OffsetCommitRequest   & OffsetCommitResponse   \\ \hline
+Offset Fetch API (Oft)  & OffsetFetchRequest    & OffsetFetchResponse    \\ \hline
+\end{tabular}
+\end{table}
+
+%\subsubsection{Example}
+As a result, a typical data type is described as follows, while details are
+hidden for demonstration purposes.:
+
+\begin{lstlisting}
+-- more
+data Partition =
+    ----------------------
+    -- ProduceRequest (pr)
+    ----------------------
+    RqPrPartition
+    { rqPrPartitionNumber :: !PartitionNumber
+    , rqPrMessageSetSize  :: !MessageSetSize
+    , rqPrMessageSet      :: [MessageSet]
+    }
+    |
+    ----------------------
+    -- FetchRequest (ft)
+    ----------------------
+    RqFtPartition
+    { rqFtPartitionNumber :: !PartitionNumber
+    , rqFtFetchOffset     :: !Offset
+    , rqFtMaxBytes        :: !MaxBytes
+    }
+    |
+-- more
+\end{lstlisting}
+
+\subsection{Decode}
+There are libraries in Haskell to encode or decode data to or from binary format. 
+As for binary serialization, we rely the
+\fnurl{Data.Binary}{https://hackage.haskell.org/package/binary-0.4.1/docs/Data-Binary.html}
+library. Using the Get Monad (Data.Binary.Get) we are able to comfortably parse
+ByteString in it's big endian network order and decode it to appropriate types.
+The resulting functions remind of the original definition of the Kafka protocol
+as grammar. 
+
+As mentioned in previous section, every request or response has its same header
+fields. We provide a general function one for parsing a request and another for
+parsing a response. To determine the actual type of request, the protocol describes
+an API Key field which holds a numeric code which explicitly defines the type of
+request. Depending on the API key further parse functions will be called. The
+following code shows the function for parsing a request: 
+\begin{lstlisting}
+import Data.Binary.Get
+
+requestMessageParser :: Get RequestMessage 
+requestMessageParser = do 
+    apiKey        <- getWord16be
+    apiVersion    <- getWord16be
+    correlationId <- getWord32be
+    clientIdLen   <- getWord16be
+    clientId      <- getByteString $ fromIntegral clientIdLen
+    request       <- case (fromIntegral apiKey) of
+        0 -> produceRequestParser
+        1 -> fetchRequestParser
+        3 -> metadataRequestParser
+        -- ... further API Codes 
+        _ -> -- Invalid API Key 
+    return $ RequestMessage apiKey apiVersion correlationId clientIdLen
+    clientId request
+\end{lstlisting}
+
+Batching sequences are parsed as List whereas we implemented a general function
+which gets the list size (number of elements) and a parse function: 
+\begin{lstlisting}
+parseList :: Int -> (Get a) -> Get [a]
+parseList i p = do 
+  if (i < 1) 
+    then return []
+    else do x <- p
+            xs <- parseList (i-1) p
+            return (x:xs)
+\end{lstlisting}
+
+Because the format of a MessageSet is common for the transmission on wire as
+well for the persistence in the log we can use the same functions for both use cases:
+\begin{lstlisting}
+payloadParser :: Get Payload
+payloadParser = do
+  magic  <- getWord8
+  attr   <- getWord8
+  keylen <- getWord32be
+  paylen <- getWord32be
+  payload <- getByteString $ fromIntegral paylen
+  return $! Payload magic attr keylen paylen payload
+
+messageParser :: Get Message 
+messageParser = do 
+  crc    <- getWord32be
+  p      <- payloadParser
+  return $! Message crc p
+
+messageSetParser :: Get MessageSet 
+messageSetParser = do 
+  offset <- getWord64be
+  len <- getWord32be 
+  message <- messageParser
+  return $! MessageSet offset len message
+\end{lstlisting}
+
+A batched sequence of MessageSets is a special case where the protocol does not provide a
+field which determines the number of elements. There is just a field which contains
+the size in bytes of all message sets. Therefore we implemented an according
+list decoder for sequences of MessageSets:
+\begin{lstlisting}
+parseMessageSets :: Int -> Get [MessageSet]
+parseMessageSets i = do
+    if (i < 1)
+    then return []
+    else do x <- messageSetParser
+            xs <- parseMessageSets $ i - (fromIntegral $ length \$ buildMessageSet x)
+            return (x:xs)
+\end{lstlisting}
+
+\subsection{Encode}%
+Obviously the encode module provides the opposite functionalities as the decode
+module and was separated just for clarity. Thus we also rely on
+\fnurl{Data.Binary}{https://hackage.haskell.org/package/binary-0.4.1/docs/Data-Binary.html}
+and use the Put Monad (Data.Binary.Put) to construct ByteStrings.
+
+TODO: Build Request / Response
+
+TODO: Build List 
+
+Analog to the decode functions for MessageSets, the encode functions are
+used for request or responses as well for the persistence format for the log:
+
+\begin{lstlisting}
+buildldPayload :: Payload -> BL.ByteString 
+buildPayload e = runPut $ do 
+  putWord8    $ magic e
+  putWord8    $ attr e
+  putWord32be $ keylen $ e
+  putWord32be $ payloadLen  e
+  putByteString $ payloadData e
+
+buildMessage :: Message -> BL.ByteString
+buildMessage e = runPut $ do 
+  putWord32be $ crc e
+  putLazyByteString $ buildPayload $ payload e 
+
+buildMessageSet :: MessageSet -> BL.ByteString
+buildMessageSet e = runPut $ do 
+  putWord64be $ offset e
+  putWord32be $ len e
+  putLazyByteString $ buildMessage $ message e
+\end{lstlisting}
+
+\section{Client Library}
+
