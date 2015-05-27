@@ -6,7 +6,7 @@ protocol is given as context free grammar for the request and response binary
 format. Therefore it seemed likely to adopt the rules of the grammar to our
 protocol implementation by map them with the Haskell type system. In a second
 step we implemented encoder and decoder functions for getting messages from data
-structure to binary format and backwards. As decided in \ref{sic:seperation}, we
+structure to binary format and backwards. As decided in \ref{sec:separation}, we
 also provide a client library to isolate client implementations from details
 about the protocol. 
 
@@ -17,6 +17,47 @@ Therefore our protocol implementation consists of the following modules:
     \item {Encode: Provide functions to serialize a given structure to a binary
         format. }
     \item {Client: Provide functions to simplify a Haskell client.}
+\end{itemize}
+
+
+A complete implementation of the Apache Kafka Protocol would
+go beyond the scope of this thesis as the focus lies not
+only in implementing the protocol but also to provide broker
+functionality (see Chapter \ref{chap:broker}). Thus, most important is
+the ability to produce and fetch messages. The following list gives 
+an overview of what part of the protocol is implemented and what remains open:
+
+\begin{itemize}
+    \item Metadata API
+    \begin{itemize}
+        \tick Topic Metadata Request
+        \fail Metadata Response
+    \end{itemize}
+    \item Produce API
+    \begin{itemize}
+        \tick Produce Request
+        \tick Produce Response
+    \end{itemize}
+    \item Fetch API
+    \begin{itemize}
+        \tick Fetch Request
+        \tick Fetch Response
+    \end{itemize}
+    \item Offset API
+    \begin{itemize}
+        \fail Offset Request
+        \fail Offset Response
+    \end{itemize}
+
+    \item Offset Commit/Fetch API
+    \begin{itemize}
+        \fail Consumer Metadata Request
+        \fail Consumer Metadata Response
+        \fail Offset Commit Request
+        \fail Offset Commit Response
+        \fail Offset Fetch Request
+        \fail Offset Fetch Response
+    \end{itemize}
 \end{itemize}
 
 \section{Types}
@@ -33,6 +74,59 @@ for our need using the named fields - also known as \fnurl{record
 syntax}{http://en.wikibooks.org/wiki/Haskell/More_on_datatypes}. Given this, a
 further step of abstraction is introduced by creating types for the binary
 representation of a protocol field. 
+
+\subsection{Naming convention}
+As for request and response related types we had to introduce an own naming
+convention. As a matter of fact, not every field of some kind of request or
+response will be unique. For more than once, there is a field that will
+represent a \textit{topicName} for example. Thus, naming the field \textit{
+topicName} would have been the obvious solution but since the record syntax in
+Haskell won't allow to use the same name for a field twice - even in different
+data types - we defined unique prefixes for each request and response as being
+listed in the following table:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{API}            & \textbf{Request (Rq)} & \textbf{Response (Rs)} \\ \hline
+Metadata API (Md)       & MetadataRequest       & MetadataResponse       \\ \hline
+Produce API (Pr)        & ProduceRequest        & ProduceResponse        \\ \hline
+Fetch API (Ft)          & FetchRequest          & FetchResponse          \\ \hline
+Offset API (Of)         & OffsetRequest         & OffsetResponse         \\ \hline
+Offset Commit API (Ofc) & OffsetCommitRequest   & OffsetCommitResponse   \\ \hline
+Offset Fetch API (Oft)  & OffsetFetchRequest    & OffsetFetchResponse    \\ \hline
+\end{tabular}
+\end{table}
+
+%\subsubsection{Example}
+As a result, a typical data type is described as follows, while details are
+hidden for demonstration purposes.:
+
+\begin{lstlisting}
+-- more
+data Partition =
+    ----------------------
+    -- ProduceRequest (pr)
+    ----------------------
+    RqPrPartition
+    { rqPrPartitionNumber :: !PartitionNumber
+    , rqPrMessageSetSize  :: !MessageSetSize
+    , rqPrMessageSet      :: [MessageSet]
+    }
+    |
+    ----------------------
+    -- FetchRequest (ft)
+    ----------------------
+    RqFtPartition
+    { rqFtPartitionNumber :: !PartitionNumber
+    , rqFtFetchOffset     :: !Offset
+    , rqFtMaxBytes        :: !MaxBytes
+    }
+    |
+-- more
+\end{lstlisting}
+
 
 \subsection{Batching}
 \label{impl-prot-batching}
@@ -185,57 +279,6 @@ in the protocol. Instead, a MessageSet is defined by its Size in Bytes.
 %Fetch a set of offsets for a consumer group
 
 %\textbf{Not implemented yet}
-\subsection{Naming convention}
-As for request and response related types we had to introduce an own naming
-convention. As a matter of fact, not every field of some kind of request or
-response will be unique. For more than once, there is a field that will
-represent a \textit{topicName} for example. Thus, naming the field \textit{
-topicName} would have been the obvious solution but since the record syntax in
-Haskell won't allow to use the same name for a field twice - even in different
-data types - we defined unique prefixes for each request and response as being
-listed in the following table:
-
-\begin{table}[H]
-\centering
-\begin{tabular}{|l|l|l|}
-\hline
-\textbf{API}            & \textbf{Request (Rq)} & \textbf{Response (Rs)} \\ \hline
-Metadata API (Md)       & MetadataRequest       & MetadataResponse       \\ \hline
-Produce API (Pr)        & ProduceRequest        & ProduceResponse        \\ \hline
-Fetch API (Ft)          & FetchRequest          & FetchResponse          \\ \hline
-Offset API (Of)         & OffsetRequest         & OffsetResponse         \\ \hline
-Offset Commit API (Ofc) & OffsetCommitRequest   & OffsetCommitResponse   \\ \hline
-Offset Fetch API (Oft)  & OffsetFetchRequest    & OffsetFetchResponse    \\ \hline
-\end{tabular}
-\end{table}
-
-%\subsubsection{Example}
-As a result, a typical data type is described as follows, while details are
-hidden for demonstration purposes.:
-
-\begin{lstlisting}
--- more
-data Partition =
-    ----------------------
-    -- ProduceRequest (pr)
-    ----------------------
-    RqPrPartition
-    { rqPrPartitionNumber :: !PartitionNumber
-    , rqPrMessageSetSize  :: !MessageSetSize
-    , rqPrMessageSet      :: [MessageSet]
-    }
-    |
-    ----------------------
-    -- FetchRequest (ft)
-    ----------------------
-    RqFtPartition
-    { rqFtPartitionNumber :: !PartitionNumber
-    , rqFtFetchOffset     :: !Offset
-    , rqFtMaxBytes        :: !MaxBytes
-    }
-    |
--- more
-\end{lstlisting}
 
 \subsection{Decode}
 There are libraries in Haskell to encode or decode data to or from binary format. 

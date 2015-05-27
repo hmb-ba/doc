@@ -26,7 +26,6 @@
 \usepackage{pifont}
 \usepackage{fourier}
 \usepackage{MnSymbol}
-\usepackage{wasysym}
 \usepackage{float} % Bilder fix positionieren
 \usepackage{appendix}
 \usepackage{booktabs}
@@ -47,6 +46,10 @@
 \newcommand\fnurl[2]{%
   \href{#2}{#1}\footnote{\url{#2}}%
 }
+
+\usepackage{bbding}
+\newcommand*\tick{\item[\Checkmark]}
+\newcommand*\fail{\item[\XSolidBrush]}
 
 % \let\stdsection\section
 % \renewcommand\section{\newpage\stdsection}
@@ -172,6 +175,24 @@
   morecomment=[l]\%,
   mathescape=false
 }
+
+% Alternative checkbox list
+% \usepackage{wasysym}
+% 
+% \setlength{\marginparwidth}{1.2in}
+% \let\oldmarginpar\marginpar
+% \renewcommand\marginpar[1]{\-\oldmarginpar[\raggedleft #1]%
+% {\raggedright #1}}
+% 
+% \newenvironment{checklist}{%
+%   \begin{list}{}{}% whatever you want the list to be
+%   \let\olditem\item
+%   \renewcommand\item{\olditem -- \marginpar{$\Box$} }
+%   \newcommand\checkeditem{\olditem -- \marginpar{$\CheckedBox$} }
+% }{%
+%   \end{list}
+% }
+
 
 \makeglossaries
 
