@@ -178,7 +178,6 @@ can itself be made up of other,primitive types & Data.List                      
 \end{table}
 
 \subsection{Types related to Request}
-\subsubsection{RequestMessage}
 A request message is the on-wire format of data which is getting from client to
 broker.
 
@@ -189,7 +188,7 @@ used.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-requestMessage.png}
-    \caption{Fields of type RequestMessage}
+    \caption{Format of type RequestMessage}
     \label{fig:impl-prot-types-requestMessage}
 \end{figure}
 
@@ -230,19 +229,19 @@ array elements in the protocol.
 RequiredAcks  & Data.Word16 & This field indicates how many acknowledgements the broker should receive before responding to the request.                       \\ \hline
 Timeout       & Data.Word32 & This provides a maximum time in milliseconds the broker can await the receipt of the number of acknowledgements in RequiredAcks. \\ \hline
 ListLength    & Data.Word32 & Number of element in following list.                                                                                             \\ \hline
-{[}PrTopic{]} & Data.List   & Sequence of PrTopics, see below.                                                                                                  \\ \hline
+{[}RqPrTopic{]} & Data.List   & Sequence of RqPrTopics, see below.                                                                                                  \\ \hline
 \end{tabular}
 \end{table}
 
 TODO: Functionality of ReqAcks and Timeout are not implemented yet. 
 
-A ProduceRequest includes N repetitions of the PrTopic type whereas the producer
+A ProduceRequest includes N repetitions of the RqPrTopic type whereas the producer
 client is able to send messages for multiple different topics:
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-prTopic.png}
-    \caption{Format of type PrTopic; * = N repetitions }
+    \caption{Format of type RqPrTopic; * = N repetitions }
     \label{fig:impl-prot-types-produceRequest}
 \end{figure}
 
@@ -253,18 +252,18 @@ client is able to send messages for multiple different topics:
 StringLength      & Data.Word16     & Length, in bytes, of string TopicName.              \\ \hline
 TopicName         & Data.ByteString & Name of the topic that data is being published to. \\ \hline
 ListLength        & Data.Word32     & Number of element in following list.                \\ \hline
-[PrPartition] & Data.List          & Sequence of PrPartitions, see below.                \\ \hline
+[RqPrPartition] & Data.List          & Sequence of PrPartitions, see below.                \\ \hline
 \end{tabular}
 \end{table}
 
-The PrTopic in turn includes N repetitions of the PrPartition type
+The RqPrTopic in turn includes N repetitions of the RqPrPartition type
 whereas the producer client is able to send message for multiple partitions
 within a topic.  
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-prPartition.png}
-    \caption{Format of type PrTopic; * = N repetitions }
+    \caption{Format of type RqPrTopic; * = N repetitions }
     \label{fig:impl-prot-types-produceRequest}
 \end{figure}
 
@@ -274,7 +273,7 @@ within a topic.
 \hline
 PartitionNumber & Data.Word32 & The partition Id that data is being published to.                                                                                                                                        \\ \hline
 MessageSetSize  & Data.Word32 & Sequences of MessageSet's are not preceded by an int32 like other array elements in the protocol. Instead, this field determines the total size, in bytes, of the following MessageSet's. \\ \hline
-[MessageSet]      & Data.List      & Finally the PrPartition type also holds the actual messages (as defined in \ref{impl-protocol-types-data}.                                                                                \\ \hline
+[MessageSet]      & Data.List      & Finally the RqPrPartition type also holds the actual messages (as defined in \ref{impl-protocol-types-data}.                                                                                \\ \hline
 \end{tabular}
 \end{table}
 \subsubsection{FetchRequest}
@@ -284,26 +283,58 @@ topic-partitions. Defines a starting offset at which to begin fetch.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-fetchRequest.png}
-    \caption{Format of type FetchRequest }
+    \caption{Format of type FetchRequest; * = N repetitions }
     \label{fig:impl-prot-types-fetchRequest}
 \end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{11cm} }
+\hline
+ReplicaId      & Data.Word32 & Indicates the node id of the replica initiating this request. (Not yet used in broker implementation)                        \\ \hline
+MaxWaitTime    & Data.Word32 & Maximum amount of time in milliseconds to block,waiting if insufficient data is available at the time the request is,issued. \\ \hline
+MinBytes       & Data.Word32 & Minimum number of bytes of messages that must be available to give a response.                                               \\ \hline
+ListLength     & Data.Word32 & Number of elements in following list.                                                                                        \\ \hline
+{[}FtTopics{]} & Data.List   & Sequence of FtTopics, see below                                                                                              \\ \hline
+\end{tabular}
+\end{table}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-ftTopic.png}
-    \caption{Format of type FtTopic }
+    \caption{Format of type RqFtTopic; * = N repetitions }
     \label{fig:impl-prot-types-ftTopic}
 \end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+StringLength      & Data.Word16     & Length, in bytes, of string TopicName.              \\ \hline
+TopicName         & Data.ByteString & Name of the topic the fetch is for . \\ \hline
+ListLength        & Data.Word32     & Number of element in following list.                \\ \hline
+[FtPartition]     & Data.List       & Sequence of FtPartitions, see below.                \\ \hline
+\end{tabular}
+\end{table}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-ftPartition.png}
-    \caption{Format of type FtPartition }
+    \caption{Format of type RqFtPartition }
     \label{fig:impl-prot-types-ftPartition}
 \end{figure}
 
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+PartitionNumber & Data.Word32 & Id of the partition the fetch is for.                                          \\ \hline
+Offset          & Data.Word64 & Offset to begin the fetch from.                                                \\ \hline
+MaxBytes        & Data.Word32 & Minimum number of bytes of messages that must be available to give a response. \\ \hline
+\end{tabular}
+\end{table}
+
 \subsection{Types related to Response}
-\subsubsection{ResponseMessage}
 A response message is the on-wire format of data which is getting from broker to
 client.
 
@@ -313,9 +344,9 @@ used.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{images/protocol-response-header.png}
-    \caption{Format of type ResponseMessage}
-    \label{fig:protocol-response-header.png}
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-responseMessage.png}
+    \caption{Format of type ResponseMessage; * = N repetitions}
+    \label{fig:impl-prot-types-responseMessage}
 \end{figure}
 
 \subsubsection{ProduceResponse}
@@ -323,13 +354,40 @@ Response Payload for Produce API. Sends an ErrorCode which determines whether a
 produce request for e specific topic-partition succeeded (ErrorCode 0 ) or ended
 in a particular failure. 
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-produceResponse.png}
+    \caption{Format of type ProduceResponse; * = N repetitions}
+    \label{fig:impl-prot-types-produceResponse}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-prPayload.png}
+    \caption{Format of type RsPrPayload. * = N repetitions}
+    \label{fig:impl-prot-types-prPayload}
+\end{figure}
+
 \subsubsection{FetchResponse}
 Response Payload for Fetch API. Sends requested chunk of one ore more logs as
 sequence of MessageSet's (see \ref{impl-protocol-types-data}). 
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-fetchResponse.png}
+    \caption{Format of type FetchResponse}
+    \label{fig:impl-prot-types-fetchResponse}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-ftPayload.png}
+    \caption{Format of type RsFtPayload}
+    \label{fig:impl-prot-types-ftPayload}
+\end{figure}
+
 \subsection{Types related to Data}
 \label{impl-protocol-types-data}
-\subsubsection{MessageSet}
 The actual transported data has a common structure,
 called a MessageSet. This format happens to be used both for the on-disk storage on the
 broker and the on-the-wire format. Therefore the broker do not need to perform
