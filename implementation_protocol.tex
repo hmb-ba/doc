@@ -68,14 +68,15 @@ of the implemented protocol.
 %Sumarized, all protocol related types are size delimited and
 %are made up of the following primitive types: 
 \begin{table}[H]
-    \begin{tabular}{| p{3cm}| p{7cm} | l |}
+    \begin{tabular}{| p{3cm}| p{7cm} | p{5cm} |}
 \hline
 \textbf{Type} & \textbf{Description} & \textbf{Used Haskell Library} \\ \hline
 Fixed Width Primitives     & Signed integers stored in big endian order.
 & Data.Word8, Word16, Word32, Word64 \\ \hline
 Variable Length Primitives & Consist of a signed integer giving a length N
 followed by N bytes of content. A length of -1 indicates null. String uses an
-int16 for its size, and bytes uses an int32.        & Data.ByteString(.Lazy)             \\ \hline
+int16 (Data.Word16) for its size, and bytes uses an int32 (Data.Word32).    &
+Data.ByteString(.Lazy) \\ \hline
 Arrays                     & Repeated structures. Always be encoded as an int32
 size containing the length N followed by N,repetitions of the structure which
 can itself be made up of other,primitive types & Data.List                          \\ \hline
@@ -108,16 +109,14 @@ message sets intended for many topic partitions in a single request (see
 Request Payload for Fetch API. Fetchs chunk of one or more logs for some
 topic-partitions. Defines a starting offset at which to begin fetch. 
 
-
-
 \subsection{Types related to Response}
 \subsubsection{ResponseMessage}
 A response message is the on-wire format of data which is getting from broker to
-client. 
+client.
 
 Each request message has its same header fields independent for which API they are used. 
 The real payload of the request is individual to the particular API which is
-used. 
+used.
 
 \begin{figure}[H]
     \centering
@@ -137,11 +136,13 @@ sequence of MessageSet's (see \ref{impl-protocol-types-data}).
 
 \subsection{Types related to Data}
 \label{impl-protocol-types-data}
+\subsubsection{MessageSet}
 The actual transported data has a common structure,
 called a MessageSet. This format happens to be used both for the on-disk storage on the
 broker and the on-the-wire format. Therefore the broker do not need to perform
 any transformations to the actual message when persisting to the log or read
 from it. 
+
 
 \begin{figure}[H]
     \centering
@@ -149,6 +150,17 @@ from it.
     \caption{MessageSet format as common format for transported data}
     \label{fig:protocol-request-header.png}
 \end{figure}
+
+\begin{table}[h]
+\begin{tabular}{ l p{9cm} p{3cm}}
+Offset      & Determines log offset number in log.  When the producer is sending
+messages it doesn't actually know the offset and can fill in any value here it
+likes. & Data.Word64 \\
+MessageSize & MessageSets are not preceded by an int32 like other array elements
+in the protocol. Instead, a MessageSet is defined by its Size in Bytes.
+& Data.Word32
+\end{tabular}
+\end{table}
 
 %\subsection{API's}
 %\todo{-> verschieben in Kap Kafka detail? }
@@ -183,7 +195,7 @@ Haskell won't allow to use the same name for a field twice - even in different
 data types - we defined unique prefixes for each request and response as being
 listed in the following table:
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \begin{tabular}{|l|l|l|}
 \hline
