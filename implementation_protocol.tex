@@ -435,9 +435,15 @@ also provides binary serialization capabilities -- especially for strict
 bytestrings. Lazy bytestring represent a list of bytes this plays nicely along
 with streaming and thus for the use case of a message broker. Additionally,
 lazy bytestrings support appending in O(1) runtime which will be used
-frequently in the serialization process and thus makes this slightly more
+frequently in the serialization process. This makes serialization slightly more
 efficient.
 
+Parsing libraries such as
+\fnurl{Attoparsec}{https://hackage.haskell.org/package/attoparsec} or
+\fnurl{Parsec}{https://hackage.haskell.org/package/parsec} where considered but
+proved to not be suitable for performance critical applications. In fact, there
+is no need for parsing functionality -- such as syntactic analysis -- regarding
+the tasks the broker has to be capable of. 
 
 \subsection{Decode Request/Response}
 
