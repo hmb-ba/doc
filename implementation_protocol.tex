@@ -324,7 +324,7 @@ TODO: Kafka supports recursive messages in which case this may itself contain a 
 
 %\textbf{Not implemented yet}
 
-\subsection{Decode}
+\section{Decode}
 There are libraries in Haskell to encode or decode data to or from binary format. 
 As for binary serialization, we rely the
 \fnurl{Data.Binary}{https://hackage.haskell.org/package/binary-0.4.1/docs/Data-Binary.html}
@@ -411,7 +411,7 @@ parseMessageSets i = do
             return (x:xs)
 \end{lstlisting}
 
-\subsection{Encode}%
+\section{Encode}
 Obviously the encode module provides the opposite functionalities as the decode
 module and was separated just for clarity. Thus we also rely on
 \fnurl{Data.Binary}{https://hackage.haskell.org/package/binary-0.4.1/docs/Data-Binary.html}
