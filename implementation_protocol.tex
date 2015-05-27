@@ -198,7 +198,7 @@ used.
 \begin{tabular}{ l  l  p{10cm} }
 \hline
 RequestSize   & Data.Word16     & Gives the size of the subsequent request message in bytes. The client can read requests by first reading this 4 byte size as an integer N and then reading and parsing the subsequent N bytes of the request. \\ \hline
-ApiKey        & Data.Word32     & This is a numeric id for the API being invoked (                                                                                                                                                              \\ \hline
+ApiKey        & Data.Word32     & This is a numeric id for the API being invoked                                                                                                                                                              \\ \hline
 ApiVersion    & Data.Word32     & Number of element in following list.                                                                                                                                                                          \\ \hline
 CorrelationId & Data.Word32     & Will be passed back in the response by the broker unmodified. It is useful for matching request and response between the client and server.                                                                   \\ \hline
 StringLength  & Data.Word16     & Length, in bytes, of string ClientId                                                                                                                                                                          \\ \hline
@@ -280,6 +280,27 @@ MessageSetSize  & Data.Word32 & Sequences of MessageSet's are not preceded by an
 \subsubsection{FetchRequest}
 Request Payload for Fetch API. Fetchs chunk of one or more logs for some
 topic-partitions. Defines a starting offset at which to begin fetch. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-fetchRequest.png}
+    \caption{Format of type FetchRequest }
+    \label{fig:impl-prot-types-fetchRequest}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-ftTopic.png}
+    \caption{Format of type FtTopic }
+    \label{fig:impl-prot-types-ftTopic}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-ftPartition.png}
+    \caption{Format of type FtPartition }
+    \label{fig:impl-prot-types-ftPartition}
+\end{figure}
 
 \subsection{Types related to Response}
 \subsubsection{ResponseMessage}
