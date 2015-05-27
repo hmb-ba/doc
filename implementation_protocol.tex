@@ -188,20 +188,119 @@ used.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{images/protocol-request-header.png}
-    \caption{Common Request Header}
-    \label{fig:protocol-request-header.png}
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-requestMessage.png}
+    \caption{Fields of type RequestMessage}
+    \label{fig:impl-prot-types-requestMessage}
 \end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+RequestSize   & Data.Word16     & Gives the size of the subsequent request message in bytes. The client can read requests by first reading this 4 byte size as an integer N and then reading and parsing the subsequent N bytes of the request. \\ \hline
+ApiKey        & Data.Word32     & This is a numeric id for the API being invoked                                                                                                                                                              \\ \hline
+ApiVersion    & Data.Word32     & Number of element in following list.                                                                                                                                                                          \\ \hline
+CorrelationId & Data.Word32     & Will be passed back in the response by the broker unmodified. It is useful for matching request and response between the client and server.                                                                   \\ \hline
+StringLength  & Data.Word16     & Length, in bytes, of string ClientId                                                                                                                                                                          \\ \hline
+ClientID      & Data.ByteString & Identifier for the client application                                                                                                                                                                         \\ \hline
+Request       &                 & API specific Request type (either ProduceRequest, FetchRequest, or others)                                                                                                                                    \\ \hline
+\end{tabular}
+\end{table}
+
+TODO: Because the RequestSize is only needed once to determine the length of the whole Request, it is is not part of the type RequestMessage
 
 \subsubsection{ProduceRequest}
 Request Payload for Produce API. Sends MessageSet's (see 
 \ref{impl-protocol-types-data}) to the broker. For efficiency it allows sending
 message sets intended for many topic partitions in a single request (see
-\ref{impl-prot-batching}) .
+\ref{impl-prot-batching}). MessageSets are not preceded by an int32 like other
+array elements in the protocol.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-produceRequest.png}
+    \caption{Format of type ProduceRequest; * = N repetitions }
+    \label{fig:impl-prot-types-produceRequest}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+RequiredAcks  & Data.Word16 & This field indicates how many acknowledgements the broker should receive before responding to the request.                       \\ \hline
+Timeout       & Data.Word32 & This provides a maximum time in milliseconds the broker can await the receipt of the number of acknowledgements in RequiredAcks. \\ \hline
+ListLength    & Data.Word32 & Number of element in following list.                                                                                             \\ \hline
+{[}PrTopic{]} & Data.List   & Sequence of PrTopics, see below.                                                                                                  \\ \hline
+\end{tabular}
+\end{table}
+
+TODO: Functionality of ReqAcks and Timeout are not implemented yet. 
+
+A ProduceRequest includes N repetitions of the PrTopic type whereas the producer
+client is able to send messages for multiple different topics:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-prTopic.png}
+    \caption{Format of type PrTopic; * = N repetitions }
+    \label{fig:impl-prot-types-produceRequest}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+StringLength      & Data.Word16     & Length, in bytes, of string TopicName.              \\ \hline
+TopicName         & Data.ByteString & Name of the topic that data is being published to. \\ \hline
+ListLength        & Data.Word32     & Number of element in following list.                \\ \hline
+[PrPartition] & Data.List          & Sequence of PrPartitions, see below.                \\ \hline
+\end{tabular}
+\end{table}
+
+The PrTopic in turn includes N repetitions of the PrPartition type
+whereas the producer client is able to send message for multiple partitions
+within a topic.  
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-prPartition.png}
+    \caption{Format of type PrTopic; * = N repetitions }
+    \label{fig:impl-prot-types-produceRequest}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{11cm} }
+\hline
+PartitionNumber & Data.Word32 & The partition Id that data is being published to.                                                                                                                                        \\ \hline
+MessageSetSize  & Data.Word32 & Sequences of MessageSet's are not preceded by an int32 like other array elements in the protocol. Instead, this field determines the total size, in bytes, of the following MessageSet's. \\ \hline
+[MessageSet]      & Data.List      & Finally the PrPartition type also holds the actual messages (as defined in \ref{impl-protocol-types-data}.                                                                                \\ \hline
+\end{tabular}
+\end{table}
 \subsubsection{FetchRequest}
 Request Payload for Fetch API. Fetchs chunk of one or more logs for some
 topic-partitions. Defines a starting offset at which to begin fetch. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-fetchRequest.png}
+    \caption{Format of type FetchRequest }
+    \label{fig:impl-prot-types-fetchRequest}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-ftTopic.png}
+    \caption{Format of type FtTopic }
+    \label{fig:impl-prot-types-ftTopic}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-ftPartition.png}
+    \caption{Format of type FtPartition }
+    \label{fig:impl-prot-types-ftPartition}
+\end{figure}
 
 \subsection{Types related to Response}
 \subsubsection{ResponseMessage}
@@ -215,7 +314,7 @@ used.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/protocol-response-header.png}
-    \caption{Common Response Header}
+    \caption{Format of type ResponseMessage}
     \label{fig:protocol-response-header.png}
 \end{figure}
 
@@ -240,7 +339,7 @@ from it.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-messageSet.png}
-    \caption{MessageSet format as common format for transported data}
+    \caption{Format of type MessageSet}
     \label{fig:impl-prot-types-messageSet}
 \end{figure}
 
@@ -249,8 +348,8 @@ from it.
 \begin{tabular}{ l  l  p{11cm} }
 \hline
 Offset      & Data.Word64 & Determines log offset number in log.  When the producer is sending messages it doesn't actually know the offset and can fill in any value here it likes. \\ \hline
-MessageSize & Data.Word32 & MessageSets are not preceded by an int32 like other array elements in the protocol. Instead, each single MessageSet is defined by its Size in Bytes.               \\ \hline
-Message     & N Bits     & Message format, see below                                                                                                                                \\ \hline
+MessageSize & Data.Word32 & Determines size of Message in Bytes.               \\ \hline
+Message     &     & Message format, see below.                                                                                                                    \\ \hline
 \end{tabular}
 \end{table}
 
@@ -262,7 +361,7 @@ combine them in another type, see Payload.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-message.png}
-    \caption{MessageSet format as common format for transported data}
+    \caption{Format of type Message}
     \label{fig:impl-prot-types-message}
 \end{figure}
 
@@ -271,7 +370,7 @@ combine them in another type, see Payload.
 \begin{tabular}{ l  l  p{11cm} }
 \hline
 CRC     & Data.Word32 & The CRC is the CRC32 of the remainder of the message bytes. This is used,to check the integrity of the message on the broker and consumer. \\ \hline
-Payload & N Bits      & Payload format, see below                                                                                                                  \\ \hline
+Payload &      & Payload format, see below.                                                                                                                  \\ \hline
 \end{tabular}
 \end{table}
 
@@ -281,7 +380,7 @@ This types defines the actual payload of a message with its meta info.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-payload.png}
-    \caption{MessageSet format as common format for transported data}
+    \caption{Format of type Payload}
     \label{fig:impl-prot-types-payload}
 \end{figure}
 
@@ -291,9 +390,9 @@ This types defines the actual payload of a message with its meta info.
 \hline
 Magic       & Data.Word8      & This is a version id used to allow backwards compatible evolution of the message binary format. The current value is 0.                                         \\ \hline
 Attributes  & Data.Word8      & This byte holds metadata attributes about the message. The lowest 2 bits,contain the compression codec used for the message. The other bits,should be set to 0. \\ \hline
-KeyLen      & Data.Word32     & Determines length of Key field in bytes                                                                                                                         \\ \hline
+KeyLen      & Data.Word32     & Determines length of Key field in bytes.                                                                                                                         \\ \hline
 Key         & Data.ByteString & The key is an optional message key that is used for partition assignment. The key can be null.                                                                  \\ \hline
-ValueLength & Data.Word32     & Determines length of Value field in bytes                                                                                                                       \\ \hline
+ValueLength & Data.Word32     & Determines length of Value field in bytes.                                                                                                                      \\ \hline
 Value       & Data.ByteString & The actual message contents as an opaque byte array. The message can be null.                                                                                   \\ \hline
 \end{tabular}
 \end{table}
