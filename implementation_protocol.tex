@@ -237,24 +237,68 @@ broker and the on-the-wire format. Therefore the broker do not need to perform
 any transformations to the actual message when persisting to the log or read
 from it. 
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-messageSet.png}
+    \caption{MessageSet format as common format for transported data}
+    \label{fig:impl-prot-types-messageSet}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{11cm} }
+\hline
+Offset      & Data.Word64 & Determines log offset number in log.  When the producer is sending messages it doesn't actually know the offset and can fill in any value here it likes. \\ \hline
+MessageSize & Data.Word32 & MessageSets are not preceded by an int32 like other array elements in the protocol. Instead, each single MessageSet is defined by its Size in Bytes.               \\ \hline
+Message     & N Bits     & Message format, see below                                                                                                                                \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Message}
+Message is part of the MessageSet and contains a checksum to check integrity of
+the actual payload of the message. To abstract the fields which are checked we
+combine them in another type, see Payload.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{images/protocol-messageSet.png}
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-message.png}
     \caption{MessageSet format as common format for transported data}
-    \label{fig:protocol-request-header.png}
+    \label{fig:impl-prot-types-message}
 \end{figure}
 
-\begin{table}[h]
-\begin{tabular}{ l p{9cm} p{3cm}}
-Offset      & Determines log offset number in log.  When the producer is sending
-messages it doesn't actually know the offset and can fill in any value here it
-likes. & Data.Word64 \\
-MessageSize & MessageSets are not preceded by an int32 like other array elements
-in the protocol. Instead, a MessageSet is defined by its Size in Bytes.
-& Data.Word32
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{11cm} }
+\hline
+CRC     & Data.Word32 & The CRC is the CRC32 of the remainder of the message bytes. This is used,to check the integrity of the message on the broker and consumer. \\ \hline
+Payload & N Bits      & Payload format, see below                                                                                                                  \\ \hline
 \end{tabular}
 \end{table}
+
+\subsubsection{Payload}
+This types defines the actual payload of a message with its meta info.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-payload.png}
+    \caption{MessageSet format as common format for transported data}
+    \label{fig:impl-prot-types-payload}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+Magic       & Data.Word8      & This is a version id used to allow backwards compatible evolution of the message binary format. The current value is 0.                                         \\ \hline
+Attributes  & Data.Word8      & This byte holds metadata attributes about the message. The lowest 2 bits,contain the compression codec used for the message. The other bits,should be set to 0. \\ \hline
+KeyLen      & Data.Word32     & Determines length of Key field in bytes                                                                                                                         \\ \hline
+Key         & Data.ByteString & The key is an optional message key that is used for partition assignment. The key can be null.                                                                  \\ \hline
+ValueLength & Data.Word32     & Determines length of Value field in bytes                                                                                                                       \\ \hline
+Value       & Data.ByteString & The actual message contents as an opaque byte array. The message can be null.                                                                                   \\ \hline
+\end{tabular}
+\end{table}
+
+TODO: Kafka supports recursive messages in which case this may itself contain a message set. --> not implemented yet  
 
 %\subsection{API's}
 %\todo{-> verschieben in Kap Kafka detail? }
