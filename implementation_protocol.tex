@@ -481,21 +481,42 @@ TODO: Kafka supports recursive messages in which case this may itself contain a 
 
 %\textbf{Not implemented yet}
 
-\section{Decode}
-There are libraries in Haskell to encode or decode data to or from binary format. 
-As for binary serialization, we rely the
-\fnurl{Data.Binary}{https://hackage.haskell.org/package/binary-0.4.1/docs/Data-Binary.html}
-library. Using the Get Monad (Data.Binary.Get) we are able to comfortably parse
-ByteString in it's big endian network order and decode it to appropriate types.
-The resulting functions remind of the original definition of the Kafka protocol
-as grammar. 
+\section{Encode / Decode}
 
-As mentioned in previous section, every request or response has its same header
-fields. We provide a general function one for parsing a request and another for
-parsing a response. To determine the actual type of request, the protocol describes
-an API Key field which holds a numeric code which explicitly defines the type of
-request. Depending on the API key further parse functions will be called. The
-following code shows the function for parsing a request: 
+There are libraries in Haskell to encode or decode data to or from binary
+format. As for binary serialization, the
+\fnurl{Data.Binary}{https://hackage.haskell.org/package/binary-0.4.1/docs/Data-Binary.html}
+library is being used as it works with lazy bytestrings. As an alternative to
+Data.Binary, the cereal library
+(\fnurl{Data.Serialize}{https://hackage.haskell.org/package/cereal-0.4.1.1/docs/Data-Serialize.html})
+also provides binary serialization capabilities -- especially for strict
+bytestrings. Lazy bytestring represent a list of bytes this plays nicely along
+with streaming and thus for the use case of a message broker. Additionally,
+lazy bytestrings support appending in O(1) runtime which will be used
+frequently in the serialization process. This makes serialization slightly more
+efficient.
+
+Parsing libraries such as
+\fnurl{Attoparsec}{https://hackage.haskell.org/package/attoparsec} or
+\fnurl{Parsec}{https://hackage.haskell.org/package/parsec} where considered but
+proved to not be suitable for performance critical applications. In fact, there
+is no need for parsing functionality -- such as syntactic analysis -- regarding
+the tasks the broker has to be capable of. 
+
+\subsection{Decode Request/Response}
+
+As mentioned in previous section, every request or response has the same header
+fields. Functions are provided to either parsing a request or response and
+remind of the original definition of the Kafka protocol as grammar. To identify
+the actual type of request, the protocol describes an API Key field which holds
+a numeric code which explicitly defines the type of request. Depending on the
+API key, further parse functions will be called. 
+
+The Get Monad (Data.Binary.Get) allows to comfortably parse ByteString in
+it's big endian network order and decode it to appropriate types.
+
+The following code shows the function for parsing an arbitrary request:
+
 \begin{lstlisting}
 import Data.Binary.Get
 
@@ -515,6 +536,9 @@ requestMessageParser = do
     return $ RequestMessage apiKey apiVersion correlationId clientIdLen
     clientId request
 \end{lstlisting}
+
+
+
 
 Batching sequences are parsed as List whereas we implemented a general function
 which gets the list size (number of elements) and a parse function: 
@@ -568,7 +592,7 @@ parseMessageSets i = do
             return (x:xs)
 \end{lstlisting}
 
-\section{Encode}
+\subsection{Encode Request/Response}
 Obviously the encode module provides the opposite functionalities as the decode
 module and was separated just for clarity. Thus we also rely on
 \fnurl{Data.Binary}{https://hackage.haskell.org/package/binary-0.4.1/docs/Data-Binary.html}
