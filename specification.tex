@@ -71,7 +71,7 @@ one covers producing a message and persisting in the brokers log. Case two
 allows to consume persisted messages on request. As for clients, depending on
 which API to be used, the client can act either as producer or consumer.
 
-\subsection{Producer}
+\subsection{Produce messages}
 
 In the case of a producer client, the following workflow highlights the
 fundamental steps being passed from sending a request by the client to
@@ -106,9 +106,11 @@ persisting the message on the broker.
             parses it to valid response data structure }
 \end{description}
 
-\subsection{Consumer}
+\subsection{Consume messages}
 
-The consumer fetches desired messages through requesting it at any time.
+The case where the client acts as a consumer, the workflow does not distinguish from
+producing message. Instead of the translation from request message to the log, persisted messages
+are read from the log and are delivered from the broker to the client.
 
 \begin{figure}[H]
     \centering
