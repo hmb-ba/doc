@@ -31,7 +31,7 @@ an overview of what part of the protocol is implemented and what remains open:
     \item Metadata API
     \begin{itemize}
         \tick Topic Metadata Request
-        \fail Metadata Response
+        \tick Metadata Response
     \end{itemize}
     \item Produce API
     \begin{itemize}
@@ -276,6 +276,7 @@ MessageSetSize  & Data.Word32 & Sequences of MessageSet's are not preceded by an
 [MessageSet]      & Data.List      & Finally the RqPrPartition type also holds the actual messages (as defined in \ref{impl-protocol-types-data}.                                                                                \\ \hline
 \end{tabular}
 \end{table}
+
 \subsubsection{FetchRequest}
 Request Payload for Fetch API. Fetchs chunk of one or more logs for some
 topic-partitions. Defines a starting offset at which to begin fetch. 
@@ -340,7 +341,8 @@ client.
 
 Each request message has its same header fields independent for which API they are used. 
 The real payload of the request is individual to the particular API which is
-used.
+used. A response will always match the paired request (e.g. a ProduceResponse is
+sent in return to a ProduceRequest).
 
 \begin{figure}[H]
     \centering
@@ -348,6 +350,18 @@ used.
     \caption{Format of type ResponseMessage; * = N repetitions}
     \label{fig:impl-prot-types-responseMessage}
 \end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+CorrelationId  & Data.Word32 & Id that is supplied by request is passed back
+(for request-reply reference).              \\ \hline
+{[}Response{]} & Data.List   & Sequence of Responses of the same type (either
+ProduceResponse, FetchResponse or others). \\ \hline
+\end{tabular}
+\end{table}
+
 
 \subsubsection{ProduceResponse}
 Response Payload for Produce API. Sends an ErrorCode which determines whether a
@@ -361,12 +375,38 @@ in a particular failure.
     \label{fig:impl-prot-types-produceResponse}
 \end{figure}
 
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+StringLength      & Data.Word32     & Length, in bytes, of string TopicName. \\ \hline
+TopicName         & Data.ByteString & Name of the topic this response entry corresponds to.\\ \hline
+ListLength        & Data.Word32     & Number of element in following list.\\ \hline
+{[}RsPrPayload{]} & Data.List       & Sequence of RsPrPayload, see below.
+\\ \hline
+\end{tabular}
+\end{table}
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-prPayload.png}
     \caption{Format of type RsPrPayload. * = N repetitions}
     \label{fig:impl-prot-types-prPayload}
 \end{figure}
+
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+PartitionNumber & Data.Word32 & Number of partition this response entry
+corresponds to.                                                \\ \hline
+ErrorCode       & Data.Word16 & Topic-Partition specific error code. Error code
+0 determines that data has been published successfully. \\ \hline
+Offset          & Data.Word64 & Number of element in following list.
+\\ \hline
+\end{tabular}
+\end{table}
 
 \subsubsection{FetchResponse}
 Response Payload for Fetch API. Sends requested chunk of one ore more logs as
@@ -379,12 +419,36 @@ sequence of MessageSet's (see \ref{impl-protocol-types-data}).
     \label{fig:impl-prot-types-fetchResponse}
 \end{figure}
 
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+StringLength      & Data.Word32     & Length, in bytes, of string TopicName. \\ \hline
+TopicName         & Data.ByteString & Name of the topic this response entry corresponds to.\\ \hline
+ListLength        & Data.Word32     & Number of element in following list.\\ \hline
+{[}RsPrPayload{]} & Data.List       & Sequence of RsPrPayload, see below.
+\\ \hline
+\end{tabular}
+\end{table}
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-ftPayload.png}
     \caption{Format of type RsFtPayload}
     \label{fig:impl-prot-types-ftPayload}
 \end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+PartitionNumber     & Data.Word32 & Number of partition this response entry corresponds to.                                                                                               \\ \hline
+ErrorCode           & Data.Word16 & Topic-Partition specific error code. Error code 0 determines that data has been published successfully                                                \\ \hline
+HighwaterMarkOffset & Data.Word64 & The offset at the end of the log for this partition. This can be used by,the client to determine how many messages behind the end of the log,they are \\ \hline
+MessageSetSize      & Data.Word32 & The size in bytes of the message set for this topic-partition                                                                                         \\ \hline
+{[}MessageSet{]}    & Data.List   & The message data fetched from this partition, in the format described below                                                                           \\ \hline
+\end{tabular}
+\end{table}
 
 \subsection{Types related to Data}
 \label{impl-protocol-types-data}

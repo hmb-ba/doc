@@ -25,60 +25,75 @@ layers, each in its own module.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.3\textwidth]{images/impl-brok-layers.png}
+    \includegraphics[width=0.4\textwidth]{images/impl-brok-layers.png}
     \caption{Three subsystems of broker server application}
     \label{fig:impl-brok-layers}
 \end{figure}
 
+\newpage
 \section{Threading}
 \label{sec:impl-broker-threading}
-Regarding threading we mainly focus on the network layer. To support multiple
-connections from different clients the acceptor socket forks a new thread for
-processing incoming data whenever a new connection is established. We realized
-that we need to process incoming data as fast as possible because if the limit
-of the socket buffer is reached, the throughput on the network drops
-dramatically. Therefore the processor threads only receive a
-particular request (based on the first 4 bytes which determines request size)
-and forward it to the request handler thread. Thereby, the request handler is a worker
-thread which just works off the received request and produces appropriate
-responses. Responses are sent to a pool of responder threads where one of them simply send the
-response back to the connected client.
-...
+The threading concept of the broker server application include the following
+instances: 
 
-TODO: Possibility to defined a pool of request handler worker threads.
-Probably we implement it, if not we have to give a statement. 
+\begin{description}
+\item[Acceptor Thread (one instance)] \hfill \\
+    This thread accepts new socket connections. To support multiple
+    connections from different clients the it forks a new thread for processing
+    ncoming data whenever a new connection is established. 
 
-TODO: Responder pool not implemented yet (only one responder at the moment)
+\item[Connection Processor Thread (one instance per connection)] \hfill \\
+    The incoming socket data need to be processed as fast as possible because if the
+    limit of the socket buffer is reached, the throughput on the network drops
+    dramatically. The processor threads constantly receives particular request and
+    provide it to the API handler thread. 
+
+\item[Responder Thread (one instance per connection)] \hfill \\
+    This thread works off the provided responses and sends them back to the original
+    client. \todo{actually only one instance at the moment}
+\item [API Handler Thread (one to N instances)] \hfill  \\
+    The API handler is a worker thread which just works off the received request. It
+    also build appropriate responses and provide it to the responder thread. It is
+    conceivable to run more than one instances of the API handler. Due to advanced
+    synchronisation this is not realized yet.
+\item [Main Thread (one instance)] \hfill \\
+    The main function of the broker bootstraps the whole server application. It first
+    initializes the network socket and forks the acceptor and API
+    handler threads. Threads are managed due the \textit{withAsync} function of
+    the \fnurl{Control.Concurrent.Async}
+    {https://hackage.haskell.org/package/async-2.0.0.0/docs/Control-Concurrent-Async.html}
+    library. It adds a thin layer over the basic concurrency operations provided
+    by \fnurl{Control.Concurrent}
+    {https://hackage.haskell.org/package/base-4.5.0.0/docs/Control-Concurrent.html}
+    and gives the ability to wait for the return value of a thread. This
+    provides additional safety and control if a threads gets crashed. 
+\end{description}
+
+Original Apache Kafka has a fix and configurable amount of threads
+handling network request by working with thread pools. Thanks to the
+optimizations of the GHC IO manager, the communication with the haskell threads
+and the OS is very efficient due to thread multiplexing. Thread pooling has no
+further advantages than one socket processor thread instance per connection. 
+
+For transfer of data between the threads, channels are implemented. The \fnurl{Control.Concurrent.Chan}
+{http://hackage.haskell.org/package/base-4.8.0.0/docs/Control-Concurrent-Chan.html}
+package provides a one-way FIFO communication channel. This concept
+is being used to separate the three layers from each other. The
+fact that \textit{chan} is unbounded brings a risk. While \textit{writeChan} --
+which is being used to write to a channel -- succeeds immediately, there is a
+chance that the consuming thread is not able to read the same amount of data in
+a given time and thus the channel will grow in an unchecked manner.
+\cite{o2008real}
+
+TODO: sanctions? do we have to block the producer for a short time? -> Bounded
+Chans? 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{images/impl-brok-threading.png}
+    \includegraphics[width=0.85\textwidth]{images/impl-brok-threading.png}
     \caption{Threading concept which channeling}
     \label{fig:impl-brok-threading}
 \end{figure}
-
-\subsection{Channeling}
-
-For transfering data between the threads of the subsystem API and Network, we
-decided to use channels. The
-\fnurl{Control.Concurrent.Chan}{http://hackage.haskell.org/package/base-4.8.0.0/docs/Control-Concurrent-Chan.html}
-package provides a one-way FIFO communication channel. In
-our case, this concept is being used to separate the
-three mentioned subsystems from each other. The fact that
-\textit{chan} is unbounded brings a risk. While
-\textit{writeChan} -- which is being used to write to a
-channel -- succeeds immediately, there is a chance that the
-consuming thread is not able to read the same amount of
-data in a given time and thus the channel will grow in
-an unchecked manner. \cite{o2008real}
-
-TODO: sanctions? do we have to block the producer for a short time?
-
-TODO: tell why 2 separate channels are better than 1 two-way
-
-TODO: Request Channel (ReqChan)
-
-TODO: Response Channel (ResChan)
 
 \section{Error Handling}
 
@@ -534,6 +549,7 @@ getLastLogOffset (t, p) bo (rel, phys) = do
 
 
 \subsection{Read from log}
+A consumer client which request messages from broker via FetchRequest, actually
 
 \subsection{Optimization}
 
@@ -584,14 +600,8 @@ result in the following steps:
   \item Send data from page cache to the socket
 \end{enumerate}
 
-
-\section{Bootstrapping}
-TODO: Main function 
-
-
 \section{Testing}
 hspec 
-
 
 \section{Client Examples}
 This example shows a very basic console client which either can act as producer
