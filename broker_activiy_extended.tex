@@ -1,0 +1,72 @@
+\begin{tikzpicture}[node distance=1cm, font=\small\sffamily]
+%------------------------------------------------------
+%Draw elements
+%------------------------------------------------------
+\node (connect) [block] {connect};
+\node (write) [block, below of=connect] {write};
+\node (read) [block, below of=write, yshift=-8.5cm] {read};
+\node (accept) [block, right of=connect, xshift=6.5cm] {accept};
+\node (read1) [block, below of=accept] {read};
+\node (preq) [block, below of=read1, yshift=-1cm] {Parse Request};
+\node (hpreq) [block, below of=preq, yshift=-1cm, text width = 2.5cm] {handleProduce Request};
+\node (hfreq) [block, below of=hpreq, yshift=-0.5cm, text width = 2.5cm] {handleFetch Request};
+\node (dots) [block, below of=hfreq, yshift=-0.5cm, text width = 2.5cm, minimum height=.8cm] {\ldots};
+\node (perr) [block, left of=preq, xshift=-2.5cm, yshift=-0.5cm] {Parse Error};
+\node (prrq) [block, left of=hpreq, xshift=-2.5cm] {PrRq Error};
+\node (ftrq) [block, left of=hfreq, xshift=-2.5cm] {FtRq Error};
+\node (dots1) [block, left of=dots, xshift=-2.5cm] {\ldots};
+\node (write1) [block, below of=dots, yshift=-1.5cm] {write};
+\node (close) [block, below of=write1, yshift=-0.5cm] {close};
+\node (recverr) [block, right of=read1, xshift=3cm, yshift=-1.5cm] {Recv Error};
+\node (serr) [block, right of=write1, xshift=3cm] {Send Error};
+%------------------------------------------------------
+
+%------------------------------------------------------
+%Draw rectangles and text
+%------------------------------------------------------
+\node (a) [draw,fit={($(perr.north west)+(-.2,.5)$) ($(dots1.south east)+(.2,-.5)$)}] {};
+\node [anchor=north west,inner sep=1pt] at (a.north west) {handle error};
+\node (b) [draw,fit={($(hpreq.north west)+(-.2,.5)$) ($(dots.south east)+(.2,-.5)$)}] {};
+\node (c) [draw,fit={($(recverr.north west)+(-.2,.5)$) ($(serr.south east)+(.2,-.5)$)}] {};
+\node [anchor=center,inner sep=1pt, text width=2cm] at (c.center) {handle\\ SocketError};
+\node (b1) [blank, above of=connect, xshift=-.5cm] {{\bfseries Client\\ (Producer/Consumer)}};
+\node (b2) [blank, right of=b1, anchor=south, xshift=2.7cm] {\bfseries{Broker}};
+\node (d) [draw, fit={($(b1.north west)+(-1,1)$) ($(serr.south east)+(1,-2)$)}] {};
+\node (e) [xshift=-3.5cm, inner sep=2pt] at (d.south) {}; 
+\node (f) [xshift=-3.5cm, inner sep=2pt] at (d.north) {};
+\node (ctext) [draw, rectangle, anchor=north west, inner sep=1pt] at (d.north west) {{\bfseries act} Broker Activity};
+\draw [dashed] (e) -- (f);
+\node (g) [draw,fit={($(a.north west)+(-.2,.5)$) ($(b.south east)+(.2,-.5)$)}] {};
+\node [anchor=north west,inner sep=1pt] at (g.north west) {handle request};
+%------------------------------------------------------
+
+%------------------------------------------------------
+%Draw lines between elements
+%------------------------------------------------------
+\begin{scope}
+%Straight lines
+\path [line] (connect) -- node[anchor=south]{Handshake} (accept);
+\path [line] (write) -- node[anchor=east]{wait} (read);
+\path [line] (write) -- node[anchor=south]{Request} (read1);
+\path [line] (accept) -- node[anchor=west] {fork} (read1);
+\path [line] (read1) -- (preq);
+\path [line] (preq) -- (hpreq);
+\path [line] (hpreq) -- (hfreq);
+\path [line] (hpreq) -- (prrq);
+\path [line] (hfreq) -- (dots);
+\path [line] (hfreq) -- (ftrq);
+\path [line] (dots) -- node [anchor=west] (mid) {} (write1);
+\path [line] (dots) -- (dots1);
+\path [line] (write1) -- (serr);
+\path [line] (write1) -- node[anchor=south]{Response} (read);
+\path [line] (write1) -- (close);
+%Angled lines
+\path [line] (read1) -| (recverr);
+\path [line] (read) -- + (-2,0) |- (write);
+\path [draw] (dots1.south) |- (mid);
+\path [line] (preq.west) -- +(-.5,0) |- (perr.east);
+\path [line] (serr) |- (close);
+\end{scope}
+%------------------------------------------------------
+\end{tikzpicture}
+ 

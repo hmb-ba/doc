@@ -1,0 +1,56 @@
+\begin{tikzpicture}[node distance=1cm, font=\small\sffamily]
+%------------------------------------------------------
+%Draw elements
+%------------------------------------------------------
+\node (connect) [block] {connect};
+\node (write) [block, below of=connect] {write};
+\node (read) [block, below of=write, yshift=-8cm] {read};
+\node (accept) [block, right of=connect, xshift=6cm] {accept};
+\node (read1) [block, below of=accept] {read};
+\node (preq) [block, below of=read1, yshift=-1cm] {Parse Request};
+\node (hreq) [block, below of=preq, yshift=-2cm, minimum height = 4cm] {Request Handler};
+\node (errh) [block, left of=hreq, xshift=-2cm, minimum height = 4cm, text width=1.5cm] {Error Handler};
+\node (write1) [block, below of=hreq, yshift=-3cm] {write};
+\node (close) [block, below of=write1, yshift=-.5cm] {close};
+\node (serrh) [block, right of=hreq, xshift=2.5cm, minimum height = 9cm, text width=2cm] {Socket Error Handler};
+%------------------------------------------------------
+
+%------------------------------------------------------
+%Draw rectangles and text
+%------------------------------------------------------
+\node (a) [draw,fit={($(preq.north east)+(.5,.2)$) ($(errh.south west)+(-.5,-.7)$)}] {};
+\node [anchor=north west,inner sep=1pt] at (a.north west) {handle request};
+\node (b1) [blank, above of=connect, xshift=-.8cm] {\bfseries{Client\\ (Producer/Consumer)}};
+\node (b2) [blank, right of=b1, anchor=south, xshift=3cm] {\bfseries{Broker}};
+\node (b) [draw, fit={($(b1.north west)+(-1,1)$) ($(serrh.south east)+(1,-1.5)$)}] {};
+\node (c) [xshift=-3cm, inner sep=2pt] at (b.south) {}; 
+\node (d) [xshift=-3cm, inner sep=2pt] at (b.north) {};
+\node (ctext) [draw, rectangle, anchor=north west, inner sep=1pt] at (b.north west) {{\bfseries act} Broker Activity};
+\draw [dashed] (c) -- (d);
+\node (phantom) [right of=write1, xshift=1.5cm] {};
+%------------------------------------------------------
+
+%------------------------------------------------------
+%Draw lines between elements
+%------------------------------------------------------
+\begin{scope}
+%Straight lines
+\path [line] (connect) -- node[anchor=south]{Handshake} (accept);
+\path [line] (write) -- node[anchor=east]{wait} (read);
+\path [line] (write) -- node[anchor=south]{Request} (read1);
+\path [line] (accept) -- node[anchor=west] {fork} (read1);
+\path [line] (read1) -- (preq);
+\path [line] (preq) -- (hreq);
+\path [line] (hreq) -- (errh);
+\path [line] (hreq) -- node [anchor=west, yshift=.3cm] (mid) {} (write1);
+\path [line] (write1.east) -- (phantom);
+\path [line] (write1) -- node[anchor=south]{Response} (read);
+\path [line] (write1) -- (close);
+%Angled lines
+\path [line] (read1) -| (serrh);
+\path [line] (serrh) |- (close);
+\path [line] (read) -- + (-2,0) |- (write);
+\path [draw] (errh.south) |- (mid);
+\end{scope}
+%------------------------------------------------------
+\end{tikzpicture}
