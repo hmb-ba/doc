@@ -3,6 +3,7 @@
 
 
 \section{Threading}
+\label{sec:impl-broker-threading}
 Regarding threading we mainly focus on the network layer. To support multiple
 connections from different clients the acceptor socket forks a new thread for
 processing incoming data whenever a new connection is established. We realized
@@ -183,6 +184,16 @@ recvExactly sock size = BL.concat . reverse <$> loop [] 0
 
 
 \section{API Layer}
+The part of the application which gets data from the request channel (see
+\ref{sec:impl-broker-threading}), processes
+it and put an output to the response channel. 
+
+\begin{enumerate}
+\item Parse Request from Input Channel 
+\item Handle Request
+\item Proceed Response to Output Channel
+\end{enumerate}
+
 
 \begin{figure}[H]
     \centering
@@ -191,6 +202,25 @@ recvExactly sock size = BL.concat . reverse <$> loop [] 0
     \label{fig:broker-activity-detail.png}
 \end{figure}
 
+\subsection{Handle Request}
+Depending on the API key field of type RequestMessage, the request handler
+determines the appropriate action. In case of an unkown API key, a handleError
+and otherwise a builded ResponseMessage (ByteString) ist given. 
+
+\begin{lstlisting}
+handleRequest :: RequestMessage -> IO (Either HandleError BL.ByteString)
+handleRequest rm = do
+   handle <- case rqApiKey rm of
+    0  -> handleProduceRequest (rqRequest rm)
+    1  -> handleFetchRequest (rqRequest rm)
+    2  -> handleOffsetRequest (rqRequest rm)
+    3  -> handleMetadataRequest (rqRequest rm)
+    8  -> handleOffsetCommitRequest 
+    9  -> handleOffsetFetchRequest
+   10 ->  handleConsumerMetadataRequest
+    _  -> return (Left UnknownRqError)
+   return handle
+\end{lstlisting}
 
 \section{Log}
 
