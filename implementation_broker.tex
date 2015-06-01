@@ -1,11 +1,10 @@
 \chapter{Implementation Broker}
 \label{chap:broker}
 The broker implementation is a stand-alone server application which is based on the
-Apache Kafka protocol implementation (see \ref{sec-protocol}).
-
-To clarify the program flow from receiving data from network to handling the
-requests and accessing the message log, the broker server application is split
-into three subsystems, each in its own module. 
+Apache Kafka protocol implementation (see \ref{sec-protocol}). To clarify the
+program flow from receiving data from network to handling the requests and
+accessing the message log, the broker is split into three
+layers, each in its own module. 
 
 \begin{description}
     \item [Network Layer] \hfill \\
@@ -26,9 +25,9 @@ into three subsystems, each in its own module.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.3\textwidth]{images/design-subsystems.png}
+    \includegraphics[width=0.3\textwidth]{images/impl-brok-layers.png}
     \caption{Three subsystems of broker server application}
-    \label{fig:architecture-subsystems.png}
+    \label{fig:impl-brok-layers.png}
 \end{figure}
 
 \section{Threading}
@@ -53,9 +52,9 @@ TODO: Responder pool not implemented yet (only one responder at the moment)
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{images/design-threading.png}
+    \includegraphics[width=0.7\textwidth]{images/impl-brok-threading.png}
     \caption{Threading concept which channeling}
-    \label{fig:architecture-threading.png}
+    \label{fig:impl-brok-threading}
 \end{figure}
 
 \subsection{Channeling}
