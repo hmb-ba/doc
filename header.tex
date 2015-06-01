@@ -41,7 +41,13 @@
 \usepackage{tikz}
 \usepackage{pgf-umlsd}
 \usepgflibrary{arrows} % for pgf-umlsd
-
+\usetikzlibrary{shapes.geometric, arrows, shadows, calc, fit}
+%Block style, rectangle with black shadow
+\tikzstyle{block} = [draw, rectangle, minimum width=1cm, minimum height=.5cm, text centered, fill=white, drop shadow={shadow xshift=2.5pt, shadow yshift=-2.5pt, opacity=1, color=black}, text width=2cm]
+%Blank block for text without outside frame
+\tikzstyle{blank} = [draw=none, rectangle, text width = 2cm]
+%Line style
+\tikzstyle{line} = [draw=black, -latex', shorten >=0pt]
 \usepackage{hyperref}
 \newcommand\fnurl[2]{%
   \href{#2}{#1}\footnote{\url{#2}}%
