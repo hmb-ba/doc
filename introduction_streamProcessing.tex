@@ -2,9 +2,9 @@
 
 In previous chapter we defined what a message broker basically is, therefore we
 can imagine how Apache Kafka works. Because Apache Kafka is build for big data
-environments \todo{big data erklären} there is often mention of terms like Event or
-Stream. When we want to understand what what Apache Kafka actually is for an
-how it is used, we need to know what an Event Stream is.
+environments \todo{big data erklären} concepts like events and streams become
+important. To understand the possible use cases of Apache Kafka, the terms
+around event streaming need to be clarified. 
 
 \begin{figure}[H]
     \centering
@@ -34,7 +34,7 @@ user of an online shop adds an item to its basket. In modern systems, events are
 transmitted as discrete messages on a MOM (see \ref{intro-messaging-mom}) and
 thus following Tannenbaum et al. (2006), represent a data unit of a data
 streams. Where a data stream can be applied to discrete as well as continuous
-media, events are transmitted as discrete messages only. The message as itself
+media, events are transmitted as discrete messages only. The message itself
 can be considered as an event message \cite{EIP03}.
 
 If we think more traditionally, even database systems can be thought of as an
@@ -56,7 +56,7 @@ Basically processing of events follows two key objectives:
 
 So data streams consisting of events as it self are not valuable but
 can be taken advantage of by a system that processes these events, produces a
-result and provide it to other services. This can be the calculation of the new
+result and provides it to other services. This can be the calculation of the new
 stock price after a customer sold his stock or the personalized content on a
 news feed after a person subscribed to a new fan page. But it could also be a
 more complex analysis over all the collected event that ever happened, stored in
@@ -73,13 +73,13 @@ of any size:
 \begin{description}
     \item[Store raw data]  \hfill \\
     {Simply storing every single event in a big data store. Through appending
-    every incoming event one get a wide history of every activity on the system.
+    every incoming event one get a detailed history of every activity on the system.
     To analyze the data, a periodic batch process can execute big queries over
     all events to get a result.  $ \Rightarrow $  \textbf{Batch Processing}}
     \item[Store aggregated data  ] \hfill \\
-    {Instead of persist every single event, directly process the incoming data stream and store
+    {Instead of persisting every single event, directly process the incoming data stream and store
     only an aggregated summary. Because of updating the aggregation with every
-    incoming event, getting an overall result is very fast (what we call
+    incoming event, getting an overall result is very fast (which we call
     "Real-Time"). Of course there is not a history of all the "happenings"
     anymore. $ \Rightarrow $ \textbf{Stream Processing}} 
 \end{description}
@@ -124,7 +124,7 @@ output queues. PE communicate always through messaging with other PEs.
 Most important, those systems are optimized for high latency and high
 availability. Recovering from failures is critical for a stream processing
 systems and should be fast and efficient. 
-Data should partitioned and handled in parallel for large volumes of data. 
+Data should be partitioned and handled in parallel for large volumes of data. 
 The partitioning strategy of a system  affects how the system
 handles the data in parallel and how the system can scale. 
 \cite{PrpSvyOfDSPS}
@@ -157,7 +157,7 @@ analysis, this gives much richer information than just overwriting it. \todo{cit
 
 \section{Lambda Architecture}
 While batch processing is used for data analysis to get results out of huge
-amount of raw stored data at any time, stream processing reacts to events in
+amount of stored raw data at any time, stream processing reacts to events in
 real time. Both approaches are very useful in different use cases. Lambda
 architecture is a data-processing architecture designed to handle massive
 quantities of data by taking advantage of both batch and stream processing
@@ -190,7 +190,7 @@ architecture this could be done using a stream processing framework
 (\ref{intro-datastream-streamprocessing}) responsible for serving the batch
 processing system with integrated data, ready for data analysis. However, an
 other way of doing so would be a data store---such as the hadoop file system
-(HDFS\todo{gls}---where data can be directly taken for further analysis.
+(HDFS\todo{gls})---where data can be directly taken for further analysis.
 The same requirement of a data store holds for any
 other business intelligence system followed by the problem of the dependency of
 a data store which eventually---due to the lack of an adapter---can not be
@@ -198,21 +198,21 @@ served with data by a stream processing system as comfortable as the HDFS.
 
 \subsection{Requirements}
 Facing the two types of processing events---stream- and batch
-processing---together, data integration results as a common stage both system have to
-deal with. Even further, for every system an organization operates, like the
-data warehouse, full-text search indexes, caches or lot more, the data
-integration stage will be present. 
-Additionally, stream processing systems require a continuous
-incoming stream to further integrate and process where batch processing systems
-on the other hand demand a given persistent set of data to further integrate and analyze.
+processing---together, data integration results as a common stage both systems
+have to deal with. Even further, for every system an organization operates, like
+the data warehouse, full-text search indexes, caches or more. The data
+integration stage will be present. Additionally, stream processing systems
+require a continuous incoming stream to further integrate and process where
+batch processing systems on the other hand demand a given persistent set of data
+to further integrate and analyze.
 
 Further more, in terms of stream processing the requirement of low latency is
 essential for any system of this type. For database systems combined with stream
-processing, reliability becomes significantly important to handle critical updates 
-such as replicating the as discussed above.
-In terms of batch processing however, the demand on low latency is not as
-important as the availability of well integrated data with a high throughput to
-be able to handle a large volume of data in time range as low as possible.
+processing, reliability becomes significantly important to handle critical
+updates such as replicating as discussed above. In terms of batch processing
+however, the demand on low latency is not as important as the availability of
+well integrated data with a high throughput to be able to handle a large volume
+of data in time range as low as possible.
 
 \begin{table}[H]
 \centering
@@ -234,14 +234,14 @@ High Throughput                     &                            & x
 \label{table:requirements-batch-stream}
 \end{table}
 
-Note that the mentioned systems \todo{which?} do not only consume data for integration and
-processing, they can also have an output. Thus, many systems are both sources and
-destinations for data transfer in consequence of which a system would then need
-two channels \todo{gls} per system. 
-Obviously each output in this constellation is intended to be consumed by 1--N
-system(s) again. Connecting all of these would lead to building a custom
-channel between each pair of system (see Figure \ref{fig:datapipeline_complex}). As the set of system in an organization
-rows, this would clearly become a challenge to maintain.
+Note that the mentioned systems \todo{which?} do not only consume data for
+integration and processing, they can also have an output. Thus, many systems are
+both sources and destinations for data transfer in consequence of which a system
+would then need two channels \todo{gls} per system. Obviously each output in
+this constellation is intended to be consumed by 1--N system(s) again.
+Connecting all of these would lead to building a custom channel between each
+pair of system (see Figure \ref{fig:datapipeline_complex}). As the set of system
+in an organization grows, this would clearly become a challenge to maintain.
 
 \begin{figure}[H]
     \centering
@@ -259,16 +259,17 @@ remains are the tightly coupled systems. A simple change on one system could
 affect one or more of it's connected systems directly, which is not only hard to
 manage but also reduces the flexibility of further development of the landscape.
 To extend the landscape the chances are high to touch existing systems which is
-not only time intensive but also connected with risks regarding possible failures. In fact,
-these are known issues of a Point-To-Point channel of traditional messaging and
-is described in Section \ref{intro-messaging-pointtopoint}.
+not only time intensive but also connected with risks regarding possible
+failures. In fact, these are known issues of a Point-To-Point channel of
+traditional messaging and are described in Section
+\ref{intro-messaging-pointtopoint}.
 
 \subsection{Central Platform as Solution}
 \label{intro-datastream-centralplatform}
 A more elegant and reliable approach to solve the mentioned problems would be to
 introduce a central platform, that is able to support both batch and real-time
 consumption and thus is able to hold the described requirements given in table
-\ref{table:requirements-batch-stream}. This system which can act as a single
+\ref{table:requirements-batch-stream}. This system can act as a single
 data repository to isolated consumers and gives access to any data that is
 required, as shown in figure \ref{fig:datapipeline_simple}. It aggregates
 incoming events and represents an even stream for any its consumers. 
@@ -293,15 +294,15 @@ possibilities in organizational scalability.
 \section{Link to Message Brokers}
 As solution for a modern big data environment with huge amount of event data
 which needs to be processed in different systems we need a platform which acts as
-mediator by handles the incoming event as stream and provide them to several
+mediator to handle the incoming event as streams and provide them to several
 consumers (\ref{intro-datastream-centralplatform}). This seems to be very similar to
 the definition of a message broker (\ref{intro-messaging-broker}) and indeed
 these two concepts can be compared. Actually an event stream can be realised
 with an underlying message broker and as we already described \todo{ref}, events
-can be considered as messages with the event data as payload. In this point of
-view the central stream platform is nothing else than a message broker which
-handles incoming events, persist them in an ordered queue and provide them for the
-consumers which can be stream or batch processing systems.
+can be considered as messages with the event data as payload. The central stream
+platform is nothing else than a message broker which handles incoming events,
+persist them in an ordered queue and provide them for the consumers which can be
+stream or batch processing systems.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{images/messaging-vs-streaming.png}
@@ -319,7 +320,7 @@ the needs for lately introduced systems such as Apache Kafka\cite{apachekafka},
 Scribe\cite{scribe} or Flume\cite{apacheflume} and further try to compare and
 categorize those systems after their strengths and weaknesses.
 
-In the following Chapter \ref{intro-kafka} we examine capabilities for Apache
+In the following Chapter \ref{intro-kafka} we examine capabilities of Apache
 Kafka related to the functionalities of acting as a centralized event stream
 platform. This gives not only a more concrete background of the components of a
 state of the art message broker implementation but also serves as a basis for

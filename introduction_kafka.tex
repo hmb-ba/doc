@@ -2,8 +2,8 @@
 \label{intro-kafka}
 
 As this thesis is about the implementation of a message broker that correlates
-to the functionalities Apache Kafka provide, we describe in the following the
-components and functionalities of Apache Kafka in the current state (Version
+to the functionalities Apache Kafka provides, we describe in the following the
+components and functionalities of Apache Kafka in its current state (Version
 0.8.2). This shall provide a basis for further comparison (see \ref{survey-broker}) with
 similar systems, which is why won't provide any implementation
 specific details in this section but describe the concepts in a higher level of
@@ -30,9 +30,9 @@ pipeline lead to inevitable delays in adding new types of activity data.
 Besides the feature wise limitations, also the detection time of operational
 problems increased over time due to the ever-increasing pressure on the latency
 of the data warehouse processes. This could have been solved with
-stream processing systems (\ref{intro-datastream-streamprocessing}) but again, 
-due to the lack of any central platform (\ref{intro-datastream-centralplatform})
-that can provide continuous data, was not supported at this point.
+stream processing systems (\ref{intro-datastream-streamprocessing}) but was not
+supported at this point, due to the lack of any central platform
+(\ref{intro-datastream-centralplatform}) that can provide continuous data, .
 \cite{goodhope2012building}
 
 First attempts towards a piece of infrastructure (e.g. broker) that can server
@@ -59,7 +59,7 @@ deployment and thus serve batch and stream processing systems.
     \item [Stream processing] Kafka's strong durability is very useful in the
         context of stream processing
 \end{description}
-
+\todo{incomplete}
 \section{The Log}
 \label{intro-kafka-log}
 Apache Kafka uses a so-called commit log for managing messages within the
@@ -78,24 +78,25 @@ gets decoupled from any time system. \cite{apachekafka} \cite{JK-TheLog}
     \label{fig:the-log}
 \end{figure}
 
-Apache Kafka handles a own log for every topic whereas the log contains all
+Apache Kafka handles its own log for every topic whereas the log contains all
 published messages as single records. Compared to traditional messaging systems,
 Kafka does not delete a record after consumption, actually it makes no difference
  whether or not they have been consumed. As we see later, every consumer
 controls its position of the log by its own. Kafka can hold records within a
 defined time window before it deletes the oldest records of the log.
-Further more, an additional feature called log compaction can be activated to reduce the amount of messages
-which need to be deleted by removing only obsolete records. \cite{apachekafka} \cite{JK-TheLog}
+Further more, an additional feature called log compaction can be activated to
+reduce the amount of messages which need to be deleted by removing only obsolete
+records. \cite{apachekafka} \cite{JK-TheLog}
 
-Logs originally come from databases where they are used to for replication
-whereas the log includes records of what happened. Every change or update of a
-log leads to a new state that represents a version including all the updates
-done in past. Describing every replica by the latest log entry it has processed, 
-the problem of coordinating states of distributed replicas is getting much easier.
-Apache Kafka uses this approach for consumption of messages. Every consumer knows its actual offset and
-increases it linearly as it reads messages from the log. The log can be seen as a
-re-playable record of history whereas a consumer also can reset to an older
-state---by using the offset---to reprocess. \cite{JK-TheLog}
+Logs originate from from databases where they are used for replication and
+recovery. Every change or update of a log leads to a new state that represents a
+version including all the updates done in past. Describing every replica by the
+latest log entry it has processed, the problem of coordinating states of
+distributed replicas is getting much easier. Apache Kafka uses this approach for
+consumption of messages. Every consumer knows its actual offset and increases it
+linearly as it reads messages from the log. The log can be seen as a re-playable
+record of history whereas a consumer also can reset to an older state---by using
+the offset---to reprocess. \cite{JK-TheLog}
 
 \begin{figure}[H]
     \centering
@@ -108,10 +109,10 @@ state---by using the offset---to reprocess. \cite{JK-TheLog}
 
 \subsection{Producer}
 
-A producer can publish data to a topic of their choice and is responsible for
+A producer can publish data to a topic of its choice and is responsible for
 choosing which message will be assigned to which partition within a topic. In
 fact, the producer sends data directly to the leader of a partition on the
-broker. In order to help the producer finding the correct server and partition
+broker. In order to help the producer find the correct server and partition
 leader, Kafka can answer a request for meta-data about which servers are alive
 and where the leaders for the partitions of a topic are at any given time. Thus
 the producer can direct its requests appropriately. \cite{apachekafka}
@@ -187,10 +188,11 @@ As a result of of the mentioned factors of using the file system and relying on
 \gls{page cache} leads to the fact that Apache Kafka claims access to all free memory.
 Doing so will result in a cache of up to 28-30GB on a 32GB machine. In a default
 setup, data is kept in memory for 7 days to provide data required for processing
-directly from the memory. This duration should be set according to of one's own
+directly from the memory. This duration should be set according to one's own
 needs. In fact, the memory stays persistent during a restart of the Kafka
-service but won't if the server restarts for example. In the latter scenario,
-Apache Kafka will restore all data from the disk to the memory.
+service but won't if the server appliance reboots. Then the operating systems
+flushes the memory. In the latter scenario, Apache Kafka will restore all data
+from the hard disk to the memory.
 \cite{apachekafka} \\ \\
 One drawback following this model of not immediately writing data to disk can not be
 omitted. A small number of messages can be lost in the event of a hard server
@@ -201,7 +203,7 @@ failure before messages are transfered to the Kafka brokers or flushed to disk.
 \label{kafka-partitioning}
 Facing the challenges of large distributed systems, a log must scale well. For
 improving scalability and fault tolerance, Kafka can divide a log in multiple
-partitions and is a way to parallelize the consumption of the messages, whereas
+partitions. This is a way to parallelize the consumption of the messages, whereas
 the total number of partitions in a broker cluster need to be at least the same
 as the number of consumers (or producers) in a consumer (or producer) group.
 Each partition is consumed by exactly one consumer (in a consumer group) and by
@@ -227,9 +229,9 @@ Kafka cluster size. \cite{apachekafka}
 To hold the defined guarantees (\ref{kafka-guarantees}) regarding to system
 or network failures, Apache Kafka supports \gls{replication} on the level of log
 partitions (\ref{kafka-partitioning}). Thereby it can replicate specific topics
-across a configurable number of other other Kafka servers (a.k.a. nodes). Every
+across a configurable number of other Kafka servers (a.k.a. nodes). Every
 topic has defined a leader node which is active in normal operation. Producers
-send data directly to the broker that is leader. A leader node can have zero or
+send data directly to the leader broker. A leader node can have zero or
 more followers which are responsible for replicating the entries of the active
 log. The followers do this by simply act as a normal Kafka consumer of the
 leader node and constantly update their own log so that it is identical.
@@ -238,7 +240,7 @@ leader node and constantly update their own log so that it is identical.
 \todo[inline]{illustration} 
 
 If a leader node crashes, Kafka needs to choose a new one from among the
-followers. Instead using the common algorithm of quroum replication \todo{gls}, it
+followers. Instead of using the common algorithm of quroum replication \todo{gls}, it
 has its own approach called in-sync replicas which is based on primary-backup
 replication\todo{gls}. In this algorithm the leader node
 constantly keeps track of its followers by managing a set of \textit{in-sync}
@@ -256,12 +258,12 @@ Apache Kafka always runs with Apache Zookeeper \todo{ref} as underlying manager 
 Kafka nodes. It handles the coordination between the leader and follower nodes
 and also notifies producer and consumer about the presence or failure of brokers in a
 Kafka system. The latter leads producers and consumers to coordinate their work
-with different brokers. Regarding to the replication of Kafka nodes, Zookeeper
+with different brokers. Regarding the replication of Kafka nodes, Zookeeper
 also handles the leader election in case of failure. Thereby a leader node
 constantly informs Zookeeper about changes in his ISR set. If the leader node
-crashes all surviving followers register itself in Zookeeper whereas
-the replica that registers first becomes the new leader.
-\cite{kafka-wiki-replication} \cite{ArtKafkaInfoQ}
+crashes all surviving followers register itself in Zookeeper. The replica that
+registers first becomes the new leader. \cite{kafka-wiki-replication}
+\cite{ArtKafkaInfoQ}
 
 \begin{figure}[H]
     \centering
@@ -280,7 +282,7 @@ grouping small messages together--referred to as batching. Rather on relying
 Nagle's algorithm on a TCP level, batching on the producer side is implemented
 at the application level which allows precise timeout and message count
 threshold that triggers the send. The broker itself does not do further batching
-of filesystem writes but rather relies on the file system fully (as described in
+of filesystem writes but rather relies fully on the file system (as described in
 \ref{kafka-persistence}) which brings an improvement as significant as it would
 not make sense to further try to improve manually. Consumer data fetch requests
 are also batched effectively as well by allowing the user to pull data from many

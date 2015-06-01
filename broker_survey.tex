@@ -7,9 +7,9 @@ second topic, the streaming of big data we saw that a stream is actually an
 abstract version of a message broker with special abilities optimized for
 further processing events in real-time. 
 
-In the following survey we want to compare implementations of the most related
-broker system by mainly compare the following characteristics---which we already
-defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
+In the following survey we want to compare implementations of broker system by
+mainly comparing the following characteristics---which we already defined in
+\todo{ref}---to our reference product Apache Kafka. \todo{ref}
 
 \begin{itemize}
 \item Consumption Model 
@@ -25,10 +25,10 @@ defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
     {
     RabbitMQ is written in Erlang and its source code is released under the
     Mozilla Public License. RabbitMQ supports many messaging protocols, among
-    which the most important are STOMP: Streaming Text Oriented messaging
+    which the most important are STOMP: Streaming Text Oriented Messaging
     Protocol and AMQP: Advanced Messaging Queuing Protocol. Incoming messages
     are placed in a queue whereas this message can further be stored in memory
-    or on a disk. The latter model of persistence will underperform when there is 
+    or on a disk. The latter model of persistency will underperform when there is 
     a large number of queues which need to access the disk simultaneously.
     \cite{rabbitmq}
 
@@ -50,16 +50,16 @@ defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
     Apache ActiveMQ is an open source message broker written in Java
     together with a full Java Message Service (JMS) client. 
 
-    The messages are stored in a data log (called journal), which are individual
-    files. When all messages in a data log have been successfully consumed, the
-    data log file is marked as being ready to be deleted - or archived in a
-    periodical cleanup cycle. Then at intervals the journal can be copied to a
-    long term persistence storage (e.g. JDBC). Also, multiple brokers nodes
-    cannot share a journal. Each must be configured with it's own journal. The
-    journal cannot be used, however, to recover messages as it does not keep an
-    ordered index. So the long term store is used to recover the durable
-    subscription. Additionally a separate in-memory reference store holds
-    references from those messages residing in the data log to improve
+    The messages are stored in a data log (called journal), which consists of
+    individual files. When all messages in a data log have been successfully
+    consumed, the data log file is marked as being ready to be deleted - or
+    archived in a periodical cleanup cycle. Then at intervals the journal can be
+    copied to a long term persistence storage (e.g. JDBC). Multiple
+    brokers nodes cannot share a journal. Each must be configured with it's own
+    journal. The journal cannot be used, however, to recover messages as it does
+    not keep an ordered index. So the long term store is used to recover the
+    durable subscription. Additionally a separate in-memory reference store
+    holds references from those messages residing in the data log to improve
     performance.
 
     In a clustered long term persistence setup, Apache Zookeeper
@@ -83,18 +83,17 @@ defined in \todo{ref}---to our reference product Apache Kafka. \todo{ref}
     \item [Amazon SQS] \hfill \\
     {
     Amazon Simple Queuing Service is a cloud service which offers a simple
-    message queue for move data between distributed systems. SQS guarantees
-    reliability by redeliver messages in case of failure. If a message is
+    message queue to move data between distributed systems. SQS guarantees
+    reliability by redelivering Messages in case of failure. If a message is
     successfully processed by a consumer it will be deleted out of the queue.
     Amazon SQS does not guarantee a strict ordering of messages. All messages
     are stored redundantly on multiple servers and in multiple data center.
     \cite{amazonSQS} \cite{amazonSQSFaq} 
 
-    SQS as itself can not provide a publish subscribe behaviour as we
-    have in typical message brokers. But in combination with the Amazon
-    Simple  Notification Service (SNS) it
-    is possible to create topics which are linked to SQS queues where
-    consumers can register itself and only receive message from a specific
+    SQS as itself can not provide a publish subscribe behaviour as in typical
+    message brokers. But in combination with the Amazon Simple  Notification
+    Service (SNS) it is possible to create topics which are linked to SQS queues
+    where consumers can register itself and only receive message from a specific
     topic. \cite{amazonSqsPubSub}
      }
     \item [Amazon Kinesis] \hfill \\
