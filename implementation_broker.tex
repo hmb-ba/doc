@@ -25,7 +25,7 @@ layers, each in its own module.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.3\textwidth]{images/impl-brok-layers.png}
+    \includegraphics[width=0.4\textwidth]{images/impl-brok-layers.png}
     \caption{Three subsystems of broker server application}
     \label{fig:impl-brok-layers}
 \end{figure}
@@ -50,7 +50,7 @@ instances:
 
 \item[Responder Thread (one instance per connection)] \hfill \\
     This thread works off the provided responses and sends them back to the original
-    client.
+    client. \todo{actually only one instance at the moment}
 \item [API Handler Thread (one to N instances)] \hfill  \\
     The API handler is a worker thread which just works off the received request. It
     also build appropriate responses and provide it to the responder thread. It is
@@ -90,14 +90,10 @@ Chans?
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{images/impl-brok-threading.png}
+    \includegraphics[width=0.85\textwidth]{images/impl-brok-threading.png}
     \caption{Threading concept which channeling}
     \label{fig:impl-brok-threading}
 \end{figure}
-
-\section{Bootstrapping}
-
-
 
 \section{Error Handling}
 
@@ -526,6 +522,7 @@ getLastLogOffset (t, p) bo (rel, phys) = do
 
 
 \subsection{Read from log}
+A consumer client which request messages from broker via FetchRequest, actually
 
 \subsection{Optimization}
 
@@ -576,14 +573,8 @@ result in the following steps:
   \item Send data from page cache to the socket
 \end{enumerate}
 
-
-\section{Bootstrapping}
-TODO: Main function 
-
-
 \section{Testing}
 hspec 
-
 
 \section{Client Examples}
 This example shows a very basic console client which either can act as producer
