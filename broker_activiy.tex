@@ -9,7 +9,7 @@
 \node (read1) [block, below of=accept] {read};
 \node (preq) [block, below of=read1, yshift=-1cm] {Parse Request};
 \node (hreq) [block, below of=preq, yshift=-2cm, minimum height = 4cm] {Request Handler};
-\node (errh) [block, left of=hreq, xshift=-2cm, minimum height = 4cm, text width=1.5cm] {Error Handler};
+\node (errh) [block, left of=hreq, xshift=-2cm, minimum height = 4cm, text width=1.5cm] {Request Error Handler};
 \node (write1) [block, below of=hreq, yshift=-3cm] {write};
 \node (close) [block, below of=write1, yshift=-.5cm] {close};
 \node (serrh) [block, right of=hreq, xshift=2.5cm, minimum height = 9cm, text width=2cm] {Socket Error Handler};
@@ -25,7 +25,6 @@
 \node (b) [draw, fit={($(b1.north west)+(-1,1)$) ($(serrh.south east)+(1,-1.5)$)}] {};
 \node (c) [xshift=-3cm, inner sep=2pt] at (b.south) {}; 
 \node (d) [xshift=-3cm, inner sep=2pt] at (b.north) {};
-\node (ctext) [draw, rectangle, anchor=north west, inner sep=1pt] at (b.north west) {{\bfseries act} Broker Activity};
 \draw [dashed] (c) -- (d);
 \node (phantom) [right of=write1, xshift=1.5cm] {};
 %------------------------------------------------------
