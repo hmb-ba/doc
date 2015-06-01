@@ -1,6 +1,35 @@
 \chapter{Implementation Broker}
 \label{chap:broker}
+The broker implementation is a stand-alone server application which is based on the
+Apache Kafka protocol implementation (see \ref{sec-protocol}).
 
+To clarify the program flow from receiving data from network to handling the
+requests and accessing the message log, the broker server application is split
+into three subsystems, each in its own module. 
+
+\begin{description}
+    \item [Network Layer] \hfill \\
+        This modules encapsulate action on the network. It initiates Socket
+        connections and receive bytes from client. It chunks the received bytes
+        into single requests and provide it to the API Layer. 
+    \item [API Layer] \hfill \\
+        This module handles incoming requests. First of all it parses the
+        received bytes as RequestMessage and proceeds an appropriate action
+        depending on the delivered API key. After performing the action, an
+        according ResponseMessage is generated and provided to the Network Layer
+        for sending back to the client. 
+    \item [Log Layer] \hfill \\
+        This module encapsulates actions to the log on the filesystem.
+        Fundamental functions are appending MessageSet's to Log or reading from
+        it. 
+\end{description}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{images/design-subsystems.png}
+    \caption{Three subsystems of broker server application}
+    \label{fig:architecture-subsystems.png}
+\end{figure}
 
 \section{Threading}
 \label{sec:impl-broker-threading}

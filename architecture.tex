@@ -144,28 +144,6 @@ Message.
 TODO: All requests are initiated by the client, and result in a corresponding
 response message from the server
 
-\subsection{Broker Layering}
-We decided to divide the broker server application into three subsystems to
-clarify the program flow from receiving data from network to handling the
-requests and accessing the message log. 
-\subsubsection{Network Layer}
-
-TODO: introduction to tasks of networking layer, then ref to socket server implementation
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.3\textwidth]{images/design-subsystems.png}
-    \caption{Three subsystems of broker server application}
-    \label{fig:architecture-subsystems.png}
-\end{figure}
-
-\subsubsection{API Layer}
-
-TODO: introduction to tasks of api layer, then ref to request and error handling
-
-\subsubsection{Log}
-
-TODO: introduction to tasks of log subsystem, then ref to persistance section
 
 
 
