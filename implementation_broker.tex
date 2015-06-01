@@ -27,7 +27,7 @@ layers, each in its own module.
     \centering
     \includegraphics[width=0.3\textwidth]{images/impl-brok-layers.png}
     \caption{Three subsystems of broker server application}
-    \label{fig:impl-brok-layers.png}
+    \label{fig:impl-brok-layers}
 \end{figure}
 
 \section{Threading}
@@ -255,25 +255,11 @@ handleRequest rm = do
 \subsection{Indexing}
 
 \subsection{Storage Layout}
-\label{broker-storage}
-
-\subsubsection{Folder structure}
-
 The storage layout is exactly the same as the one defined for for Apache Kafka.
 \todo{link} As for now, the root location of the log is not configurable and
 set to the folder named \textbf{./log} within the installation directory of the
 broker. Each folder represents a partition of a specific topic whereas the name
 of the folder is a combination of the topic name and the partition number. 
-
-For example the topic named \textit{myTopic} with the partitions \textit{0} and
-\textit{1} will result in the following folder structure:
-
-\begin{itemize}
-    \item ./log/myTopic\_0
-    \item ./log/myTopic\_1
-\end{itemize}
-
-\subsubsection{Files}
 
 There are two types of files they reside within the folder that specifies the
 topic and partition (see folder structure):
@@ -296,8 +282,35 @@ viewing multiple log files one can extract information about what range of
 messages reside in which log. This is a very efficient way to perform a lookup
 which is needed for example to append new log messages or archive old messages.
 
-\subsubsection{Index on-disk format}
+For example the topics named \textit{TopicA, TopicB and TopicC} with the partitions \textit{0} and
+\textit{1}:
+\begin{verbatim}
+log
+|
++--TopicA_0
+   |--00000000000000000000.index
+   |--00000000000000000000.log
+   |--00000000000008650021.index
+   |--00000000000008650021.log
++--TopicA_1
+   |--00000000000000000000.index
+   |--00000000000000000000.log
++--TopicB_0
+   |--00000000000000000000.index
+   |--00000000000000000000.log
+   |--000000000000128655021.index
+   |--000000000000128655021.log
++--TopicB_1
+   |--00000000000000000000.index
+   |--00000000000000000000.log
++--TopicC_0
+   |--00000000000000000000.index
+   |--00000000000000000000.log
+\end{verbatim}
+\label{broker-storage}
 
+\subsection{On-disk format}
+\subsubsection{Index entry}
 An index entry consists of the following two fields whereas both of them are 4 bytes each:
 
 \begin{description}
@@ -309,7 +322,7 @@ The relative offset of an index entry added with it's base offset represents an
 actual message within the log. The second information, the physical position then tells on what 
 position the message resides within the log. Thus, log access of O(n) becomes possible.
 
-\subsubsection{Log on-disk format}
+\subsubsection{Log entry}
 
 The log contains a sequence of log entries whereas the on-disk format of a log
 entry is is part of the reason why the Apache Kafka becomes that valuable. In
