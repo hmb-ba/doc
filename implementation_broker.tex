@@ -8,7 +8,7 @@ layers, each in its own module.
 
 \begin{description}
     \item [Network Layer] \hfill \\
-        This modules encapsulate action on the network. It initiates Socket
+        This modules encapsulate action on the network. It initiates
         connections and receive bytes from client. It chunks the received bytes
         into single requests and provide it to the API Layer. 
     \item [API Layer] \hfill \\
@@ -30,104 +30,48 @@ layers, each in its own module.
     \label{fig:impl-brok-layers}
 \end{figure}
 
-\newpage
-\section{Threading}
-\label{sec:impl-broker-threading}
-The threading concept of the broker server application include the following
-instances: 
-
-\begin{description}
-\item[Acceptor Thread (one instance)] \hfill \\
-    This thread accepts new socket connections. To support multiple
-    connections from different clients the it forks a new thread for processing
-    ncoming data whenever a new connection is established. 
-
-\item[Connection Processor Thread (one instance per connection)] \hfill \\
-    The incoming socket data need to be processed as fast as possible because if the
-    limit of the socket buffer is reached, the throughput on the network drops
-    dramatically. The processor threads constantly receives particular request and
-    provide it to the API handler thread. 
-
-\item[Responder Thread (one instance per connection)] \hfill \\
-    This thread works off the provided responses and sends them back to the original
-    client. \todo{actually only one instance at the moment}
-\item [API Handler Thread (one to N instances)] \hfill  \\
-    The API handler is a worker thread which just works off the received request. It
-    also build appropriate responses and provide it to the responder thread. It is
-    conceivable to run more than one instances of the API handler. Due to advanced
-    synchronisation this is not realized yet.
-\item [Main Thread (one instance)] \hfill \\
-    The main function of the broker bootstraps the whole server application. It first
-    initializes the network socket and forks the acceptor and API
-    handler threads. Threads are managed due the \textit{withAsync} function of
-    the \fnurl{Control.Concurrent.Async}
-    {https://hackage.haskell.org/package/async-2.0.0.0/docs/Control-Concurrent-Async.html}
-    library. It adds a thin layer over the basic concurrency operations provided
-    by \fnurl{Control.Concurrent}
-    {https://hackage.haskell.org/package/base-4.5.0.0/docs/Control-Concurrent.html}
-    and gives the ability to wait for the return value of a thread. This
-    provides additional safety and control if a threads gets crashed. 
-\end{description}
-
-Original Apache Kafka has a fix and configurable amount of threads
-handling network request by working with thread pools. Thanks to the
-optimizations of the GHC IO manager, the communication with the haskell threads
-and the OS is very efficient due to thread multiplexing. Thread pooling has no
-further advantages than one socket processor thread instance per connection. 
-
-For transfer of data between the threads, channels are implemented. The \fnurl{Control.Concurrent.Chan}
-{http://hackage.haskell.org/package/base-4.8.0.0/docs/Control-Concurrent-Chan.html}
-package provides a one-way FIFO communication channel. This concept
-is being used to separate the three layers from each other. The
-fact that \textit{chan} is unbounded brings a risk. While \textit{writeChan} --
-which is being used to write to a channel -- succeeds immediately, there is a
-chance that the consuming thread is not able to read the same amount of data in
-a given time and thus the channel will grow in an unchecked manner.
-\cite{o2008real}
-
-TODO: sanctions? do we have to block the producer for a short time? -> Bounded
-Chans? 
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.85\textwidth]{images/impl-brok-threading.png}
-    \caption{Threading concept which channeling}
-    \label{fig:impl-brok-threading}
-\end{figure}
 
 
 
 \section{Network Layer}
 \label{sec:broker-network}
 
-%One of the most fundamental parts of a message broker are sockets. While a
-socket is an endpoint of a bidirectional inter-process communication flow, each
-connection established to the broker is basically a socket connection. That
-being said, it is important to provide a reliable socket server implementation
-which will serve correctly under a heavy load. Haskell provides full control
-over sockets using the
+The broker application has a thin network layer which is responsible for
+receiving and sending binary data to clients. Instead of using HTTP, 
+connection-oriented sockets (TCP) are used. The broker is therefore independent
+of any HTTP implementation and clients can make use of some of the more advanced
+TCP features like the ability to simultaneously poll many connections or to
+multiplex requests. While a socket is an endpoint of a bidirectional
+inter-process communication flow, each connection established to the broker is
+basically a socket connection. That being said, it is important to provide a
+reliable socket server implementation which will serve correctly under a heavy
+load. Haskell provides full control over sockets using the
 \fnurl{Network.Socket}{https://hackage.haskell.org/package/network-2.3.0.7/docs/Network-Socket.html}
 module which exposes the \fnurl{C socket
 API}{http://pubs.opengroup.org/onlinepubs/7908799/xns/syssocket.h.html}.
 
+This section shows the basic operations and describes the used libraries in the
+network layer. For further details about the threading concept see section
+\ref{sec:impl-broker-threading} 
+
 \subsection{Socket connection establishment}
+\label{sec:impl-broker-socket-connection}
+%The following figure (\ref{fig:broker-activity}) shows the abstract view of how
+%the socket connection between a client and the broker establishes so that a
+%communication between those two counterparts can proceed.
 
-The following figure (\ref{fig:broker-activity}) shows the abstract view of how
-the socket connection between a client and the broker establishes so that a
-communication between those two counterparts can proceed.
+%\begin{figure}[H]
+%    \centering
+%    \includegraphics[width=0.7\textwidth]{images/broker-activity.png}
+%    \caption{Broker request handling concept}
+%    \label{fig:broker-activity}
+%\end{figure}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{images/broker-activity.png}
-    \caption{Broker request handling concept}
-    \label{fig:broker-activity}
-\end{figure}
-
-\subsubsection{Create Socket}
+\subsubsection{Initialize Socket}
 
 First of all, the initialization process of a socket happens on the server by providing the following configuration parameters:
 \begin{description}
-  \item[Protocol Familiy] \textit{AF\_INET}, for network protocol IPv4
+  \item[Protocol Family] \textit{AF\_INET}, for network protocol IPv4
   \item[Socket Type] \textit{Stream}, which provides sequenced, reliable, two-way, connection-based byte streams.
   \item[Protocol Number] \textit{0}, which indicates that the caller does not want to specify the protocol and will leave it up to the service provider.
 \end{description}
@@ -158,6 +102,7 @@ that the focus remains on the amount of data being processed rather than the
 number of clients being served.}
 
 \subsection{Receive data}
+\label{sec:impl-broker-socket-receive}
 To receive data from socket buffer we use the function recv from
 \fnurl{Network.Socket.ByteString.Lazy}{https://hackage.haskell.org/package/network-2.3.0.1/docs/Network-Socket-ByteString-Lazy.html}
 library which provides access to the Unix socket interface. Because we work
@@ -207,14 +152,26 @@ recvExactly sock size = BL.concat . reverse <$> loop [] 0
 \end{lstlisting}
 
 \subsection{Send data}
+\label{sec:impl-broker-socket-send}
+For every processed request an appropriate response is sent back to the client.
+The actual message is already provided as binary data from the API layer. The
+network layer simply needs to send the bytes over the existing connection back
+to the client. For sending data over socket function sendAll from \fnurl{Network.Socket.ByteString.Lazy}
+{https://hackage.haskell.org/package/network-2.3.0.1/docs/Network-Socket-ByteString-Lazy.html}
+is used. This function continues to send data until either all
+data has been sent or an error occurs. For further details about the Error Handling, see section \ref{}
 
+\begin{lstlisting}
+import qualified Data.ByteString.Lazy as B
+import qualified Network.Socket.ByteString.Lazy as S
+
+sendResponse :: (Socket, SockAddr) -> B.ByteString -> IO (Either IOError ())
+sendResponse (socket, addr) responsemessage = 
+             try(S.sendAll socket responsemessage) :: IO (Either IOError ())
+\end{lstlisting}
 
 \section{API Layer}
 \label{sec:broker-api}
-
-The part of the application which gets data from the request channel (see
-\ref{sec:impl-broker-threading}), processes
-it and put an output to the response channel. 
 
 \begin{enumerate}
 \item Parse Request from Input Channel 
@@ -222,15 +179,15 @@ it and put an output to the response channel.
 \item Proceed Response to Output Channel
 \end{enumerate}
 
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{images/broker-activity-detail.png}
-    \caption{Broker request handling concept in detail}
-    \label{fig:broker-activity-detail.png}
-\end{figure}
+%\begin{figure}[H]
+%    \centering
+%    \includegraphics[width=0.7\textwidth]{images/broker-activity-detail.png}
+%    \caption{Broker request handling concept in detail}
+%    \label{fig:broker-activity-detail.png}
+%\end{figure}
 
 \subsection{Handle Request}
+\label{sec:impl-broker-api-handle}
 Depending on the API key field of type RequestMessage, the request handler
 determines the appropriate action. In case of an unkown API key, a handleError
 and otherwise a builded ResponseMessage (ByteString) ist given. 
@@ -266,15 +223,6 @@ errors may occur. This will also involve part of the concetp behind the error
 handling of Apache Kafka -- which is partly integrated in the Apache Kafka
 Protocol and thus adapted in this implementation.
 
-\begin{figure}[H]
-  \centering
-  \resizebox {0.7\linewidth} {!} {
-    \input{broker_activiy.tex}
-  }
-  \caption{Broker error handling concept}
-  \label{fig:broker-error-activity}
-\end{figure}
-
 \subsection{Message flow}
 
 The figure (\ref{fig:broker-error-activity}) provides insight in the process an
@@ -284,6 +232,15 @@ multiple requests are handled at the same time. Assuming the connection to the
 broker is established and the client is ready to send requests to the broker,
 there are principally two types of errors may occur and for each of which there
 is a separate handler to handle error appropriately.
+
+\begin{figure}[H]
+  \centering
+  \resizebox {0.7\linewidth} {!} {
+    \input{broker_activiy.tex}
+  }
+  \caption{Broker error handling concept}
+  \label{fig:broker-error-activity}
+\end{figure}
 
 \subsubsection{Socket Error}
 
@@ -312,7 +269,7 @@ the \textit{RequestErrorHandler} where a set of possible errors or category of
 error is defined and will result in an appropriate response message which will
 be sent to the client.
 
-\subsection{haskell error handling....}
+\subsection{Implementation}
 
 The previously introduced concept of the two error handlers, each responsible
 for a certain layer of the application, can be built in Haskell very
@@ -354,10 +311,10 @@ data HandleError =
         deriving Show
 \end{code}
 
-Assuming, during the process of an incoming \lstinline{ProduceRequest}, the log
+Assuming during the process of an incoming \lstinline{ProduceRequest}, the log
 subsystem fails to write data to the disk and returns a log specific error. This
-error will not be handled directly, but instead be caught by the request handle
-who is now in charge to map this error to one of the defined
+error will not be handled directly, but instead be caught by the request handler
+(API layer) who is now in charge to map this error to one of the defined
 \lstinline{HandleError}. In this specific example, the request handler would
 then take the error response from the log system, map it to a \lstinline{String}
 if not already is, as well as the offset of the failing message and assign this
@@ -365,7 +322,7 @@ information to the type \lstinline{PrWriteLogError} as the first and second
 argument.
 
 
-\subsubsection{Handlers in detail}
+\subsubsection{Error Handlers}
 
 \begin{figure}[H]
   \centering
@@ -379,6 +336,88 @@ argument.
 
 
 
+
+\section{Threading}
+\label{sec:impl-broker-threading}
+The threading concept of the broker server application include the following
+instances: 
+
+\begin{description}
+\item[Acceptor Thread (one instance)] \hfill \\
+    This thread accepts new socket connections (see
+    \ref{sec:impl-broker-socket-connection}). To support multiple connections from
+    different clients the it forks a new thread for processing incoming data
+    whenever a new connection is established. 
+
+\item[Connection Processor Thread (one instance per connection)] \hfill \\
+    The incoming socket data need to be processed as fast as possible because if the
+    limit of the socket buffer is reached, the throughput on the network drops
+    dramatically. The processor thread constantly receives request
+    from a specific connection (see \ref{sec:impl-broker-socket-receive}) and
+    provide it to the API handler thread. If the connection is closed the
+    thread will return. 
+
+\item[Responder Thread (one instance per connection)] \hfill \\
+    This thread works off the provided responses and sends them back to the original
+    client (see \ref{sec:impl-broker-socket-send}). \todo{actually only one
+    instance at the moment} \item [API Handler Thread (one to N instances)] \hfill
+    \\
+    The API handler is a worker thread which just works off the received request . It
+    also build appropriate responses and provide it to the responder thread
+    (see \ref{sec:impl-broker-api-handle}). It is conceivable to run more than
+    one instances of the API handler. Due to advanced synchronisation this is
+    not realized yet.
+\item [Main Thread (one instance)] \hfill \\
+    The main function of the broker bootstraps the whole server application. It first
+    initializes the network socket and forks the acceptor and API
+    handler threads. Threads are managed due the \textit{withAsync} function of
+    the \fnurl{Control.Concurrent.Async}
+    {https://hackage.haskell.org/package/async-2.0.0.0/docs/Control-Concurrent-Async.html}
+    library. It adds a thin layer over the basic concurrency operations provided
+    by \fnurl{Control.Concurrent}
+    {https://hackage.haskell.org/package/base-4.5.0.0/docs/Control-Concurrent.html}
+    and gives the ability to wait for the return value of a thread. This
+    provides additional safety and control if a threads gets crashed. 
+\end{description}
+
+Original Apache Kafka has a fix and configurable amount of threads
+handling network request by working with thread pools. Thanks to the
+optimizations of the GHC IO manager, the communication with the haskell threads
+and the OS is very efficient due to thread multiplexing. Thread pooling has no
+further advantages than one socket processor thread instance per connection. 
+
+For transfer of data between the threads, channels are implemented. The \fnurl{Control.Concurrent.Chan}
+{http://hackage.haskell.org/package/base-4.8.0.0/docs/Control-Concurrent-Chan.html}
+package provides a one-way FIFO communication channel. This concept
+is being used to separate the three layers from each other. The
+fact that \textit{chan} is unbounded brings a risk. While \textit{writeChan} --
+which is being used to write to a channel -- succeeds immediately, there is a
+chance that the consuming thread is not able to read the same amount of data in
+a given time and thus the channel will grow in an unchecked manner.
+\cite{o2008real}
+
+To isolate the network layer from any build or parse process, the transfered
+data is type ByteString. Because the response to a particular request need to be
+sent back over the right connection, every chunk of ByteString holds its corresponding
+socket connection information in a tuple:
+
+\begin{lstlisting}
+import qualified Data.ByteString.Lazy as B
+
+type ChanMessage = ((Socket, SockAddr), B.ByteString)
+type RequestChan = Chan ChanMessage
+type ResponseChan = Chan ChanMessage
+\end{lstlisting}
+
+TODO: sanctions? do we have to block the producer for a short time? ->
+Considerations Bounded Chans
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/impl-brok-threading.png}
+    \caption{Threading concept which channeling}
+    \label{fig:impl-brok-threading}
+\end{figure}
 
 \section{Log}
 
