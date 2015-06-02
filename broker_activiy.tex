@@ -18,14 +18,14 @@
 %------------------------------------------------------
 %Draw rectangles and text
 %------------------------------------------------------
-\node (a) [draw,fit={($(preq.north east)+(.5,.2)$) ($(errh.south west)+(-.5,-.7)$)}] {};
-\node [anchor=north west,inner sep=1pt] at (a.north west) {handle request};
+%\node (a) [draw,fit={($(preq.north east)+(.5,.7)$) ($(errh.south west)+(2.4,-.2)$)}] {};
+%\node [anchor=north west,inner sep=1pt] at (a.north west) {handle request};
 \node (b1) [blank, above of=connect, xshift=-.8cm] {\bfseries{Client\\ (Producer/Consumer)}};
-\node (b2) [blank, right of=b1, anchor=south, xshift=3cm] {\bfseries{Broker}};
-\node (b) [draw, fit={($(b1.north west)+(-1,1)$) ($(serrh.south east)+(1,-1.5)$)}] {};
-\node (c) [xshift=-3cm, inner sep=2pt] at (b.south) {}; 
-\node (d) [xshift=-3cm, inner sep=2pt] at (b.north) {};
-\draw [dashed] (c) -- (d);
+\node (b2) [blank, right of=b1, anchor=south, xshift=7cm] {\bfseries{Broker}};
+%\node (b) [draw, fit={($(b1.north west)+(-1,1)$) ($(serrh.south east)+(1,-1.5)$)}] {};
+%\node (c) [xshift=-3cm, inner sep=2pt] at (b.south) {}; 
+%\node (d) [xshift=-3cm, inner sep=2pt] at (b.north) {};
+%\draw [dashed] (c) -- (d);
 \node (phantom) [right of=write1, xshift=1.5cm] {};
 %------------------------------------------------------
 
