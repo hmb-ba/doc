@@ -30,53 +30,12 @@ layers, each in its own module.
     \label{fig:impl-brok-layers}
 \end{figure}
 
-\section{Error Handling}
 
-A message broker relies fundamentally on error handling has to be discussed very serious as fault tolerance and reliablity are key requirements \todo{ref: relieablility in messaging section} of such a system. The first part of this section concentrates on the architectural details and decisions being made regarding the error handling. Using a demonstration of a message flow, possible edge cases they have to be consiered will be uncovered in order to provide reliability to the user of this
-broker. The second part covers the techniques being used in Haskell to handle the previously described concept and cases where errors may occur. This will also involve part of the concetp behind the error handling of Apache Kafka -- which is partly integrated in the Apache Kafka Protocol and thus adapted in this implementation.
-
-\begin{figure}[H]
-  \centering
-  \resizebox {0.7\linewidth} {!} {
-    \input{broker_activiy.tex}
-  }
-  \caption{Broker error handling concept}
-  \label{fig:broker-error-activity}
-\end{figure}
-
-\subsection{Message flow}
-
-The figure (\ref{fig:broker-error-activity}) provides insight in the process an incoming request message goes through. As for simplicity, one may think of one message being proceeded through all steps successively -- while in fact, multiple requests are handled at the same time. Assuming the connection to the broker is established and the client is ready to send requests to the broker, there are principally two types of errors may occur and for each of which there is a separate handler
-to handle error appropriately.
-
-\subsubsection{Socket Error}
-
-During the process of listening to an open connection and reading incoming byte-stream there is a chance 
-that unexpected errors occur. The underlying C socket implementation will in this case return a result of \textit{-1} which will result in an \fnurl{IOError}{https://hackage.haskell.org/package/base-4.4.1.0/docs/System-IO-Error.html}. 
-
-Errors at this stage will be handled using the \textit{Socket Error Handler} and do not result in any response to the client who has initiated the request that result in an error as the socket connection may be broken. Instead, the error is simply caught and can then be reported using a separate logging framework such as \fnurl{hslogger}{https://hackage.haskell.org/package/hslogger}. At worst, the socket connection has to be closed.
-
-\subsubsection{Request Error}
-
-One step further, if the stage where socket error may occur has been passed, the heavy part of error handling
-has began. As for now, each step the request passes may result in an error. This can be the case starting
-by parsing the request, by writing data to the disk executed by the log subsystem, or even by producing 
-the response message at last. All of the mentioned cases and those who fell into the related category, will be handled by the \textit{RequestErrorHandler} where a set of possible errors or category of error is defined
-and will result in an appropriate response message to the client.
-
-\section{haskell error handling....}
-
-\begin{figure}[H]
-  \centering
-  \input{broker_activiy_extended.tex}
-  \caption{Broker error handling concept in detail}
-  \label{fig:broker-error-activity-detail}
-\end{figure}
-
-TODO: Either, Control.Monad.Error, Custom error types
 
 
 \section{Network Layer}
+\label{sec:broker-network}
+
 The broker application has a thin network layer which is responsible for
 receiving and sending binary data to clients. Instead of using HTTP, 
 connection-oriented sockets (TCP) are used. The broker is therefore independent
@@ -212,6 +171,7 @@ sendResponse (socket, addr) responsemessage =
 \end{lstlisting}
 
 \section{API Layer}
+\label{sec:broker-api}
 The API layer covers the following actions: 
 \begin{enumerate}
     \item Decode Request
@@ -249,6 +209,131 @@ handleRequest rm = do
 \subsubsection{HandleFetchRequest}
 
 \subsubsection{HandleMetadataRequest}
+
+\section{Error Handling}
+\label{sec:broker-error-handling}
+
+A message broker relies fundamentally on error handling has to be discussed very
+serious as fault tolerance and reliablity are key requirements \todo{ref:
+relieablility in messaging section} of such a system. The first part of this
+section concentrates on the architectural details and decisions being made
+regarding the error handling. Using a demonstration of a message flow, possible
+edge cases they have to be consiered will be uncovered in order to provide
+reliability to the user of this broker. The second part covers the techniques
+being used in Haskell to handle the previously described concept and cases where
+errors may occur. This will also involve part of the concetp behind the error
+handling of Apache Kafka -- which is partly integrated in the Apache Kafka
+Protocol and thus adapted in this implementation.
+
+\subsection{Message flow}
+
+The figure (\ref{fig:broker-error-activity}) provides insight in the process an
+incoming request message goes through. As for simplicity, one may think of one
+message being proceeded through all steps successively -- while in fact,
+multiple requests are handled at the same time. Assuming the connection to the
+broker is established and the client is ready to send requests to the broker,
+there are principally two types of errors may occur and for each of which there
+is a separate handler to handle error appropriately.
+
+\begin{figure}[H]
+  \centering
+  \resizebox {0.7\linewidth} {!} {
+    \input{broker_activiy.tex}
+  }
+  \caption{Broker error handling concept}
+  \label{fig:broker-error-activity}
+\end{figure}
+
+\subsubsection{Socket Error}
+
+During the process of listening to an open connection and reading incoming
+byte-stream, as described in \ref{sec:broker-network}, there is a chance that
+unexpected errors occur. The underlying C socket implementation will in this
+case return a result of \textit{-1} which will result in an
+\fnurl{IOError}{https://hackage.haskell.org/package/base-4.4.1.0/docs/System-IO-Error.html}. 
+
+Errors at this stage will be handled using the \textit{Socket Error Handler} and
+do not result in any response to the client who has initiated the request that
+result in an error as the socket connection may be broken. Instead, the error is
+simply caught and can then be reported using a separate logging framework such
+as \fnurl{hslogger}{https://hackage.haskell.org/package/hslogger}. At worst, the
+socket connection has to be closed.
+
+\subsubsection{Request Error}
+
+One step further, in the API-Stage (\ref{sec:broker-api}) where socket errors
+may occur has been passed, the heavy part of error handling has began. Each step
+the request passes may result in an error. To name a few, this can be the case
+starting by parsing the request, by writing data to the disk executed by the log
+subsystem, or even by producing the response message at last. All of the
+mentioned cases and those who fell into the related category, will be handled by
+the \textit{RequestErrorHandler} where a set of possible errors or category of
+error is defined and will result in an appropriate response message which will
+be sent to the client.
+
+\subsection{Implementation}
+
+The previously introduced concept of the two error handlers, each responsible
+for a certain layer of the application, can be built in Haskell very
+conveniently by using the \fnurl{Either
+Monad}{https://hackage.haskell.org/package/category-extras-0.52.0/docs/Control-Monad-Either.html}
+and pattern matching of custom defined error types. This will allow to take
+actions based on the given error type.
+
+\subsubsection{Defining Error Types}
+
+Error types related to the networking layer are simply distinguished between an error
+occurred either in the receiving or responding process.
+
+\begin{code}
+data SocketError =
+      SocketRecvError String
+      | SocketSendError String
+      deriving Show
+\end{code}
+
+Any further details are not separated by sub-types but instead, can be described
+in the first argument of the \lstinline{SocketError}, namely a
+\lstinline{String}.
+
+To handle errors during the process of request handling, the data type
+\lstinline{HandleError} contains specific types for each edge case in any part
+of the application. Those types can be considered as an interface for errors
+between the request handler and the underlying subsystems. They are not known to
+any subsystem at all, but are known to the request handler.
+
+\begin{code}
+data HandleError =
+        PrWriteLogError Int String
+      | PrPackError String
+      | ParseRequestError String
+      | FtReadLogError Int String
+      | SendResponseError String
+      | UnknownRqError
+        deriving Show
+\end{code}
+
+Assuming during the process of an incoming \lstinline{ProduceRequest}, the log
+subsystem fails to write data to the disk and returns a log specific error. This
+error will not be handled directly, but instead be caught by the request handler
+(API layer) who is now in charge to map this error to one of the defined
+\lstinline{HandleError}. In this specific example, the request handler would
+then take the error response from the log system, map it to a \lstinline{String}
+if not already is, as well as the offset of the failing message and assign this
+information to the type \lstinline{PrWriteLogError} as the first and second
+argument.
+
+
+\subsubsection{Error Handlers}
+
+\begin{figure}[H]
+  \centering
+  \resizebox {0.7\linewidth} {!} {
+    \input{broker_activiy_extended.tex}
+  }
+  \caption{Broker error handling concept in detail}
+  \label{fig:broker-error-activity-detail}
+\end{figure}
 
 \section{Threading}
 \label{sec:impl-broker-threading}
