@@ -548,7 +548,7 @@ TODO: Kafka supports recursive messages in which case this may itself contain a 
 \section{Encode / Decode}
 
 There are libraries in Haskell to encode or decode data to or from binary
-format. As for binary serialization, the
+format given as ByteString. As for binary serialization, the
 \fnurl{Data.Binary}{https://hackage.haskell.org/package/binary-0.4.1/docs/Data-Binary.html}
 library is being used as it works with lazy bytestrings. As an alternative to
 Data.Binary, the cereal library
@@ -556,9 +556,9 @@ Data.Binary, the cereal library
 also provides binary serialization capabilities -- especially for strict
 bytestrings. Lazy bytestring represent a list of bytes this plays nicely along
 with streaming and thus for the use case of a message broker. Additionally,
-lazy bytestrings support appending in O(1) runtime which will be used
-frequently in the serialization process. This makes serialization slightly more
-efficient.
+lazy bytestrings support appending in O(1) complexity which will be used
+frequently in the serialization process. This makes further usage of the
+ByteString slightly more efficient.
 
 Parsing libraries such as
 \fnurl{Attoparsec}{https://hackage.haskell.org/package/attoparsec} or
@@ -595,17 +595,15 @@ requestMessageParser = do
         0 -> produceRequestParser
         1 -> fetchRequestParser
         3 -> metadataRequestParser
-        -- ... further API Codes 
+        -- further API Codes 
         _ -> -- Invalid API Key 
     return $ RequestMessage apiKey apiVersion correlationId clientIdLen
     clientId request
 \end{lstlisting}
 
-
-
-
-Batching sequences are parsed as List whereas we implemented a general function
-which gets the list size (number of elements) and a parse function: 
+Batched sequences are decodes as Data.List whereas the following function
+provides a generic way to decode a list with given size and a parse each
+element:
 \begin{lstlisting}
 parseList :: Int -> (Get a) -> Get [a]
 parseList i p = do 
@@ -616,31 +614,31 @@ parseList i p = do
             return (x:xs)
 \end{lstlisting}
 
-Because the format of a MessageSet is common for the transmission on wire as
-well for the persistence in the log we can use the same functions for both use cases:
-\begin{lstlisting}
-payloadParser :: Get Payload
-payloadParser = do
-  magic  <- getWord8
-  attr   <- getWord8
-  keylen <- getWord32be
-  paylen <- getWord32be
-  payload <- getByteString $ fromIntegral paylen
-  return $! Payload magic attr keylen paylen payload
+%Because the format of a MessageSet is common for the transmission on wire as
+%well for the persistence in the log we can use the same functions for both use cases:
+%\begin{lstlisting}
+%payloadParser :: Get Payload
+%payloadParser = do
+%  magic  <- getWord8
+%  attr   <- getWord8
+%  keylen <- getWord32be
+%  paylen <- getWord32be
+%  payload <- getByteString $ fromIntegral paylen
+%  return $! Payload magic attr keylen paylen payload
 
-messageParser :: Get Message 
-messageParser = do 
-  crc    <- getWord32be
-  p      <- payloadParser
-  return $! Message crc p
+%messageParser :: Get Message 
+%messageParser = do 
+%  crc    <- getWord32be
+%  p      <- payloadParser
+%  return $! Message crc p
 
-messageSetParser :: Get MessageSet 
-messageSetParser = do 
-  offset <- getWord64be
-  len <- getWord32be 
-  message <- messageParser
-  return $! MessageSet offset len message
-\end{lstlisting}
+%messageSetParser :: Get MessageSet 
+%messageSetParser = do 
+%  offset <- getWord64be
+%  len <- getWord32be 
+%  message <- messageParser
+%  return $! MessageSet offset len message
+%\end{lstlisting}
 
 A batched sequence of MessageSets is a special case where the protocol does not provide a
 field which determines the number of elements. There is just a field which contains
@@ -652,42 +650,69 @@ parseMessageSets i = do
     if (i < 1)
     then return []
     else do x <- messageSetParser
-            xs <- parseMessageSets $ i - (fromIntegral $ length \$ buildMessageSet x)
-            return (x:xs)
+            xs <- parseMessageSets $ i - (fromIntegral $ length $ buildMessageSet x)
+            return $ (x:xs) 
 \end{lstlisting}
+
+Decoding a ByteString can be applied with \lstinline{runGet f b}, whereas
+\lstinline{f} declares the parser function (indicated through Get a return type),
+and  \lstinline{b} the bytestring to decode. This construct implies that the Get
+monad is applied at latest possible point in time in constant complexity. For example: 
+\begin{lstlisting}
+import Data.Binary.Get
+
+decodeRsMessage :: B.ByteString -> ResponseMessage
+decodeRqMessage b = runGet requestMessageParser b
+
+\end{lstlisting}
+
 
 \subsection{Encode Request/Response}
 Obviously the encode module provides the opposite functionalities as the decode
-module and was separated just for clarity. Thus we also rely on
+module and was separated just for clarity. The implementation also rely on
 \fnurl{Data.Binary}{https://hackage.haskell.org/package/binary-0.4.1/docs/Data-Binary.html}
 and use the Put Monad (Data.Binary.Put) to construct ByteStrings.
 
-TODO: Build Request / Response
-
-TODO: Build List 
-
-Analog to the decode functions for MessageSets, the encode functions are
-used for request or responses as well for the persistence format for the log:
-
+The following code shows the function for encoding an arbitrary request:
 \begin{lstlisting}
-buildldPayload :: Payload -> BL.ByteString 
-buildPayload e = runPut $ do 
-  putWord8    $ magic e
-  putWord8    $ attr e
-  putWord32be $ keylen $ e
-  putWord32be $ payloadLen  e
-  putByteString $ payloadData e
+buildRqMessage :: RequestMessage -> Put
+buildRqMessage e = do
+  putWord32be $ rqSize e
+  putWord16be $ rqApiKey e
+  putWord16be $ rqApiVersion e
+  putWord32be $ rqCorrelationId e
+  putWord16be $ rqClientIdLen e
+  putByteString $ rqClientId e
+  case (fromIntegral $ rqApiKey e) of
+    0 -> buildProduceRequest  $ rqRequest e
+    1 -> buildFetchRequest    $ rqRequest e
+    3 -> buildMetadataRequest $ rqRequest e
+    -- further API Codes 
+    _ -> -- Invalid API Key 
+\end{lstlisting}
 
-buildMessage :: Message -> BL.ByteString
-buildMessage e = runPut $ do 
-  putWord32be $ crc e
-  putLazyByteString $ buildPayload $ payload e 
+Batched sequences are encoded as Data.List whereas the following function
+provides a generic way to build the list in given size and encode each element:
+\begin{lstlisting}
+buildList :: (a -> Put) -> [a] -> Put
+buildList builder [] = putLazyByteString BL.empty
+buildList builder [x] = builder x
+buildList builder (x:xs) = do 
+  builder x
+  buildList builder xs
+\end{lstlisting}
 
-buildMessageSet :: MessageSet -> BL.ByteString
-buildMessageSet e = runPut $ do 
-  putWord64be $ offset e
-  putWord32be $ len e
-  putLazyByteString $ buildMessage $ message e
+Encoding a ByteString can be applied with \lstinline{runPut f t}, whereas
+\lstinline{f} declares the build function (indicated through Put return type),
+and  \lstinline{t} the type to decode. Like with decoding, this construct
+implies that the Put monad is applied at latest possible point in time in
+constant complexity. For example: 
+\begin{lstlisting}
+import Data.Binary.Put
+
+enodePrRqMessage :: RequestMessage -> B.ByteString
+enodePrRqMessage r = runPut buildPrRqMessage r
+
 \end{lstlisting}
 
 \section{Client Library}
