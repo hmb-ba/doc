@@ -214,14 +214,14 @@ handleRequest rm = do
 \label{sec:broker-error-handling}
 
 A message broker relies fundamentally on error handling has to be discussed very
-serious as fault tolerance and reliablity are key requirements \todo{ref:
+serious as fault tolerance and reliability are key requirements \todo{ref:
 relieablility in messaging section} of such a system. The first part of this
 section concentrates on the architectural details and decisions being made
 regarding the error handling. Using a demonstration of a message flow, possible
-edge cases they have to be consiered will be uncovered in order to provide
+edge cases they have to be considered will be uncovered in order to provide
 reliability to the user of this broker. The second part covers the techniques
 being used in Haskell to handle the previously described concept and cases where
-errors may occur. This will also involve part of the concetp behind the error
+errors may occur. This will also involve part of the concept behind the error
 handling of Apache Kafka -- which is partly integrated in the Apache Kafka
 Protocol and thus adapted in this implementation.
 
@@ -271,19 +271,18 @@ the \textit{RequestErrorHandler} where a set of possible errors or category of
 error is defined and will result in an appropriate response message which will
 be sent to the client.
 
-\subsection{Implementation}
+
+\subsection{Defining Error Types}
 
 The previously introduced concept of the two error handlers, each responsible
 for a certain layer of the application, can be built in Haskell very
 conveniently by using the \fnurl{Either
 Monad}{https://hackage.haskell.org/package/category-extras-0.52.0/docs/Control-Monad-Either.html}
 and pattern matching of custom defined error types. This will allow to take
-actions based on the given error type.
+actions based on the given error type.  
 
-\subsubsection{Defining Error Types}
-
-Error types related to the networking layer are simply distinguished between an error
-occurred either in the receiving or responding process.
+Error types related to the networking layer are simply distinguished between an
+error occurred either in the receiving or responding process.
 
 \begin{code}
 data SocketError =
@@ -313,18 +312,16 @@ data HandleError =
         deriving Show
 \end{code}
 
-Assuming during the process of an incoming \lstinline{ProduceRequest}, the log
-subsystem fails to write data to the disk and returns a log specific error. This
-error will not be handled directly, but instead be caught by the request handler
-(API layer) who is now in charge to map this error to one of the defined
-\lstinline{HandleError}. In this specific example, the request handler would
-then take the error response from the log system, map it to a \lstinline{String}
-if not already is, as well as the offset of the failing message and assign this
-information to the type \lstinline{PrWriteLogError} as the first and second
-argument.
 
+\subsection{Error Handlers}
 
-\subsubsection{Error Handlers}
+With the knowledge about the types they are related to either socket- or request
+errors it is now possible to create handler functions, they act as a central
+place where any kind of error can be sent to and will provide the
+functionality to handle appropriately. The figure
+\ref{fig:broker-error-activity-detail} illustrates that the two
+mentioned error handlers distinguish their next action based on the data type,
+containing its arguments, that is sent to the error handler.
 
 \begin{figure}[H]
   \centering
@@ -334,6 +331,69 @@ argument.
   \caption{Broker error handling concept in detail}
   \label{fig:broker-error-activity-detail}
 \end{figure}
+
+Assuming during the process of an incoming \lstinline{ProduceRequest}, the log
+subsystem fails to write data to the disk and returns a log specific error. This
+error will not be handled directly, but instead be caught by the request handler
+(API layer) who is now in charge to map this error to one of the defined
+\lstinline{HandleError}. In this specific example, the request handler would
+then take the error response from the log system, map it to a \lstinline{String}
+if not already is, as well as the offset of the failing message and assign this
+information to the type \lstinline{PrWriteLogError} as the first and second
+argument. \\
+
+The following part of this section will describe the functionalites of the
+\textit{Socket Error Handler} as well as the \textit{Request Error Handler}
+provided by the functions \lstinline{handleSocketError} and
+\lstinline{handleHandlerError}.
+
+\subsubsection{Socket Error Handler}
+
+The scope of handling a socket related error is very limited due to the fact
+that the connection may be broken or the client will not receive any more data
+using the current connection. Given this, the current implementation does only
+print the occurred error on console:
+
+\begin{code}
+handleSocketError :: (Socket, SockAddr) -> SocketError -> IO()
+handleSocketError (sock, sockaddr) (SocketRecvError e) = do
+  putStrLn $ "[Socket Receive Error] " ++ e
+handleSocketError (sock, sockaddr) (SocketSendError e) = do
+  putStrLn $ "[Socket Send Error] " ++ e
+\end{code}
+
+While further logging of errors is out of scope within this thesis, the given
+architecture may very well be able to do so. At the point after the pattern
+matched, and currently is only a \lstinline{putStrLn} implemented, one
+could inject an external logging service providing more meaningful information
+such as proposed in \fnurl{RFC5424}{http://tools.ietf.org/html/rfc5424}.
+
+\subsubsection{Request Error Handler}
+
+The Apache Kafka Protocol specifies especially
+defines error codes (see \ref{subsec:protocol-types-error-codes}) which should
+be applied to a response message if the given failed for some reason. Thus, the
+\lstinline{handleHandlerError} function is responsible to provide the related
+response message containing the appropriate error code. However, the current
+implementation does not suppport response message caused by an error but instead
+does print a notification on broker side as shown in the code below:
+
+\begin{code}
+handleHandlerError :: (Socket, SockAddr) -> HandleError -> IO()
+handleHandlerError (s, a) (ParseRequestError e) = do
+    putStrLn $ (show "[ParseError]: ") ++ e
+    putStrLn $ "***Host " ++ (show a) ++ " disconnected ***"
+handleHandlerError (s, a) (PrWriteLogError o e) = do
+    putStrLn $ show "[WriteLogError on offset " ++ show o ++ "]: " ++ show e
+handleHandlerError (s, a) UnknownRqError = do
+    putStrLn $ show "[UnknownRqError]"
+handleHandlerError (s, a) e = do
+    putStrLn $ show e
+    S.sendAll s $ C.pack $ show e
+    sClose s
+    putStrLn $ "***Host " ++ (show a) ++ "disconnected ***"
+\end{code}
+
 
 \section{Threading}
 \label{sec:impl-broker-threading}

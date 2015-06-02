@@ -177,6 +177,37 @@ can itself be made up of other,primitive types & Data.List                      
 \end{tabular}
 \end{table}
 
+\subsection{Error Codes}
+\label{subsec:protocol-types-error-codes}
+
+To handle errors, the protocol specifies error codes they can be sent within a
+response message. To adapt those codes, a data type \lstinline{ErrorCode}
+deriving from
+\fnurl{\lstinline{Enum}}{http://hackage.haskell.org/package/base-4.8.0.0/docs/Prelude.html\#t:Enum} is provided and implicitly represents the
+appropriate error code by its order.
+
+\begin{code}
+data ErrorCode =
+        NoError
+      | Unknown
+      | OffsetOutOfRange
+      | InvalidMessage
+      | UnknownTopicOrPartition
+      | InvalidMessageSize
+      | LeaderNotAvailable
+      | NotLeaderForPartition
+      | RequestTimedOut
+      | BrokerNotAvailable
+      | ReplicaNotAvailable
+      | MessageSizeTooLarge
+      | StaleControllerEpochCode
+      | OffsetMetadataTooLargeCode
+      | OffsetsLoadInProgressCode
+      | ConsumerCoordinatorNotAvailableCode
+      | NotCoordinatorForConsumerCodeA
+        deriving (Show, Enum)
+\end{code}
+
 \subsection{Types related to Request}
 A request message is the on-wire format of data which is getting from client to
 broker.

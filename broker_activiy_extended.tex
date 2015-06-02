@@ -25,7 +25,7 @@
 %Draw rectangles and text
 %------------------------------------------------------
 \node (a) [draw,fit={($(perr.north west)+(-.2,.5)$) ($(dots1.south east)+(.2,-.5)$)}] {};
-\node [anchor=north west,inner sep=1pt] at (a.north west) {handle error};
+\node [anchor=north west,inner sep=1pt] at (a.north west) {handleHandlerError};
 \node (b) [draw,fit={($(hpreq.north west)+(-.2,.5)$) ($(dots.south east)+(.2,-.5)$)}] {};
 \node (c) [draw,fit={($(recverr.north west)+(-.2,.5)$) ($(serr.south east)+(.2,-.5)$)}] {};
 \node [anchor=center,inner sep=1pt, text width=2cm] at (c.center) {handle\\ SocketError};
