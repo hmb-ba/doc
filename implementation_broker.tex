@@ -93,8 +93,10 @@ API}{http://pubs.opengroup.org/onlinepubs/7908799/xns/syssocket.h.html}.
 
 This section shows the basic operations and describes the used libraries in the
 network layer. For further details about the threading concept see section
-\ref{sec:impl-broker-threading} \subsection{Socket connection establishment}
+\ref{sec:impl-broker-threading} 
 
+\subsection{Socket connection establishment}
+\label{sec:impl-broker-socket-connection}
 %The following figure (\ref{fig:broker-activity}) shows the abstract view of how
 %the socket connection between a client and the broker establishes so that a
 %communication between those two counterparts can proceed.
@@ -141,6 +143,7 @@ that the focus remains on the amount of data being processed rather than the
 number of clients being served.}
 
 \subsection{Receive data}
+\label{sec:impl-broker-socket-receive}
 To receive data from socket buffer we use the function recv from
 \fnurl{Network.Socket.ByteString.Lazy}{https://hackage.haskell.org/package/network-2.3.0.1/docs/Network-Socket-ByteString-Lazy.html}
 library which provides access to the Unix socket interface. Because we work
@@ -190,6 +193,7 @@ recvExactly sock size = BL.concat . reverse <$> loop [] 0
 \end{lstlisting}
 
 \subsection{Send data}
+\label{sec:impl-broker-socket-send}
 For every processed request an appropriate response is sent back to the client.
 The actual message is already provided as binary data from the API layer. The
 network layer simply needs to send the bytes over the existing connection back
@@ -208,9 +212,6 @@ sendResponse (socket, addr) responsemessage =
 \end{lstlisting}
 
 \section{API Layer}
-The part of the application which gets data from the request channel (see
-\ref{sec:impl-broker-threading}), processes
-it and put an output to the response channel. 
 
 \begin{enumerate}
 \item Parse Request from Input Channel 
@@ -226,6 +227,7 @@ it and put an output to the response channel.
 %\end{figure}
 
 \subsection{Handle Request}
+\label{sec:impl-broker-api-handle}
 Depending on the API key field of type RequestMessage, the request handler
 determines the appropriate action. In case of an unkown API key, a handleError
 and otherwise a builded ResponseMessage (ByteString) ist given. 
@@ -252,25 +254,29 @@ instances:
 
 \begin{description}
 \item[Acceptor Thread (one instance)] \hfill \\
-    This thread accepts new socket connections. To support multiple
-    connections from different clients the it forks a new thread for processing
-    ncoming data whenever a new connection is established. 
+    This thread accepts new socket connections (see
+    \ref{sec:impl-broker-socket-connection}). To support multiple connections from
+    different clients the it forks a new thread for processing incoming data
+    whenever a new connection is established. 
 
 \item[Connection Processor Thread (one instance per connection)] \hfill \\
     The incoming socket data need to be processed as fast as possible because if the
     limit of the socket buffer is reached, the throughput on the network drops
     dramatically. The processor thread constantly receives request
-    from a specific connection provide it to the API handler thread. If the
-    connection is closed the thread will return. 
+    from a specific connection (see \ref{sec:impl-broker-socket-receive}) and
+    provide it to the API handler thread. If the connection is closed the
+    thread will return. 
 
 \item[Responder Thread (one instance per connection)] \hfill \\
     This thread works off the provided responses and sends them back to the original
-    client. \todo{actually only one instance at the moment}
-\item [API Handler Thread (one to N instances)] \hfill  \\
-    The API handler is a worker thread which just works off the received request. It
-    also build appropriate responses and provide it to the responder thread. It is
-    conceivable to run more than one instances of the API handler. Due to advanced
-    synchronisation this is not realized yet.
+    client (see \ref{sec:impl-broker-socket-send}). \todo{actually only one
+    instance at the moment} \item [API Handler Thread (one to N instances)] \hfill
+    \\
+    The API handler is a worker thread which just works off the received request . It
+    also build appropriate responses and provide it to the responder thread
+    (see \ref{sec:impl-broker-api-handle}). It is conceivable to run more than
+    one instances of the API handler. Due to advanced synchronisation this is
+    not realized yet.
 \item [Main Thread (one instance)] \hfill \\
     The main function of the broker bootstraps the whole server application. It first
     initializes the network socket and forks the acceptor and API
