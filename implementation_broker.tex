@@ -51,18 +51,18 @@ to handle error appropriately.
 
 \subsubsection{Socket Error}
 
-During the process of listening to an open connection and reading incomming byte-stream there is a chance 
+During the process of listening to an open connection and reading incoming byte-stream there is a chance 
 that unexpected errors occur. The underlying C socket implementation will in this case return a result of \textit{-1} which will result in an \fnurl{IOError}{https://hackage.haskell.org/package/base-4.4.1.0/docs/System-IO-Error.html}. 
 
-Errors at this stage will be handled using the \textit{Socket Error Handler} and do not result in any reponse to the client who has initiated the request that result in an error as the socket connection may be broken. Instead, the error is simply catched and can then be reported using a separate logging framework such as \fnurl{hslogger}{https://hackage.haskell.org/package/hslogger}. At worst, the socket connection has to be closed.
+Errors at this stage will be handled using the \textit{Socket Error Handler} and do not result in any response to the client who has initiated the request that result in an error as the socket connection may be broken. Instead, the error is simply caught and can then be reported using a separate logging framework such as \fnurl{hslogger}{https://hackage.haskell.org/package/hslogger}. At worst, the socket connection has to be closed.
 
 \subsubsection{Request Error}
 
 One step further, if the stage where socket error may occur has been passed, the heavy part of error handling
 has began. As for now, each step the request passes may result in an error. This can be the case starting
-by parsing the request, by writing data to the disk exectued by the log subsystem, or even by producing 
-the reponse message at last. All of the mentioned cases and those who fell into the related category, will be handled by the \textit{RequestErrorHandler} where a set of possible errors or category of error is defined
-and will result in an appropriate reponse message to the client.
+by parsing the request, by writing data to the disk executed by the log subsystem, or even by producing 
+the response message at last. All of the mentioned cases and those who fell into the related category, will be handled by the \textit{RequestErrorHandler} where a set of possible errors or category of error is defined
+and will result in an appropriate response message to the client.
 
 \section{haskell error handling....}
 
@@ -143,7 +143,7 @@ number of clients being served.}
 \subsection{Receive data}
 To receive data from socket buffer we use the function recv from
 \fnurl{Network.Socket.ByteString.Lazy}{https://hackage.haskell.org/package/network-2.3.0.1/docs/Network-Socket-ByteString-Lazy.html}
-library which provides access to the unix socket interface. Because we work
+library which provides access to the Unix socket interface. Because we work
 with a binary protocol and need to parse the data from binary data directly,
 this module is much more efficient than the string based network functions. We
 take the lazy variant of the library because the input gets directly parsed by
