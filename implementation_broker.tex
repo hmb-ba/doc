@@ -172,19 +172,16 @@ sendResponse (socket, addr) responsemessage =
 
 \section{API Layer}
 \label{sec:broker-api}
-
+The API layer covers the following actions: 
 \begin{enumerate}
-\item Parse Request from Input Channel 
-\item Handle Request
-\item Proceed Response to Output Channel
+    \item Decode Request
+    \item Handle Request
+    \item Encode Response
 \end{enumerate}
 
-%\begin{figure}[H]
-%    \centering
-%    \includegraphics[width=0.7\textwidth]{images/broker-activity-detail.png}
-%    \caption{Broker request handling concept in detail}
-%    \label{fig:broker-activity-detail.png}
-%\end{figure}
+Whereas the parts of decoding a requests and encoding a responses simply uses functions
+provided by the protocol implementation (see chapter \ref{sec-protocol}), the
+main focus of the API layer lies on handling the requests properly. 
 
 \subsection{Handle Request}
 \label{sec:impl-broker-api-handle}
@@ -200,13 +197,18 @@ handleRequest rm = do
     1  -> handleFetchRequest (rqRequest rm)
     2  -> handleOffsetRequest (rqRequest rm)
     3  -> handleMetadataRequest (rqRequest rm)
-    8  -> handleOffsetCommitRequest 
-    9  -> handleOffsetFetchRequest
-   10 ->  handleConsumerMetadataRequest
+    8  -> handleOffsetCommitRequest (rqRequest rm)
+    9  -> handleOffsetFetchRequest (rqRequest rm)
+    10 -> handleConsumerMetadataRequest (rqRequest rm)
     _  -> return (Left UnknownRqError)
    return handle
 \end{lstlisting}
 
+\subsubsection{HandleProduceRequest}
+
+\subsubsection{HandleFetchRequest}
+
+\subsubsection{HandleMetadataRequest}
 
 \section{Error Handling}
 \label{sec:broker-error-handling}
@@ -332,10 +334,6 @@ argument.
   \caption{Broker error handling concept in detail}
   \label{fig:broker-error-activity-detail}
 \end{figure}
-
-
-
-
 
 \section{Threading}
 \label{sec:impl-broker-threading}
