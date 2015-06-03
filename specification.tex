@@ -10,29 +10,6 @@ throughput performance. By using the example of Apache Kafka the main purpose
 lies on building a server application which implements the main functionality of
 Apache Kafka. 
 
-\section{Features}
-\begin{table}[h]
-\begin{tabular}{lll}
-\textbf{Functionality}       & \textbf{Description} & \textbf{Part of Thesis} \\
-Server Implementation        &                      & yes                     \\
-Wire Protocol Implementation &                      & yes                     \\
-API for Haskell Clients      &                      & yes                     \\
-Thin Haskell Clients         &                      & yes                     \\
-Producing Messages           &                      & yes                     \\
-Consuming Messages           &                      & yes                     \\
-Log Persistency              &                      & yes                     \\
-Error Handling               &                      & yes                     \\
-Message Batching             &                      & yes                     \\
-Message Compression          &                      & no                      \\
-Partitioning                 &                      & partly                  \\
-Log Compaction               &                      & no                      \\
-Broker Replication           &                      & no                      \\
-Broker Recovery              &                      & no                      \\
-Consumer Groups              &                      & no                      \\
-Zookeeper Integration        &                      & no                     
-\end{tabular}
-\end{table}
-
 \section{Components}
 
 Basically, the architecture consists of two main components namely the broker and
@@ -62,6 +39,27 @@ with a client without a request.
      \end{sequencediagram}
      \caption{Basic communication between client (producer or consumer) and
      broker}
+\end{figure}
+
+Both, the client and broker component need to use the same underlying protocol
+for communication. Because Apache Kafka is used as benchmark for this project
+and compatibility to existing Kafka clients want to be provided, the Kafka
+Protocol version 0.8.x \todo{ref} is chosen to implement. Therefore a third
+component which fully implements this protocol is introduced additionally. It
+exposes the appropriate functions and types as library. This component fully
+separates the clients from the broker. 
+
+To support interoperability the implementation of a client should be simplified
+as much as possible. Therefore we provide a client library which provides functionalities to
+easily implement a Haskell client for a Kafka based broker. The goal of this, is to be able to
+setup a client without knowing too much details about the Apache Kafka protocol
+itself.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{images/architecture-components.png}
+    \caption{Separation of code}
+    \label{fig:architecture-components.png}
 \end{figure}
 
 \section{Workflow}
