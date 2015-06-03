@@ -123,17 +123,20 @@ following:
 \end{enumerate} \cite{EIP03}\cite{fallacies}
 
 \newpage
+
 \section{Message Oriented Middleware}
 \label{intro-messaging-mom}
-Because networks are not inherently reliable, messaging would be inefficient
-without a systems that manages the capabilities of messaging by acting as
-mediator. Introducing an intermediate component between distributed
-applications, messaging reduces the close coupling of other communication styles
-based on sockets or RMI/RPC. This additional component is the messaging
-system or message-oriented middleware (MOM), and is all about passing messages
-in any format from one application to another whereas the parties do not need to
-knows each other directly. \cite{TAN06} The MOM provides a specific API for both
-the sender as well for the receiver:
+
+Because networks are not inherently reliable, messaging would never be as
+efficient without a systems that manages the capabilities of messaging by acting
+as mediator. To introducing an intermediate component between distributed
+applications may be a very good choice as it would reduces the close coupling of
+communication styles such as sockets-based or RMI/RPC. This additional component
+is known as the messaging system or message-oriented middleware (MOM), and is
+all about passing messages in any format from one application to another whereas
+the parties do not need to knows each other directly. \cite{TAN06} The MOM
+provides a specific API for both the sender as well for the receiver:
+
 \begin{table}[H]
 \centering
 \begin{tabular}{|l|l|}
@@ -146,15 +149,17 @@ the sender as well for the receiver:
 \caption{Basic API for message queue implementation \cite{TAN06}}
 \end{table}
 
-In a basic scenario with a application A as sender of a message and a
-application B as receiver, the MOM ---running either on the node itself or
-dedicated in the local network--- assumes the task of handling a local queue for
+In a basic scenario including an application A being the sender of a message and
+an application B being the receiver, the MOM --running either on the node itself
+or dedicated in the local network-- holds a local queue to store incoming
 messages and manages an address-lookup database for mapping destination names to
-network locations. The sender first packs its data into the appropriate
-message format (1) and puts its message in his local queue (2). The MOM then
-delivery the message over the network to the queue of the receiver (3). In turn the
-receiver system can get the incoming message from its own local queue (4) and
-unpack it to finally get the transmitted data (5). 
+network locations. Overall, the flow of a message sent from A to B will be as
+follows: first, the sender packs its data into the appropriate message format
+(1) and puts the message in a local queue (2). The MOM then delivers the message
+over the network to the local queue of the receiver (3). After all, the receiver
+system will fetch the message and stores it in its own local queue (4) to
+further unpack and finally get the transmitted data (5).
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\textwidth]{images/mom-schema.png}
