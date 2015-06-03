@@ -1,8 +1,11 @@
 \chapter{Introduction to Messaging} 
 
-Before we can understand the capabilities of Apache Kafka, we first need to
-know how messaging basically works and what a message broker is. Also there are other
-important terms related to messaging we want do declare. 
+This chapter will at first provide a basic introduction to messaging and will
+uncover the fallacies of messaging, which will lead to the need for a
+Message-Oriented-Middleware. The primary focus is set on a detailed analysis of a
+message broker system, which is related to the broker pattern. During this
+chapter, other terms will be declared which will play an important role to
+understand the capabilities of Apache Kafka.
 
 \begin{figure}[H]
     \centering
@@ -12,26 +15,18 @@ important terms related to messaging we want do declare.
 \end{figure}
 
 \section{What is Messaging?}
+
 A distributed system consists of a collection of multiple autonomous components,
-connected through network, which enables to coordinate  their activities (e.g.
+connected through network, which enables to coordinate  their activities (e.g.\
 computers) and to share resources. To a user, these systems are perceived as a
 single, integrated computing facility. Other than centralised systems,
 distributed systems have it's advantages in economics, performance and
-scalability and reliability. In fact, this approach allows us to build reliable
+scalability and reliability. In fact, this approach allows to build reliable
 applications, scaled using low cost computers, and thus can serve massive
-performance needs whether on demand or continuously.\cite{POSA1}\cite{TAN06}
-\todo{gls?}
-
-Although distributed systems have many advantages, compared to local
-applications there are a lot of challenges (as mentioned later) that need to be
-assumed by developers. Messaging is an approach to deal with such difficulties.
-It integrates distributed applications to an overall system by providing message
-queues for communication between them. One application can publish its messages
-to the queue and another application can asynchronously read from it at any time.
-Thereby a message is just a simple and independent unit with a data structure
-which contains a meta header and the transmitted information. The messaging
-technology enables high-speed, asynchronous, program-to-program communication
-with reliable delivery.
+performance needs whether on demand or continuously.  Although distributed
+systems have many advantages, compared to local applications, they also bring
+many challenges, as explained in detail later on, which have to be considered as
+a developers.\cite{POSA1}\cite{TAN06}
 
 \begin{figure}[H]
     \centering
@@ -39,6 +34,16 @@ with reliable delivery.
     \caption{Basic principle of a message queue}
     \label{fig:messaging-simple}
 \end{figure}
+
+Messaging integrates distributed applications to an overall system by providing
+message queues for communication between them (see figure
+\ref{fig:messaging-simple}). One application can publish its messages to the
+queue and another application can asynchronously read from it at any time.
+Thereby a message is just a simple and independent unit with a data structure
+which contains a meta header and the transmitted information. The messaging
+technology enables high-speed, asynchronous, program-to-program communication
+with reliable delivery.
+
 \newpage
 Peter Deutsch originally defined fundamental fallacies of distributed computing
 which still are relevant today.\cite{fallaciesOfDs} Messaging
@@ -46,62 +51,75 @@ simplifies the development of distributed systems by mainly facing the
 following:
 
 \begin{enumerate}
-    \item{\textbf{Fallacy: The network is reliable} \hfill \\
-        There are always a plenty of things that can go wrong in a network
-       like power failures, bad connectivity or natural disasters. Therefore a
-       network must never be seen as fail-safe. One always have to assume
-       that sent data possibly getting lost on the wire. A messaging system
-       runs with an underlying middleware (\ref{intro-messaging-mom})
-       which deals with failures on each side of the communication. This allows to
-       get control of which messages has been successfully delivered and which
-       need to be redelivered.In normal case the original sender never has the
-       guarantee that the sent message has arrived at the desired destination
-       but it always has the confirmation of the middleware that the data has put in a
-       message queue. In case of failure the messaging system can initiate
-       appropriate actions to delegate a failed transmission.}   
-    \item{\textbf{Fallacy: Bandwidth is infinite and the Latency is zero } \hfill \\
-        Communicating over network is significant slower than local operations.
-        A distributed system has to deal with delays and interruptions of any
-        length. Messaging supports a storage capacity which leads to a
-        persistent way of communication where it is not required that the
-        collaborating endpoints are active during the entire transmission of a
-        message. This loose coupling in time is achieved by working with queues
-        as data structure (first-in-first-out).
-        }
-    \item{\textbf{Fallacy: Topology doesn't change} \hfill \\
+    \item{\textbf{Fallacy: The network is reliable}
+
+        There are always a plenty of things that can go wrong in a network like
+        power failures, bad connectivity or natural disasters. Therefore a
+        network must never be seen as fail-safe. One always have to assume that
+        sent data is possibly getting lost on the wire. A messaging system runs
+        with an underlying middleware (\ref{intro-messaging-mom}) which deals
+        with failures on each side of the communication. This allows to get
+        control of which messages has been successfully delivered and which need
+        to be redelivered. Thus, the original sender never has the guarantee
+        that the sent message has arrived at the desired destination but it
+        always has the confirmation of the middleware that the data has put in a
+        message queue. In case of failure the messaging system can initiate
+        appropriate actions to delegate a failed transmission.
+
+      }
+
+    \item{\textbf{Fallacy: Bandwidth is infinite and the Latency is zero }
+
+        Since communicating over network is significant slower than local
+        operations, a distributed system has to deal with delays and
+        interruptions of any length. Messaging supports a storage capacity which
+        leads to a persistent way of communication where it is not required that
+        the collaborating endpoints are active during the entire transmission of
+        a message. This loose coupling in time is achieved by working with
+        queues as data structure (first-in-first-out).
+
+      }
+
+    \item{\textbf{Fallacy: Topology doesn't change}
+
         Applications, systems and topologies changes over time, and in most
-        scenarios these often affects the collaborating components in the
-        distributed network too. Therefore distributed nodes should be decoupled as
-        far as possible. In messaging this is also achieved with the underlying
-        middleware.(\ref{intro-messaging-mom}) The sender and receiver do not
-        communicate do not need to know them directly. They always communicate
-        via the middleware software. In case of significant changes, only the
-        interface to the messaging system needs to be updated. }
-    \item{\textbf{Fallacy: The network is homogeneous}\hfill \\
-        In real world, application are always different. In distributed systems
+        scenarios this will often affect the collaborating components in the
+        distributed network too. Therefore distributed nodes should be decoupled
+        as far as possible. Messaging tries to achieved this with the underlying
+        middleware.(\ref{intro-messaging-mom}) The sender and receiver whether
+        do communicate nor do they need to know them directly. They always
+        communicate via the middleware software. In case of significant changes,
+        only the interface to the messaging system needs to be updated.
+
+      }
+
+    \item{\textbf{Fallacy: The network is homogeneous}
+
+        In real world, applications are always different. In distributed systems
         data need to be transmitted between nodes which use different
-        programming languages, operating platforms, and data formats.
-        This is called interoperability\todo{gls}  which actually means that
-        systems based on different technologies can collaborate together by using
-        the same standard or protocols. Messaging provides either a common
-        interface or protocol on the wire which can be implemented from various
-        applications. While using a messaging system in an
-        enterprise environment it is much more efficient to integrate a new
-        application to the existing data flow. Instead of implementing a new
-        interface for another technology, the additional software can be just
-        linked to the existing platform by using the underlying messaging
-        protocol.\\
+        programming languages, operating platforms, and data formats.  This is
+        called interoperability which actually means that systems based on
+        different technologies can collaborate together by using the same
+        standards or protocols. Messaging provides either a common interface or
+        a protocol on the wire which can be implemented from various
+        applications. While using a messaging system in an enterprise
+        environment it is much more efficient to integrate a new application to
+        the existing data flow instead of implementing a new interface for
+        another technology. The newly introduced component can be linked to the
+        existing platform by just using the underlying messaging protocol.\\
 
         In the past, several companies like IBM or Microsoft developed their own
-        proprietary standards and protocols for asynchronous messaging systems.
-        Probably to keep it locked in their customer base. In June 2001 the Java
-        Message Service API (JMS) was released as best-known standard for
+        proprietary standards and protocols for asynchronous messaging systems
+        -- probably to keep it locked in their customer base. In June 2001 the
+        Java Message Service API (JMS) was released as best-known standard for
         messaging systems. However, it is only an interface without a specific
         protocol, JMS implementations need to define their own. Fortunately in
         June 2006 a pool of multiple companies for network technologies defined
         the Advanced Message Queueing Protocol (AMQP) as a open standard for an
         interoperable messaging protocol. \cite{PrpAMQP}
+
     }
+
 \end{enumerate} \cite{EIP03}\cite{fallacies}
 
 \newpage
