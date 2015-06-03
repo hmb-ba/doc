@@ -743,10 +743,82 @@ import Data.Binary.Put
 
 enodePrRqMessage :: RequestMessage -> B.ByteString
 enodePrRqMessage r = runPut buildPrRqMessage r
+\end{lstlisting}
+
+\newpage
+\section{Client Library}
+As part of the protocol implementation, the client library provides an
+API for clients to interact with the protocol. The goal is to isolate the
+producer or consumer clients from implementations details of the types and
+encode/decode functions. 
+
+\subsection{Types}
+The types provided by the client library give a simplified abstraction for
+the types of the protocol implementation. All values which need to be
+provided from a client are covered. Every type which is irrelevant to the client
+is hide.
+
+Depending on the API a client wants to access, either a Produce, Fetch of
+Metadata type needs to be defined. Each of them consists of a Head, which
+contains the header information every request needs to include. Furthermore, the
+libary types allow the client to define nested sequences of topics and
+partitions to fully support the batching approach of the Kafka protocol. 
+\begin{lstlisting}
+data Req = Produce Head [ToTopic] | Fetch Head [FromTopic] | Metadata Head [OfTopic]
+data Head = Head
+  { apiV      :: Int
+  , corr      :: Int
+  , client    :: BS.ByteString
+  }
+\end{lstlisting}
+
+The following example shows the definition of a produce call to publish batched messages
+for multiple topics and partitions. 
+
+\begin{lstlisting}
+  let head = Head 0 0 clientId
+  let ms = [randBytes | x <- [1..10]]
+  let req = Produce 
+        head 
+        [ToTopic topicA [ToPart 0 ms, ToPart 1 ms], ToTopic topicB [ToPart 0 ms]]
+\end{lstlisting}
+
+\subsection{Send Request}
+Before sending an API call to the broker, the defined types above need to be
+packed to the actual types of the Kafka protocol implementation (with all the
+additional information which are hided from client). Therefore the client
+library exposes a \lstinline{sendRequest} function. It packes the provided
+\lstinline{Req} to the protocol conform \lstinline{RequestMessage} and encode it
+to ByteString. Finally, the binary data is sent to the given socket.
+
+\begin{lstlisting}
+sendRequest :: Socket -> RequestMessage -> IO ()
+sendRequest socket requestMessage = do
+    SBL.sendAll socket msg
+    where msg = runPut $ buildRqMessage $ pack requestMessage
+
+class Packable a where
+  pack :: a -> RequestMessage
+
+instance Packable Req where
+  pack (Produce head ts)  = packPrRqMessage head ts
+  pack (Fetch head ts)    = packFtRqMessage head ts
+  pack (Metadata head ts) = packMdRqMessage head ts
 
 \end{lstlisting}
 
-\section{Client Library}
-- Packing Functions
-- Decode / Encode Functions
-- Send Functions 
+\subsection{Decode Response}
+For parsing received responsed sent from broker, the client library exposes
+functions for decoding the binary data. 
+
+\begin{lstlisting}
+decodePrResponse :: BL.ByteString -> ResponseMessage
+decodePrResponse a = runGet produceResponseMessageParser a
+
+decodeFtResponse :: BL.ByteString -> ResponseMessage
+decodeFtResponse b = runGet fetchResponseMessageParser b
+
+decodeMdResponse :: BL.ByteString -> ResponseMessage
+decodeMdResponse b = runGet metadataResponseMessageParser b
+
+\end{lstlisting}
