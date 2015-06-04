@@ -1,117 +1,67 @@
 \chapter{Evaluation}
-\section{Protocol Implementation}
-A complete implementation of the Apache Kafka Protocol would
-go beyond the scope of this thesis as the focus lies not
-only in implementing the protocol but also to provide broker
-functionality (see Chapter \ref{chap:broker}). Thus, most important is
-the ability to produce and fetch messages. The following list gives 
-an overview of what part of the protocol is implemented and what remains open:
 
-\begin{itemize}
-    \item Metadata API
-    \begin{itemize}
-        \tick Topic Metadata Request
-        \tick Metadata Response
-    \end{itemize}
-    \item Produce API
-    \begin{itemize}
-        \tick Produce Request
-        \tick Produce Response
-    \end{itemize}
-    \item Fetch API
-    \begin{itemize}
-        \tick Fetch Request
-        \tick Fetch Response
-    \end{itemize}
-    \item Offset API
-    \begin{itemize}
-        \fail Offset Request
-        \fail Offset Response
-    \end{itemize}
+%\section{Broker Features}
 
-    \item Offset Commit/Fetch API
-    \begin{itemize}
-        \fail Consumer Metadata Request
-        \fail Consumer Metadata Response
-        \fail Offset Commit Request
-        \fail Offset Commit Response
-        \fail Offset Fetch Request
-        \fail Offset Fetch Response
-    \end{itemize}
-\end{itemize}
-
-The implemented APIs are fully compatible with original Apache Kafka.
-Therefore Haskell clients which using the client library of the protocol
-implementation (see section \ref{sec:impl-prot-client}), can either communicate
-with the HMB or Apache Kafka broker (depending on the set up IP and Port
-configuration). 
-
-\newpage
-\section{Broker Features}
-The scope of this thesis lies on a single broker system with a producer and
-consumer API. Therefore it not supports broker replication nor a integration
-with Apache Zookeeper like Apache Kafka yet.
-
-\begin{itemize}
-    \item Network Layer 
-    \begin{itemize}
-        \tick Establishing multiple client connections
-        \tick Receiving Request over socket
-        \tick Sending Responses over socket
-    \end{itemize}
-    \item API Layer
-    \begin{itemize}
-        \tick Parsing incoming requests
-        \tick Catching and handling errors at runtime 
-        \tick Handling Produce requests
-        \tick Handling Fetch requests
-        \tick Handling Metadata requests
-        \fail Handling Offset requests
-        \fail Handling Offset Commit/Fetch requests
-    \end{itemize}
-    \item Producing Messages
-    \begin{itemize}
-        \tick Publishing messages to specific topic and partition and persist
-        them for further consumption
-        \tick Support nested sequences of topics, partitions and messages per
-        request
-        \fail Support configurable Acknowledgements and Timeout
-    \end{itemize}
-    \item Fetching Messages 
-    \begin{itemize}
-        \tick Consuming messages of a topic and partition from a specific offset
-        on
-        \item Support nested sequences of topics and partitions
-        \fail Support configurable min and max bytes for fetched data
-        \fail Support maximum amount of time to block, waiting if insufficient
-        data is available
-    \end{itemize}
-    \item Accessing Metadata of Topic
-    \begin{itemize}
-        \tick Requesting metadata for specific topic (or all)
-        \tick Responding information about names of available topics
-        \tick Responding information about broker instance
-        \fail Responding topic or partition specific metadat
-        \fail Responding informations about replication 
-    \end{itemize}
-    \fail Offset Management via Request
-    \item Log Persistency
-    \begin{itemize}
-        \tick Persisting messages in log file
-        \tick Guarantee ordering of messages through continuously offsets
-        \tick Keep book of a log file with separate index file 
-        \fail Log Compaction 
-    \end{itemize}
-    \item Optimizations 
-    \begin{itemize}
-        \tick Network throughput 
-        \tick Caching
-    \end{itemize}
-    \fail Message Compression 
-    \fail Consumer Groups 
-    \fail Broker Recovery
-    \fail Broker Replication and Zookeeper Integration
-   \end{itemize}
+%\begin{itemize}
+%    \item Network Layer 
+%    \begin{itemize}
+%        \tick Establishing multiple client connections
+%        \tick Receiving Request over socket
+%        \tick Sending Responses over socket
+%    \end{itemize}
+%    \item API Layer
+%    \begin{itemize}
+%        \tick Parsing incoming requests
+%        \tick Catching and handling errors at runtime 
+%        \tick Handling Produce requests
+%        \tick Handling Fetch requests
+%        \tick Handling Metadata requests
+%        \fail Handling Offset requests
+%        \fail Handling Offset Commit/Fetch requests
+%    \end{itemize}
+%    \item Producing Messages
+%    \begin{itemize}
+%        \tick Publishing messages to specific topic and partition and persist
+%        them for further consumption
+%        \tick Support nested sequences of topics, partitions and messages per
+%        request
+%        \fail Support configurable Acknowledgements and Timeout
+%    \end{itemize}
+%    \item Fetching Messages 
+%    \begin{itemize}
+%        \tick Consuming messages of a topic and partition from a specific offset
+%        on
+%        \item Support nested sequences of topics and partitions
+%        \fail Support configurable min and max bytes for fetched data
+%        \fail Support maximum amount of time to block, waiting if insufficient
+%        data is available
+%    \end{itemize}
+%    \item Accessing Metadata of Topic
+%    \begin{itemize}
+%        \tick Requesting metadata for specific topic (or all)
+%        \tick Responding information about names of available topics
+%        \tick Responding information about broker instance
+%        \fail Responding topic or partition specific metadat
+%        \fail Responding informations about replication 
+%    \end{itemize}
+%    \fail Offset Management via Request
+%    \item Log Persistency
+%    \begin{itemize}
+%        \tick Persisting messages in log file
+%        \tick Guarantee ordering of messages through continuously offsets
+%        \tick Keep book of a log file with separate index file 
+%        \fail Log Compaction 
+%    \end{itemize}
+%    \item Optimizations 
+%    \begin{itemize}
+%        \tick Network throughput 
+%        \tick Caching
+%    \end{itemize}
+%    \fail Message Compression 
+%    \fail Consumer Groups 
+%    \fail Broker Recovery
+%    \fail Broker Replication and Zookeeper Integration
+%   \end{itemize}
 
 \section{Broker Performance}
 -> Test System
