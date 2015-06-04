@@ -124,14 +124,36 @@ One 7200 RPM SATA drive
 1Gb Ethernet 
 \end{verbatim}
 
+\subsection{Network Throughput}
+The socket based communication must not be a bottleneck in a high performance
+broker. A producer should be able to send with near the maximal throughput of
+its local network card, whereas the broker needs to handle the incoming data
+streams as fast as possible. If the limits of a single network connection is
+reached, the next step to improve performance is to balance the data
+stream on multiple replicated brokers.
+
+To test the network throughput for this thesis, a benchmark producer
+which identify the limits is provided.
+
+\begin{lstlisting}
+import qualified System.Entropy as E
+
+main = do 
+    -- Socket setup 
+    -- ....
+
+    randBytes <- E.getEntropy 1000
+    let
+\end{lstlisting}
 
 
+The variance seems to be due to Linux's I/O management facilities that batch
+data and then flush it periodically.
 -> Durchgeführte Tests 
 
 -> Resultat Network Throuput 
 
 -> Resultat Writing to the log 
-
 -> Vergleich Kafka (ref to Blog) 
 
 
