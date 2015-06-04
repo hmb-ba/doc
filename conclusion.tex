@@ -1,10 +1,94 @@
 \chapter{Conclusion}
-\section{Results and Objectives}
--> Comparision with objectives 
+\section{Results}
+\subsection{Prestudy}
+The first result of this thesis is the prestudy documentation, which
+resumes gathered knowledge in the familiarization phase of this work.
+It gives an insight in messaging fundamentals and  takes a closer look to Apache
+Kafka and related topics.
+
+\subsection{Protocol Implementation}
+A fundamental result of this thesis is the implementation of the Apache Kafka
+protocol in Haskell. The design decision of separating protocol related code
+from the broker implementation leads to a isolated product which can be used as
+library for different project. The code is provided through an open sourced
+repository for further development. \todo{ref to Github}
+
+A complete implementation of the Apache Kafka Protocol would go beyond the scope
+of this thesis as the focus lies not only in implementing the protocol but also
+to provide broker functionality (see Chapter \ref{chap:broker}). Thus, most
+important is the ability to produce and fetch messages. The following list gives
+an overview of what part of the protocol is implemented and what remains open:
+
+\begin{itemize}
+    \item Metadata API
+    \begin{itemize}
+        \tick Topic Metadata Request
+        \tick Metadata Response
+    \end{itemize}
+    \item Produce API
+    \begin{itemize}
+        \tick Produce Request
+        \tick Produce Response
+    \end{itemize}
+    \item Fetch API
+    \begin{itemize}
+        \tick Fetch Request
+        \tick Fetch Response
+    \end{itemize}
+    \item Offset API
+    \begin{itemize}
+        \fail Offset Request
+        \fail Offset Response
+    \end{itemize}
+
+    \item Offset Commit/Fetch API
+    \begin{itemize}
+        \fail Consumer Metadata Request
+        \fail Consumer Metadata Response
+        \fail Offset Commit Request
+        \fail Offset Commit Response
+        \fail Offset Fetch Request
+        \fail Offset Fetch Response
+    \end{itemize}
+\end{itemize}
+
+\section{Haskell Message Broker}
+The main approach of this work is the implementation of a message broker in
+Haskell. The resulting application provides a server with basic functionality
+in networking and persisting messages. The broker supports Kafka clients as
+it is based on the protocol implementation mentioned above.
+
+..?: 
+
+Producing Messages: 
+\begin{itemize}
+        \tick Publishing messages to specific topic and partition
+        \tick Persist messages in log based file structure
+        \tick Support batched messages 
+        \tick Support producing for multiple topics and partitions
+        \fail Configurable Acknowledgements and Timeout
+\end{itemize}
+
+Fetch Messages: 
+\begin{itemize}
+        \tick Consuming messages of a specific topic and partition
+        \tick Request Messages depending on given offset
+        \fail Support consuming from multiple topics and partitions 
+        \fail Support configurable min and max bytes for fetched data
+        \fail Support maximum amount of time to block, waiting if insufficient
+        data is available
+\end{itemize}
+Clustering: The scope lies on a single broker system with a producer and
+consumer API. There is no support for broker replication yet. 
+
 
 \section{Outlook}
 -> What are the next step? 
 
+- Further optimizations 
+- Implementation and handling of remaining API's 
+- Replication and Integration With Apache Zookeeper 
+- Ausbauen von Client API 
 -> Open Source 
 
 -> 
