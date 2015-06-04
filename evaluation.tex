@@ -156,24 +156,27 @@ data and then flush it periodically.
 -> Resultat Writing to the log 
 -> Vergleich Kafka (ref to Blog) 
 
-
 \begin{table}[h]
-\begin{tabular}{|c|c|c|c|c|c|c|l|}
+\begin{tabular}{|c|c|c|c|}
 \hline
-{\bf Request Size} & {\bf Message Size} & {\bf Batch Size} & {\bf Encode} & {\bf Receive} & {\bf Decode} & {\bf WriteToDisk} & \multicolumn{1}{c|}{{\bf \begin{tabular}[c]{@{}c@{}}Throughput\\ (MB/s)\end{tabular}}} \\ \hline
-                & 100                & 1                & x            & x
-& x            & -                 & 25                                                                                       \\ \hline
-                   & 100                & 10               & x            & x             & x            & -                 &                                                                                        \\ \hline
-                   & 100                & 100              & x            & x             & x            & -                 &                                                                                        \\ \hline
-                   & 100                & 1000             & x            & x             & x            & -                 &                                                                                        \\ \hline
-                   & 100                & 10000            & x            & x             & x            & -                 &                                                                                        \\ \hline
-                   & 1000               & 1                & x            & x             & x            & -                 &                                                                                        \\ \hline
-                   & 1000               & 10               & x            & x             & x            & -                 &                                                                                        \\ \hline
-                   & 1000               & 100              & x            & x             & x            & -                 &                                                                                        \\ \hline
-                   & 1000               & 1000             & x            & x             & x            & -                 &                                                                                        \\ \hline
-                   & 10000              & 1                & x            & x             & x            & -                 &                                                                                        \\ \hline
-                   & 10000              & 10               & x            & x             & x            & -                 &                                                                                        \\ \hline
-                   & 10000              & 100              & x            & x             & x            & -                 &                                                                                        \\ \hline
+{\bf Request Size (with ReqHeader)} & {\bf Message Size {[}Byte{]}} & {\bf Batch Size} & {\bf \begin{tabular}[c]{@{}c@{}}Avg. Throughput\\ {[}MB/s{]}\end{tabular}} \\ \hline
+150 B                               & 100                           & 1                & 27                                                                         \\ \hline
+1050 B                              & 100                           & 10               & 22                                                                         \\ \hline
+10.050 KB                           & 100                           & 100              & 30                                                                         \\ \hline
+100.050 KB                          & 100                           & 1000             & 32                                                                         \\ \hline
+1 MB                                & 100                           & 10000            & 40                                                                         \\ \hline
+550 B                               & 500                           & 1                & 66                                                                         \\ \hline
+1050 B                              & 500                           & 2                & 81                                                                         \\ \hline
+10.050 B                            & 500                           & 20               & 80                                                                         \\ \hline
+100.050 KB                          & 500                           & 200              & 96                                                                         \\ \hline
+1 MB                                & 500                           & 2000             & 68                                                                         \\ \hline
+1050 B                              & 1000                          & 1                & 104                                                                        \\ \hline
+10.050 B                            & 1000                          & 10               & 110                                                                        \\ \hline
+100.050 KB                          & 1000                          & 100              & 112                                                                        \\ \hline
+1 MB                                & 1000                          & 1000             & 87                                                                         \\ \hline
+10.050 B                            & 10000                         & 1                & 117                                                                        \\ \hline
+100.050 KB                          & 10000                         & 10               & *                                                                          \\ \hline
+1 MB                                & 10000                         & 100              & *                                                                          \\ \hline
 \end{tabular}
 \end{table}
 
