@@ -2,39 +2,43 @@
 
 \section{Introduction}
 
-\subsubsection*{Zweck dieses Dokuments}
+\subsubsection*{Purpose of this document}
+This chapter shows the project plan for the bachelor thesis "Functional Kafka".
+It is used as basis for the planning during the work. 
 
-\subsubsection*{Zweck und Ziel dieser Arbeit}
+\subsubsection*{Goal of the project}
+Analyzing Apache Kafka, a state of the art message broker system created at
+LinkedIn and adapt basic features to build an alternative broker system in
+Haskell. 
 
-\subsubsection*{Lieferumfang}
+\section{Organization}
 
-\subsubsection*{Annahmen und Einschränkungen}
-
-\section{Projektorganisation}
-
-\subsubsection*{Struktur}
+\subsubsection*{Structure}
 
 \begin{tabular}[t]{|l|l|l|} \hline
-\textbf{Name} & \textbf{E-Mail} & \textbf{Aufgabe und Verantwortungen} \\ \hline \hline
+\textbf{Name} & \textbf{E-mail} & \textbf{Responsibility} \\ \hline
+Marc Juchli & mjuchli@hsr.ch & Research, Development, Documentation \\ \hline
+Lorenz Wolf & l1wolf@hsr.ch & Research, Development, Documentation \\ \hline 
 \end{tabular}
 
 \subsubsection*{Externe Schnittstellen}
 
 \begin{tabular}[t]{|l|l|l|} \hline
-\textbf{Name} & \textbf{E-Mail} & \textbf{Aufgabe und Verantwortungen} \\ \hline \hline
-\end{tabular}
+\textbf{Name} & \textbf{E-Mail} & \textbf{Responsibility}  \\ \hline
+Prof Dr. Josef Joller & jjoller@hsr.ch & Supervisor \\ \hline 
+Dr. Simon Meier & simon.y.meier@gmail.com & Expert  \\ \hline\end{tabular}
 
-\subsubsection*{Sitzungen}
+%\subsubsection*{Sitzungen}
 
+%\begin{itemize}
+%\item 
+%\end{itemize}
 
-\begin{itemize}
-\item 
-\end{itemize}
+\section{Planning}
 
-\section{Managementabläufe}
-
-\subsection{Zeiterfassung}
-
+\subsection{Time tracking}
+Performed work is tracked via Atlassian JIRA platform where we manage issues for
+the project. 
 %Die Zeiterfassung wird von den Projektmitarbeitern in Redmine erfasst.
 %Redmine ist über folgenden Link erreichbar:
 %\url{http://152.96.56.42/redmine/}. Die Projektmitarbeiter haben einen
@@ -42,51 +46,81 @@
 %ebenfalls ein Zugang, mit welchem er die Fortschritte mitverfolgen kann.
 %Auf Redmine ist der aktuelle Stand des Projekts zu sehen.
 
-\subsection{Arbeitspakete und zeitliche Planung}
+\subsection{Time schedule and objectives}
 
-% Wir haben die geplante Arbeit in Arbeitspakete aufgeteilt. Diese
-% Arbeitspakete wurden in Redmine als Tickets erfasst und sind jeweils dem
-% Meilenstein zugeordnet in dem sie fertiggestellt werden sollten. In der
-% Abbildung \ref{fig:ArbeitspaketeGeplant} ist eine Übersicht über die
-% Arbeitspakete und die geplante Dauer der Arbeitspakete zu sehen.
-% In der Abbildung \ref{fig:ArbeitspaketeGeplantGANTT} sind die Pakete im GANTT Format
-% dargestellt.
-% 
-% \begin{landscape}
-% \begin{footnotesize}
-% 
-% \begin{figure}[h]
-%   \centering
-%   \includegraphics[width=24cm]{images/zeitplanung.png}
-%   \caption{Uebersicht über die geplanten Arbeitspakete}
-%   \label{fig:ArbeitspaketeGeplant}
-% \end{figure}
-% 
-% \begin{figure}[h]
-%   \centering
-%   \includegraphics[width=24cm]{images/gantt.png}
-%   \caption{Uebersicht über die geplanten Arbeitspakete im GANTT Format}
-%   \label{fig:ArbeitspaketeGeplantGANTT}
-% \end{figure}
-% 
-% \end{footnotesize}
-% \end{landscape}
-% \newpage
+We separated the work in four phases (adapted from Rational Unified Process,
+RUP) as follows:  
 
-\subsection{Meilensteine}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{images/workschedule.png}
+    \caption{Work schedule}
+    \label{fig:MBig:the-log}
+\end{figure}
 
-Wichtige Daten im Projekt wurden mit den Meilensteinen in Tabelle
-\ref{tab:MeilensteineZiele} festgesetzt. Nach jedem geplanten Ende eines
-Meilensteines, wird ein Soll-Ist Vergleich durchgeführt und im Kapitel
-Projektstandverfolgung festgehalten.
+\begin{tabular}[H]{|l|l|p{8cm}|}\hline
+    \textbf{Phase} & \textbf{Task} & \textbf{Objectives} \\ \hline \hline
+    Inception & Technology Research Kafka & 
+        \begin {itemize}
+            \item Learn Messaging and Event Streaming fundamentals.
+            \item Analyse Apache Kafka and related topics. 
+            \item Write research documentation.
+        \end{itemize} \\ \hline
+    Inception & Practice programming Haskell & 
+        \begin {itemize}
+            \item Familiarize with the functional paradigm.
+            \item Setup developer environment and repositories. 
+            \item Learn Haskell as functional programming language.
+            \item Become acquainted to libraries regarding networking,
+              building server application, and serialization.
+        \end{itemize} \\ \hline
+    Elaboration & Architecture Prototype &
+        \begin {itemize}
+            \item Set up basic server architecture.
+            \item Set up concept for implementing the wire protocol.
+            \item Implement basic message workflow from producing messages and
+            persisting at broker to consuming the data from another clients.
+            \item Implement simplified clients to demonstrate architecture.
+        \end{itemize} \\ \hline
+    Construction & Protocol Implementation &
+        \begin {itemize}
+            \item Build standalone package providing an independent Kafka
+                protocol library.
+            \item Work out details of protocol implementation. Finish
+                implementation of relevant parts for producing and consuming
+                messages. 
+            \item Implement client API for exposing simplified access to protocol
+                implementation.
+            \item Test Kafka compatibility.
+        \end{itemize} \\ \hline
+    Construction & Broker Implementation &
+        \begin{itemize}
+            \item Work out server application handling multiple connections
+            sending produce or consume requests.
+            \item Develop message log persistency adapt from Apache Kafka. 
+            \item Optimize performance to approximate performance approach of
+            Apache Kafka. 
+        \end{itemize} \\ \hline
+    Construction & Benchmarking &
+        \begin{itemize}
+            \item Test resulting broker implementation for performance.
+            \item Comparing performance with Apache Kafka.
+        \end{itemize} \\ \hline
+    Transition & Reserved & Reserved time for completion work and documentation.
+    \\ \hline
+\end{tabular}
+
+Important points in the project are specified in table
+\ref{tab:MeilensteineZiele}. After reaching the planed end of a milestone, a
+set-actual comparison is made. 
 
 \begin{tabular}[t]{|l|l|p{8cm}|}\hline
-\textbf{Meilenstein} & \textbf{Datum} & \textbf{Ziele} \\ \hline \hline
-Projektstart & 16.02.2015 & \\ \hline
-M1 Vorstudie Message broker abgeschlossen & 22.03.2015 &
-  \begin{itemize}
-    \item \ldots
-  \end{itemize} \\ \hline
+    \textbf{Milestone} & \textbf{Deadline} & \textbf{Deliverables} \\ \hline \hline
+   % M0 & Start of work & 16.02.2015 & - \\ \hline
+   % M1 Inception  & 22.03.2015 & 
+  %\begin{itemize}
+  %  \item \ldots
+  %\end{itemize} \\ \hline
 \end{tabular}
 \captionof{table}{Meilensteine und deren Ziele}
 \label{tab:MeilensteineZiele}
