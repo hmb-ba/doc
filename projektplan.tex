@@ -35,19 +35,26 @@ Dr. Simon Meier & simon.y.meier@gmail.com & Expert  \\ \hline\end{tabular}
 %\end{itemize}
 \newpage
 \section{Planning}
+We separated the work in three phases inception, elaboration and construction
+(adapted from Rational Unified Process, RUP). For planning the time schedule we
+first defined tasks very rough granular. For each of those we then planed
+subtasks which can be seen as single issues (see \ref{subsec:tasks}).
+Furthermore three milestones were set to define particular objectives we want to
+achieve at a specific time (see table \ref{tab:MeilensteineZiele}).  After reaching the
+planed end of a milestone, a set-actual comparison is made (see
+\ref{sec:status-tracking}). Performed work is
+tracked via an Atlassian JIRA platform where we manage tasks for the project. 
 
+
+\subsection{Time schedule}
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{images/workschedule.png}
-    \caption{Work schedule}
-    \label{fig:MBig:the-log}
+    \caption{Time schedule, GANTT style}
+    \label{fig:workschedule}
 \end{figure}
 
 \subsection{Milestones}
-Important points in the project are specified in table
-\ref{tab:MeilensteineZiele}. After reaching the planed end of a milestone, a
-set-actual comparison is made. 
-
 \begin{tabular}[H]{|p{4cm}|l|p{4.5cm}|p{4.5cm}|}\hline
     \textbf{Milestone} & \textbf{Deadline} & \textbf{Objectives} & \textbf{Deliverables} \\ \hline
     M0 Start of work & 16.02.2015 & - & -\\ \hline
@@ -75,10 +82,7 @@ set-actual comparison is made.
 
 \newpage
 \subsection{Tasks}
-We separated the work in three phases inception, elaboration and construction
-(adapted from Rational Unified Process, RUP). For each phase we defined the
-following tasks and their subtasks to plan our work:
-
+\label{subsec:tasks}
 \subsubsection{Inception}
 
 
@@ -99,6 +103,7 @@ following tasks and their subtasks to plan our work:
               building server application, and serialization.
         \end{itemize} \\ \hline
 \end{tabular}
+\captionof{table}{Tasks of inception phase}
 
 \subsubsection{Elaboration}
 \begin{tabular}[H]{|p{6cm}|p{10cm}|}\hline
@@ -113,6 +118,7 @@ following tasks and their subtasks to plan our work:
                 prototype prototype.
         \end{itemize} \\ \hline
    \end{tabular}
+\captionof{table}{Tasks of elaboration phase}
 
 \subsubsection{Construction}
 \begin{tabular}[H]{|p{6cm}|p{10cm}|}\hline
@@ -142,49 +148,45 @@ following tasks and their subtasks to plan our work:
             \item Comparing performance with Apache Kafka.
         \end{itemize} \\ \hline
 \end{tabular}
+\captionof{table}{Tasks of construction phase}
 
 Last week of the schedule is reserved for completion work and documentation. 
 
 
-
 \newpage
-\section{Risikomanagement(Plagiat)}
+\section{Risk management}
 
-In der Tabelle \ref{tab:Risiken} sind die Risiken ersichtlich, welche
-unser Projekt beeinflussen können.
+In the table \ref{tab:Risiken} are the risk which could influence our thesis: 
 
 \begin{tabular}[t]{|p{3cm}|p{3cm}|r|r|r|p{3cm}|p{3cm}|}\hline
-\textbf{Risiko} &
-  \textbf{Auswirkung} &
-  \begin{sideways} \textbf{Wahrscheinlichkeit } \end{sideways} &
-  \begin{sideways}\textbf{Schaden} \end{sideways} &
-  \begin{sideways}\textbf{Risiko} \end{sideways} &
-  \textbf{Vorbeugung} & \textbf{Konsequenzen} \\ \hline \hline
-Datenverlust &
-  verlorene Arbeit &
-  0.1 & 0.9 & 0.1 &
-  regelmässige Backups &
-  Arbeit in Sonderschicht nachholen \\ \hline
-Ausfall eines Projektmitarbeiters &
-  Nichteinhaltung des Terminplans &
-  0.1 & 0.9 & 0.1 &
-  Nicht vermeidbar &
-  Mehrarbeit für nicht ausgefallenen Mitarbeiter \\ \hline
-Kommunikations"-probleme &
-  Zeitverlust, zielloses Arbeiten &
-  0.1 & 0.3 & 0.0 &
-  Teambildungs"-massnahmen &
-  Diskussion suchen, Betreuer informieren \\ \hline
+\textbf{Risk} &
+    \textbf{Impact} &
+  \begin{sideways} \textbf{Probability } \end{sideways} &
+  \begin{sideways}\textbf{Loss} \end{sideways} &
+  \begin{sideways}\textbf{Risk} \end{sideways} &
+  \textbf{Prevention} & \textbf{Consequences} \\ \hline
+    Missing know-how in new technology & 
+    Slow progress, inefficiency & 
+    0.9 & 
+    0.1 & 
+    0.3 & 
+    Ask experts before spending to much time & 
+    It is part of this thesis to learn new technologies, we expect decelerated
+    progress from time to time but we can deal with it. \\ \hline
+  Technical impossibility & 
+    No resulting product, change to other technology, loss in time. & 
+    0.1 & 
+    0.9 & 
+    0.1 & 
+    Analyse possibilities before spending to much time . &
+    Inform supervisor or expert.
+    \\ \hline
 \end{tabular}
-\captionof{table}{Risiken}
+\captionof{table}{Risks}
 \label{tab:Risiken}
 
-Sollte trotz den vorbeugenden Massnahmen ein zeitlicher Schaden
-entstehen, muss die Projektplanung unter Umständen angepasst werden.
-
-\subsection{Time tracking}
-Performed work is tracked via Atlassian JIRA platform where we manage issues for
-the project. 
+%Sollte trotz den vorbeugenden Massnahmen ein zeitlicher Schaden
+%entstehen, muss die Projektplanung unter Umständen angepasst werden.
 %Die Zeiterfassung wird von den Projektmitarbeitern in Redmine erfasst.
 %Redmine ist über folgenden Link erreichbar:
 %\url{http://152.96.56.42/redmine/}. Die Projektmitarbeiter haben einen
@@ -193,7 +195,7 @@ the project.
 %Auf Redmine ist der aktuelle Stand des Projekts zu sehen.
 
 
-\section{Qualitätsmanagement}
+%\section{Qualitätsmanagement}
 
 %Um die Arbeitsergebnisse qualitativ auf einem hohen Niveau zu halten,
 %arbeiten die Projektmitglieder nach dem Vier-Augen-Prinzip. Ein Dokument
@@ -204,11 +206,48 @@ the project.
 %teilweise der Ansatz von Pairprogramming eingesetzt werden. Dies führt
 %dazu, dass sich beide mit dem Code auskennen.
 
-\section{Projektstandverfolgung}
+\section{Status Tracking}
+\label{sec:status-tracking}
 
-\subsection{Meilenstein 1}
+\subsection{Milestone 1}
+Milestone one was reached at 22.03.2015 by finishing the technology research
+phase of our thesis. We delivered the resulting documentation, where we discuss
+Messaging, Event Streaming and Apache Kafka as reference system. Originally we
+had the idea to make a detailed survey about alternatives to Apache Kafka by
+trying to compare them. After intensively analyzing different systems we
+realized that it need much more time to give well-founded statements. Because we
+wanted to comply the project plan an we had not much time anymore, we decided to
+cut this part of the research documentation. This past six weeks were very
+intensive not at least because we also spent a lot time in learning Haskell,
+especially we had a look at topic related libraries. So we can say that our
+objectives for the first milestone are achieved.
 
-\section{Zeitauswertung}
+\subsection{Milestone 2}
+Milestone two was reached at 19.04.2015 by finishing the architecture prototype.
+Together with our supervisor we initially defined a basic workflow of publishing
+messages to a server application. This workflow defined the conditions and
+requirements for the architecture prototype. First we were not sure if the
+planed time of only three weeks is enough to finish a runnable application. Due
+to our extensive prestudy work we already had a concept in our head which we
+started to implement. Actually we were very satisfied with our efficiency during
+this phase. After three weeks we had a running architecture prototype which even
+shows producing and consuming some date from a basic broker application. We
+definitely achieved the goals of milestone two in time. 
+
+\subsection{Milestone 3} 
+Milestone three was reached at 07.06.2015 by ending the
+development on broker and protocol implementation. With a duration of seven
+weeks, this milestone covers the longest period of time. Because it was our
+first time developing with Haskell we had many unforseen difficulties and it was
+hard to estimate the cost of the tasks in this phase. In the end we spent the
+most time for building a reasonable server application and to complete the
+provided API's for producing and consuming messages with underlying Kafka
+protocol. Also a minor issue was the implementation of a log structured
+persistency on the broker. Finally we have a running prototype of a Haskell
+Message Broker. But obviously there are many features remaining open, which were
+not in the scope of this thesis. 
+
+\section{Time evaluation}
 
 \subsection{Projektstunden pro Woche}
 
