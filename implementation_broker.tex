@@ -479,14 +479,15 @@ Considerations Bounded Chans
 
 \section{Log}
 
-\subsection{Indexing}
-
 \subsection{Storage Layout}
-The storage layout is exactly the same as the one defined for for Apache Kafka.
-\todo{link} As for now, the root location of the log is not configurable and
-set to the folder named \textbf{./log} within the installation directory of the
-broker. Each folder represents a partition of a specific topic whereas the name
-of the folder is a combination of the topic name and the partition number. 
+\label{log-broker-storage}
+
+The storage layout is exactly the same as the one defined for Apache Kafka (see
+\ref{intro-kafka-log}).  As for now, the root location of the log is not
+configurable and set to the folder named \textbf{./log} within the installation
+directory of the broker. Each folder represents a partition of a specific topic
+whereas the name of the folder is a combination of the topic name and the
+partition number. 
 
 There are two types of files they reside within the folder that specifies the
 topic and partition (see folder structure):
@@ -498,19 +499,20 @@ topic and partition (see folder structure):
 
 Both of the file types hold the same name which stays for the base offset and
 can be considered as an unique identifier representing a 64 bit integer as a 20
-character file name. As it was defined for Apache Kafka, the base offset is the
-offset of the first log entry. For example if a log holds messages whereas the
-first message has the offset \textit{5 :: Int64} the file name of this log will
-be \textit{00000000000000000005.log} and the related index file
-\textit{00000000000000000005.index}.
+character file name. As it was defined for Apache Kafka, the \textbf{base
+offset} is the offset of the first log entry. For example if a log holds
+messages whereas the first message has the offset \textit{5 :: Int64} the file
+name of this log will be \textit{00000000000000000005.log} and the related
+index file \textit{00000000000000000005.index}.
 
 Using this naming convention and by
 viewing multiple log files one can extract information about what range of
 messages reside in which log. This is a very efficient way to perform a lookup
 which is needed for example to append new log messages or archive old messages.
 
-For example the topics named \textit{TopicA, TopicB and TopicC} with the partitions \textit{0} and
-\textit{1}:
+For example the topics named \textit{TopicA, TopicB and TopicC} with the
+partitions \textit{0} and \textit{1}:
+
 \begin{verbatim}
 log
 |
@@ -534,7 +536,65 @@ log
    |--00000000000000000000.index
    |--00000000000000000000.log
 \end{verbatim}
-\label{broker-storage}
+
+
+\subsection{Index}
+
+Every segment of a log has it's corresponding index, represented as a file with
+the suffix \textit{.index}. Both the log and the index file hold the same name
+name as it represents the base offset.
+
+Whereas the log file contains the actual messages structured in a
+message format and for each message within this file, the first 64 bits describe
+the incremented offset. Now, looking up this file for messages with a specific
+offset becomes very expensive since log files may grow in the range of gigabytes.
+And to be able to produce messages, the broker actually has to do such kind of
+lookups to determine the latest offset and be able to further increment
+incoming messages correctly. This is why there is an index.
+
+\subsubsection{Message Format}
+
+First of all, the structure of the messages within the index file describes
+only 2 fields, each of them 32 bit long:
+
+\begin{itemize}
+  \item 4 Bytes: Relative Offset
+  \item 4 Bytes: Physical Position
+\end{itemize}
+
+As described before, the file name represents the base offset. In contrast to
+the log, where the offset is incremented for each message, the messages within
+the index contain an offset relative to the base offset. The second field
+represents the physical position of the related log message. Compare to a log
+message, this can be considered as very small. In addition, there is to note
+that not every message within the log is going to be indexed. By default, an
+index entry is created only after \textbf{4096 Bytes} of log data. 
+
+\subsubsection{Lookup}
+
+As per protocol specification, the request to fetch messages (see
+\ref{subsubsec:protocol-fetchrequest}) holds the offset of the wanted message.
+Given this offset, one can determine the base offset and is discussed later on
+in the log section (see \ref{subsubsec:broker-log-general-baseoffset}).
+Assuming to have a valid base offset as well as the actual offset of the wanted
+message, it is not a big deal to figure out the relative offset of this
+message:
+
+\begin{verbatim}
+Relative Offset = Offset - Base Offset
+\end{verbatim}
+
+Given the relative offset, a lookup over the log can be processed. Remembering
+that the index is significantly smaller than the log and relies in memory, this
+lookup becomes reasonably fast. In fact, the file system will proceed a binary
+search and thus results in time complexity of O(log \textit{n}), where
+\textit{n} is the number of index entries.
+
+A successful lookup will then bring the information of the physical position of
+closest message to wanted message within the log -- and this is valuable. While
+the interval of index creation is fixed at a certain amount of bytes, a lookup
+of the actual log message, given the position of the closest indexed message
+will result in time complexity of O(1).
 
 \subsection{On-disk format}
 \subsubsection{Index entry}
@@ -559,22 +619,6 @@ fact, the on-disk format is exactly the same as the format of the MessageSet
 modified in any way and can directly be extracted and written to the file
 system.
 
-\todo{move the below to protocol}
-- log entry: N (4 byte integer -> message length) followed by message (N message bytes)
-- message: unique identifier (64 bit integer offset -> byte position of the start of this message in the stream of all messages ever sent to that topic on that partition)
-
-On-disk format of a message:
-
-offset: 8 bytes
-message length : 4 bytes (value: 1+4+n) 
-magic value  : 1 byte
-crc            : 4 bytes
-payload        : n bytes
-    ?:              : 1 byte
-    ?:              : 4 bytes
-    message length  : 4 bytes
-    message         : n bytes
-
 \subsection{Types}
 
 \begin{table}[H]
@@ -595,16 +639,10 @@ BaseOffset            & Int                          & 8 Byte offset as Int     
 }
 \end{table}
 
-\subsection{Write a log}
+\subsection{General functionality}
 
-Writing data, type of MessageSet \todo{ref to type}, to a log is the
-fundamental process behind the scenes of handling a ProduceRequest \todo{ref
-to request}. But before actually writing data to the file system, several
-steps come in between and will contribute significantly to the concept of
-Apache Kafka's Log system \todo{ref to kafka log}. This section describes
-the implementation details of the mentioned steps in the order of occurrence.
-
-\subsubsection{Base Offset}
+\subsubsection{Determine Base Offset}
+\label{subsubsec:broker-log-general-baseoffset}
 
 The incoming request -- which is at this point already parsed -- contains the
 topic as well as the partition number for the given set of messages. Thus, we
@@ -667,6 +705,17 @@ bos <- getBaseOffsets (t, p)
 return (maxOffset bos)
 \end{lstlisting}
 
+\subsection{Write a log}
+
+Writing data, type of MessageSet \todo{ref to type}, to a log is the
+fundamental process behind the scenes of handling a ProduceRequest \todo{ref
+to request}. But before actually writing data to the file system, several
+steps come in between and will contribute significantly to the concept of
+Apache Kafka's Log system \todo{ref to kafka log}. This section describes
+the implementation details of the mentioned steps in the order of occurrence.
+
+
+
 \subsubsection{Last Offset Position}
 
 Given the highest offset for a specific topic name and partition, the next step
@@ -708,7 +757,7 @@ getLastOffsetPosition (t, p) bo = do
 
 The last offset provided by the index file does not ensure that this is the
 last offset above all existing messages within the log. As described in the
-storage section (\ref{broker-storage}), index entries are created only after a
+storage section (\ref{log-broker-storage}), index entries are created only after a
 certain amount of bytes has been passed. The gap between the last offset of the
 index and the last offset of the log will be resolved by parsing the messages
 between the two offsets where the last of those messages can finally be
