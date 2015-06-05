@@ -637,16 +637,41 @@ BaseOffset            & Int                          & 8 Byte offset as Int     
 \subsubsection{Determine Base Offset}
 \label{subsubsec:broker-log-general-baseoffset}
 
-The incoming request -- which is at this point already parsed -- contains the
-topic as well as the partition number for the given set of messages. Thus, we
-can identify the location of the related log file. Given the location only, we yet do
-not know which file we actually have to.
-The file we want to write to is the one named after the highest offset,
-which is why we do not get around reading the content of this directory. While doing so,
-string transformations have to be applied to identify the correct offset and thus the
-file to write to. Handling the case where no file exists leads
-to the creation of a new log with the offset of zero.
-\\
+An incoming request -- which is at this point already parsed -- contains the
+topic as well as the partition number for the given set of messages. Thus,
+enough information is provided to identify the location -- in this case the path
+-- of the related log file.  The thing that is still missing now, is either in
+which file the messages should be appended (in case of a produce request) or
+from which file the messages should be read from (in case of a fetch request).
+
+In case of producing messages, the wanted file is the one named after the
+highest offset. To be able to determine existing files, followed by string
+transformations to identify the file with the highest number. This is why one
+does not get around reading the content of this directory. Handling the case
+where no file exists leads to the creation of a new log with the offset of zero.
+
+\begin{lstlisting}
+maxOffset :: [Int] -> Int
+maxOffset [] = 0
+maxOffset [x] = x
+maxOffset xs = maximum xs
+\end{lstlisting}
+
+In case of receiving messages, the process is almost the same. The only
+difference is, that the wanted file does not hold the highest offset but the one
+that hold the offset which is the next smaller regarding the provided offset
+number within a fetch request. Let's assume one wants to fetch the message with
+offset \textit{400} and yet there are two different pairs of log- and index
+files: \textit{100}, \textit{300}. The correct one would be \textit{300} as the
+message must reside within this file.
+
+\begin{lstlisting}
+%todo: code for next smaller
+nextSmaller :: [Int] -> Int -> Int
+nextSmaller [] _ = 0
+nextSmaller [x] _ = x
+nextSmaller xs x = last $ filter (<x) $ sort xs
+\end{lstlisting}
 
 Before applying filters and string transformations, the list of files has to be
 build. The library
@@ -658,23 +683,10 @@ described on
 \fnurl{hackage}{http://hackage.haskell.org/package/directory-1.2.2.1/docs/System-Directory.html\#v:getDirectoryContents},
 there are several causes why this operation may fail but at this point, we do
 not provide proper error handling.}
-
-Now Haskell can perform it's beauty. To get the list of all offsets within
-the directory, the function \textit{offsetFromFileName} extracts the offset
-as an \textit{Int} from a \textit{String}. As an example,
-\textit{"00000000000000000005.log" :: String } will be transformed to
-\textit{0000000000000000005 :: Int}:
-
-\begin{lstlisting}
-offsetFromFileName :: [Char] -> Int
-offsetFromFileName = read . reverse . snd . splitAt 4 . reverse
-\end{lstlisting}
-
 The function \textit{offsetFromFileName} can be mapped over a filtered list of
 strings, which will give the list of all offsets within the directory. The
 filter function basically omits the files other than the ones ending with
 \textit{".log"} as well as the root directories, typically \textit{".", ".."}.
-
 
 \begin{lstlisting}
 getBaseOffsets :: (TopicStr, Int) -> IO [BaseOffset]
@@ -683,19 +695,28 @@ dirs <- getDirectoryContents $ getLogFolder (t, p)
 return $ map (offsetFromFileName) (filter (isLogFile) (filterRootDir dirs))
 \end{lstlisting}
 
-Finally, the highest offset can be returned. If the list is empty -- and thus no log file 
-yet exists within the log folder -- zero will be returned.
+As hinted in the code above, a filter function is being used to get the list of
+all offsets within the directory. The function \textit{offsetFromFileName}
+extracts the offset as an \textit{Int} from a \textit{String}. As an example,
+\textit{"00000000000000000005.log" :: String } will be transformed to
+\textit{0000000000000000005 :: Int}:
 
 \begin{lstlisting}
-maxOffset :: [Int] -> Int
-maxOffset [] = 0
-maxOffset [x] = x
-maxOffset xs = maximum xs
+offsetFromFileName :: [Char] -> Int
+offsetFromFileName = read . reverse . snd . splitAt 4 . reverse
+\end{lstlisting}
 
-getLastBaseOffset :: (TopicStr, Int) -> IO BaseOffset
-getLastBaseOffset (t, p) = do
+Finally, the \lstinline{Maybe Offset} helps to distinguish between the highest offset
+(\lstinline{Nothing}) or the next smaller \lstinline{BaseOffset} related to a provided
+\lstinline{Just Offset}. 
+
+\begin{lstlisting}
+getLastBaseOffset :: (TopicStr, Int) -> Maybe Offset -> IO BaseOffset
+getLastBaseOffset (t, p) o = do
 bos <- getBaseOffsets (t, p)
-return (maxOffset bos)
+  case o of
+    Nothing -> return (maxOffset bos)
+    Just o  -> return (nextSmaller bos o)
 \end{lstlisting}
 
 \subsection{Write a log}
