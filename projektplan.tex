@@ -33,23 +33,8 @@ Dr. Simon Meier & simon.y.meier@gmail.com & Expert  \\ \hline\end{tabular}
 %\begin{itemize}
 %\item 
 %\end{itemize}
-
+\newpage
 \section{Planning}
-
-\subsection{Time tracking}
-Performed work is tracked via Atlassian JIRA platform where we manage issues for
-the project. 
-%Die Zeiterfassung wird von den Projektmitarbeitern in Redmine erfasst.
-%Redmine ist über folgenden Link erreichbar:
-%\url{http://152.96.56.42/redmine/}. Die Projektmitarbeiter haben einen
-%persönlichen Zugang  um die Daten zu erfassen. Der Betreuer hat
-%ebenfalls ein Zugang, mit welchem er die Fortschritte mitverfolgen kann.
-%Auf Redmine ist der aktuelle Stand des Projekts zu sehen.
-
-\subsection{Time schedule and objectives}
-
-We separated the work in four phases (adapted from Rational Unified Process,
-RUP) as follows:  
 
 \begin{figure}[H]
     \centering
@@ -58,32 +43,82 @@ RUP) as follows:
     \label{fig:MBig:the-log}
 \end{figure}
 
-\begin{tabular}[H]{|l|l|p{8cm}|}\hline
-    \textbf{Phase} & \textbf{Task} & \textbf{Objectives} \\ \hline \hline
-    Inception & Technology Research Kafka & 
-        \begin {itemize}
+\subsection{Milestones}
+Important points in the project are specified in table
+\ref{tab:MeilensteineZiele}. After reaching the planed end of a milestone, a
+set-actual comparison is made. 
+
+\begin{tabular}[H]{|p{4cm}|l|p{4.5cm}|p{4.5cm}|}\hline
+    \textbf{Milestone} & \textbf{Deadline} & \textbf{Objectives} & \textbf{Deliverables} \\ \hline
+    M0 Start of work & 16.02.2015 & - & -\\ \hline
+    M1 Completion of research  & 22.03.2015 & 
+        Necessary background knowledge about Kafka related topics as well as
+        Haskell skills are ready for implementation part. 
+        &
+        Documentation technology research \\ \hline
+    M2 End of elaboration & 19.04.2015 & 
+        After a period of three weeks we want to have a concept and first running
+        code to show some basic functionality and feasibility. 
+        &
+        Architecture prototype \\ \hline
+    M3 End of construction & 07.06.2015 & 
+        Code freeze, all planned features are implemented. Broker runs stable and
+        benchmark results exist. 
+        &
+        Stable broker and protocol implementation. Benchmarks results. \\ \hline
+  %\begin{itemize}
+  %  \item \ldot
+  %\end{itemize} \\ \hline
+\end{tabular}
+\captionof{table}{Milestones and their objectives}
+\label{tab:MeilensteineZiele}
+
+\newpage
+\subsection{Tasks}
+We separated the work in three phases inception, elaboration and construction
+(adapted from Rational Unified Process, RUP). For each phase we defined the
+following tasks and their subtasks to plan our work:
+
+\subsubsection{Inception}
+
+
+\begin{tabular}[H]{|p{6cm}|p{10cm}|}\hline
+    \textbf{Task} & \textbf{Subtasks} \\ \hline
+    Technology Research Kafka & 
+        \begin{itemize}
             \item Learn Messaging and Event Streaming fundamentals.
             \item Analyse Apache Kafka and related topics. 
             \item Write research documentation.
         \end{itemize} \\ \hline
-    Inception & Practice programming Haskell & 
-        \begin {itemize}
+    Practice programming Haskell & 
+        \begin{itemize}
             \item Familiarize with the functional paradigm.
             \item Setup developer environment and repositories. 
             \item Learn Haskell as functional programming language.
             \item Become acquainted to libraries regarding networking,
               building server application, and serialization.
         \end{itemize} \\ \hline
-    Elaboration & Architecture Prototype &
-        \begin {itemize}
+\end{tabular}
+
+\subsubsection{Elaboration}
+\begin{tabular}[H]{|p{6cm}|p{10cm}|}\hline
+   \textbf{Task} & \textbf{Subtasks} \\ \hline
+    Architecture Prototype &
+        \begin{itemize}
             \item Set up basic server architecture.
             \item Set up concept for implementing the wire protocol.
             \item Implement basic message workflow from producing messages and
             persisting at broker to consuming the data from another clients.
-            \item Implement simplified clients to demonstrate architecture.
+            \item Implement simplified clients to demonstrate architecture
+                prototype prototype.
         \end{itemize} \\ \hline
-    Construction & Protocol Implementation &
-        \begin {itemize}
+   \end{tabular}
+
+\subsubsection{Construction}
+\begin{tabular}[H]{|p{6cm}|p{10cm}|}\hline
+   \textbf{Task} & \textbf{Subtasks} \\ \hline
+    Protocol Implementation &
+        \begin{itemize}
             \item Build standalone package providing an independent Kafka
                 protocol library.
             \item Work out details of protocol implementation. Finish
@@ -93,7 +128,7 @@ RUP) as follows:
                 implementation.
             \item Test Kafka compatibility.
         \end{itemize} \\ \hline
-    Construction & Broker Implementation &
+    Broker Implementation &
         \begin{itemize}
             \item Work out server application handling multiple connections
             sending produce or consume requests.
@@ -101,29 +136,15 @@ RUP) as follows:
             \item Optimize performance to approximate performance approach of
             Apache Kafka. 
         \end{itemize} \\ \hline
-    Construction & Benchmarking &
+    Benchmarking &
         \begin{itemize}
             \item Test resulting broker implementation for performance.
             \item Comparing performance with Apache Kafka.
         \end{itemize} \\ \hline
-    Transition & Reserved & Reserved time for completion work and documentation.
-    \\ \hline
 \end{tabular}
 
-Important points in the project are specified in table
-\ref{tab:MeilensteineZiele}. After reaching the planed end of a milestone, a
-set-actual comparison is made. 
+Last week of the schedule is reserved for completion work and documentation. 
 
-\begin{tabular}[t]{|l|l|p{8cm}|}\hline
-    \textbf{Milestone} & \textbf{Deadline} & \textbf{Deliverables} \\ \hline \hline
-   % M0 & Start of work & 16.02.2015 & - \\ \hline
-   % M1 Inception  & 22.03.2015 & 
-  %\begin{itemize}
-  %  \item \ldots
-  %\end{itemize} \\ \hline
-\end{tabular}
-\captionof{table}{Meilensteine und deren Ziele}
-\label{tab:MeilensteineZiele}
 
 
 \newpage
@@ -161,9 +182,19 @@ Kommunikations"-probleme &
 Sollte trotz den vorbeugenden Massnahmen ein zeitlicher Schaden
 entstehen, muss die Projektplanung unter Umständen angepasst werden.
 
+\subsection{Time tracking}
+Performed work is tracked via Atlassian JIRA platform where we manage issues for
+the project. 
+%Die Zeiterfassung wird von den Projektmitarbeitern in Redmine erfasst.
+%Redmine ist über folgenden Link erreichbar:
+%\url{http://152.96.56.42/redmine/}. Die Projektmitarbeiter haben einen
+%persönlichen Zugang  um die Daten zu erfassen. Der Betreuer hat
+%ebenfalls ein Zugang, mit welchem er die Fortschritte mitverfolgen kann.
+%Auf Redmine ist der aktuelle Stand des Projekts zu sehen.
+
+
 \section{Qualitätsmanagement}
 
-%Achtungb Plagiat: 
 %Um die Arbeitsergebnisse qualitativ auf einem hohen Niveau zu halten,
 %arbeiten die Projektmitglieder nach dem Vier-Augen-Prinzip. Ein Dokument
 %wird immer von beiden durchgelesen. Allfällige Änderungen werden gleich
