@@ -537,6 +537,32 @@ log
    |--00000000000000000000.log
 \end{verbatim}
 
+\subsection{On-disk format}
+
+\subsubsection{Index entry}
+
+The structure of an entry within the index file describes only 2 fields, each of
+them 32 bit long:
+
+\begin{itemize}
+    \item 4 Bytes: Offset, relative to the base offset (file name)
+    \item 4 Bytes: Physical Position, relative to the beginning of the log file
+\end{itemize}
+
+The relative offset of an index entry added with it's base offset represents an
+actual message within the log. The second information, the physical position
+then tells on what position the message resides within the log.
+
+\subsubsection{Log entry}
+
+The log contains a sequence of log entries whereas the on-disk format of a log
+entry is is part of the reason why the Apache Kafka becomes that valuable. In
+fact, the on-disk format is exactly the same as the format of the MessageSet
+(see \ref{impl-protocol-types-data}) transmitted with a ProduceRequest
+\todo{add requests to protocol and link this}. Thus, data does not have to be
+modified in any way and can directly be extracted and written to the file
+system.
+
 
 \subsection{Index}
 
@@ -552,23 +578,13 @@ And to be able to produce messages, the broker actually has to do such kind of
 lookups to determine the latest offset and be able to further increment
 incoming messages correctly. This is why there is an index.
 
-\subsubsection{Message Format}
-
-First of all, the structure of the messages within the index file describes
-only 2 fields, each of them 32 bit long:
-
-\begin{itemize}
-  \item 4 Bytes: Relative Offset
-  \item 4 Bytes: Physical Position
-\end{itemize}
-
 As described before, the file name represents the base offset. In contrast to
 the log, where the offset is incremented for each message, the messages within
 the index contain an offset relative to the base offset. The second field
 represents the physical position of the related log message. Compare to a log
 message, this can be considered as very small. In addition, there is to note
 that not every message within the log is going to be indexed. By default, an
-index entry is created only after \textbf{4096 Bytes} of log data. 
+index entry is created only after \textbf{4096 Bytes} of log data.
 
 \subsubsection{Lookup}
 
@@ -595,29 +611,6 @@ closest message to wanted message within the log -- and this is valuable. While
 the interval of index creation is fixed at a certain amount of bytes, a lookup
 of the actual log message, given the position of the closest indexed message
 will result in time complexity of O(1).
-
-\subsection{On-disk format}
-\subsubsection{Index entry}
-An index entry consists of the following two fields whereas both of them are 4 bytes each:
-
-\begin{description}
-    \item[Relative offset] 4 Bytes offset relative to the base offset (file name)
-    \item[Physical position] 4 Bytes physical offset relative to the beginning of the log file
-\end{description}
-
-The relative offset of an index entry added with it's base offset represents an
-actual message within the log. The second information, the physical position then tells on what 
-position the message resides within the log. Thus, log access of O(n) becomes possible.
-
-\subsubsection{Log entry}
-
-The log contains a sequence of log entries whereas the on-disk format of a log
-entry is is part of the reason why the Apache Kafka becomes that valuable. In
-fact, the on-disk format is exactly the same as the format of the MessageSet
-(see \ref{impl-protocol-types-data}) transmitted with a ProduceRequest
-\todo{add requests to protocol and link this}. Thus, data does not have to be
-modified in any way and can directly be extracted and written to the file
-system.
 
 \subsection{Types}
 
