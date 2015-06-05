@@ -1,16 +1,16 @@
-\chapter{Implementation Protocol}
-\label{sec-protocol}
-First of all we started to implement the Kafka protocol \todo{ref}
-as data basis for all further functionality. The definition of the original
-protocol is given as context free grammar for the request and response binary
-format. Therefore it seemed likely to adopt the rules of the grammar to our
-protocol implementation by map them with the Haskell type system. In a second
-step we implemented encoder and decoder functions for getting messages from data
-structure to binary format and backwards. As decided in \ref{sec:separation}, we
-also provide a client library to isolate client implementations from details
-about the protocol. 
+\chapter{Implementation Protocol} \label{sec-protocol} This chapter provides
+details of the implementation of the Kafka protocol, which acts as basis for all
+further functionality. The definition of the original protocol is given as
+context free grammar for the request and response binary format. Therefore it
+seemed likely to adopt the rules of the grammar to our protocol implementation
+by map them with the Haskell type system. In a second step encoding and decoding
+functionality was implemented for getting messages from data structure to binary
+format and backwards. In addition to the protocol, a client library will be
+provided to not isolate client implementations from protocol implementation but
+also allow to build simple Apache Kafka or HMB clients in Haskell without
+touching the protocol at all.
 
-Therefore our protocol implementation consists of the following modules: 
+The protocol implementation consists of the following modules: 
 \begin{itemize}
     \item {Types: Mapping the protocol definition with Haskell type system. }
     \item {Decode: Provide functions to parse binary data to valid structure. }
@@ -20,29 +20,36 @@ Therefore our protocol implementation consists of the following modules:
 \end{itemize}
 
 \section{Types}
-The design of the Apache Kafka protocol allows to make a distinction between three kind of types:
+
+The design of the Apache Kafka protocol allows to make a distinction between
+three kind of types:
+
 \begin{enumerate}
   \item Related to request
   \item Related to response
   \item Related to data (for either request or response but can also be used for the \fnurl{Apache Kafka Log}{http://kafka.apache.org/documentation.html\#log} component since log files (on-disk) hold the same structure)
 \end{enumerate}
 
-As mentioned before, the representation of the protocol structure is implemented using the Haskell \fnurl{type
-system}{https://wiki.haskell.org/Type}, more concrete using data types created
-for our need using the named fields - also known as \fnurl{record
+As mentioned before, the representation of the protocol structure is implemented
+using the Haskell \fnurl{type system}{https://wiki.haskell.org/Type}, more
+concrete using data types created for our need using the named fields - also
+known as \fnurl{record
 syntax}{http://en.wikibooks.org/wiki/Haskell/More_on_datatypes}. Given this, a
 further step of abstraction is introduced by creating types for the binary
-representation of a protocol field. 
+representation (\ref{subsec:protocol-types-primitive}) of a protocol field, as
+described in.
 
 \subsection{Naming convention}
-As for request and response related types we had to introduce an own naming
-convention. As a matter of fact, not every field of some kind of request or
-response will be unique. For more than once, there is a field that will
-represent a \textit{topicName} for example. Thus, naming the field \textit{
-topicName} would have been the obvious solution but since the record syntax in
-Haskell won't allow to use the same name for a field twice - even in different
-data types - we defined unique prefixes for each request and response as being
-listed in the following table:
+
+For request and response related types a custom naming convention is introduced
+as it is a fact, that not every field of some kind of request or response will
+be unique. For more than once, there is a field that will represent a
+\textit{topicName} for example. Thus, naming the field \textit{topicName} would
+have been the obvious solution but since the record syntax in Haskell won't
+allow to use the same name for a field twice - even in different data types -
+unique prefixes were defined for each request and response. The following table
+provides information about the types related to request or response as well its
+prefix:
 
 \begin{table}[H]
 \centering
@@ -109,6 +116,7 @@ ProduceRequest =>
 \end{lstlisting}
 
 \subsection{Primitive Types}
+\label{subsec:protocol-types-primitive}
 
 The actual type for the data fields in the protocol have to match an unsigned
 integer type of its length. This can easily be done using the
