@@ -88,6 +88,22 @@ Apache Kafka or has it near the same throughput? Or are we still fare away from 
 approximation to the impressive performance of the reference system? This
 chapter will show the results of some benchmark tests.
 
+\subsection{Early tests}
+- Architecture prototype provided a console client which only produced one
+message per console input - no problems. Later in the construction phase of the broker, early test
+which repetively send requests uncovered many broker issues. 
+
+- Table : 
+Windows Full TCP -> Changing in Threading Concept
+Parsing error "not enought bytes" not over localhost -> Recv Exactly 
+RunPut not at latest point ins time -> 50 percent more performance
+Very slow writing performance -> false approach log
+
+\subsection{Profiling}
+- to specific analyze the complexity of the function we profiled. 
+- determine "bottleneck" functions
+
+\subsection{Test environment}
 -> Test System
 
 Broker Server Setup
@@ -97,6 +113,17 @@ One 7200 RPM SATA drive
 16GB of RAM
 1Gb Ethernet 
 \end{verbatim}
+
+\begin{lstlisting}
+import qualified System.Entropy as E
+
+main = do 
+    -- Socket setup 
+    -- ....
+
+    randBytes <- E.getEntropy 1000
+    let
+\end{lstlisting}
 
 \subsection{Network Throughput}
 The socket based communication must not be a bottleneck in a high performance
@@ -109,16 +136,6 @@ stream on multiple replicated brokers.
 To test the network throughput for this thesis, a benchmark producer
 which identify the limits is provided.
 
-\begin{lstlisting}
-import qualified System.Entropy as E
-
-main = do 
-    -- Socket setup 
-    -- ....
-
-    randBytes <- E.getEntropy 1000
-    let
-\end{lstlisting}
 
 
 The variance seems to be due to Linux's I/O management facilities that batch
