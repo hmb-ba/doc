@@ -86,7 +86,7 @@ After highlighting the implemented features above, the question about
 performance appears. Is the provided prototype already faster than the original
 Apache Kafka or has it near the same throughput? Or are we still fare away from any
 approximation to the impressive performance of the reference system? This
-chapter will show the results of some benchmark tests.
+chapter will show the results of tests made.
 
 \subsection{Test environment}
 The following tests and benchmarks are performed with one the following
@@ -109,6 +109,7 @@ One SSD SATA drive
 \end{verbatim}
 
 \subsection{HMB Performance Producer}
+\label{conc-eval-hmbperformanceprod}
 The HMB performance producer is used for stress tests to the broker system. Is
 generates messages of given size and batch them to a single request. It then
 repeatedly calls the client library function sendRequest to pack, endode and
@@ -133,14 +134,49 @@ main = do
 
 \end{lstlisting}
 
+\subsection{Kafka Performance Producer}
+\label{conc-eval-kafkaperformanceprod}
+\todo{intro}
+
+\fnurl{Kafka Performance Producer}
+{https://github.com/apache/kafka/blob/trunk/clients/src/main/java/org/apache/kafka/clients/tools/ProducerPerformance.java}
+
+Setup (Kafka version 2.10.0-0.8.2.0):
+ 
+\begin{verbatim}
+Start Zookeeper
+>bin/zookeeper-server-start.sh config/zookeeper.properties
+Start Kafka Node 
+> bin/kafka-server-start.sh config/server.properties
+Create Test Topic [TopicName] on broker server with [IP], one partition, no replication: 
+>bin/kafka-topics.sh --zookeeper [IP]:2181 --create --topic [TopicName] --partitions 1 --replication-factor 1
+Start single threaded producing benchmark: 
+> bin/kafka-run-class.sh org.apache.kafka.clients.tools.ProducerPerformance [TopiName] [NumberOfMessages] [MessageSize] -1 acks=1 bootstrap.servers=esv4-hcl198.grid.linkedin.com:9092 buffer.memory=67108864 batch.size=[BatchSize]
+\end{verbatim}
+
+
+\subsection{Test tools}
+\subsubsection{Wireshark}
+%Wireshark is used to track tcp streams of ongoing network communication. For the
+%To test network throughput and analyze transmitted tcp packaged the tool
+%Wireshark is used. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/benchmark/bench-1000-1-eth.png}
+    \caption{Example getting tcp throughput graph for specific benchmark test}
+\end{figure}
+
+\subsubsection{Iptraf-ng}
+
 \subsection{Early stress tests}
 A early version of the broker provided a console client which produced only one
 message per console input. This setup demonstrated that encoding/decoding of a
-request worked. Also the different broker layers done their job well.    -
-Later in the construction phase of the broker, early test which repeatedly send
-a large amount of requests in short period of time uncovered many broker
-issues. This kind of stress test is very useful to test network related issues
-and performance lacks. The following table lists some of the major findings: 
+request worked. Also the different broker layers done their job well.
+Later in the construction phase of the broker, tests which repeatedly send
+a large amount of requests in short period of time where introduced. This kind
+of stress test is very useful to test network related bugs and performance
+lacks. The following table lists some of the major issues, that were uncovered: 
 
 \begin{table}[H]
 \begin{tabular}{|p{4cm}|p{5cm}|p{6cm}|}
@@ -172,6 +208,7 @@ and sent to broker as single request, for efficiency. Increasing the batch size
 requires more memory. Persisting performance on the broker is not considered in
 this benchmark. 
 
+\subsubsection{Conditions}
 \begin{table}[H]
 \begin{tabular}{|l| p{12cm}|} \hline
 {\bf Message Size}   & 100 Bytes \\ \hline
@@ -187,14 +224,33 @@ this benchmark.
         \item HMB Broker, no replication, one partition
     \end{itemize}\\ \hline
 {\bf Scenarios} &
-    \begin{itemize}
+    \begin{enumerate}
         \item Kafka PerformanceProducer -> Kafka Broker
         \item HMB Produer -> Kafka Broker
         \item HMB Produder -> HMB Broker
-    \end{itemize} \\ \hline
+    \end{enumerate} \\ \hline
 \end{tabular}
 \end{table}
 \captionof{table}{Benchmark conditions "Effect of Producer Batch size"}
+
+\subsubsection{Results}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+{\bf Benchmark Variable} & \multicolumn{3}{c|}{{\bf Avg. Throughput {[}MB/s{]}}} \\ \hline
+Batch Size               & Scenario 1       & Scenario 2       & Scenario 3      \\ \hline
+1                        & 0                & 0                & 27              \\ \hline
+10                       & 0                & 0                & 22              \\ \hline
+100                      & 0                & 0                & 30              \\ \hline
+1000                     & 0                & 0                & 32              \\ \hline
+8192                     & 0                & 0                & 0               \\ \hline
+16384                    & 0                & 0                & 0               \\ \hline
+\end{tabular}
+\end{table}
+\captionof{table}{Results of benchmark "Effect of Producer Batch size"}
+
+\subsubsection{Conclusion}
 
 
 \subsection{Benchmark "Effect of Message size"}
@@ -204,7 +260,7 @@ size of a single message to the resulting transmission of bytes per
 second. Persisting performance on the broker is not considered in
 this benchmark.
 
-
+\subsubsection{Conditions}
 \begin{table}[H]
 \begin{tabular}{|l| p{12cm}|} \hline
 {\bf Message Size}   & 100 | 1000 | 10000 | 100000 | 1000000 Bytes \\ \hline
@@ -220,62 +276,80 @@ this benchmark.
         \item HMB Broker, no replication, one partition
     \end{itemize}\\ \hline
 {\bf Scenarios} &
-    \begin{itemize}
+    \begin{enumerate}
         \item Kafka PerformanceProducer -> Kafka Broker
         \item HMB Produer -> Kafka Broker
         \item HMB Produder -> HMB Broker
-    \end{itemize} \\ \hline
+    \end{enumerate} \\ \hline
 \end{tabular}
 \end{table}
-\captionof{table}{Benchmark conditions "Effect of Producer Message size"}
+\captionof{table}{Benchmark conditions "Effect of Message size"}
 
-
-
-\subsection{Network Throughput}
-The socket based communication must not be a bottleneck in a high performance
-broker. A producer should be able to send with near the maximal throughput of
-its local network card, whereas the broker needs to handle the incoming data
-streams as fast as possible. If the limits of a single network connection is
-reached, the next step to improve performance is to balance the data
-stream on multiple replicated brokers.
-
-To test the network throughput for this thesis, a benchmark producer
-which identify the limits is provided.
-
-
-
-The variance seems to be due to Linux's I/O management facilities that batch
-data and then flush it periodically.
--> Durchgeführte Tests 
-
--> Resultat Network Throuput 
-
--> Resultat Writing to the log 
--> Vergleich Kafka (ref to Blog) 
-
-\begin{table}[h]
-\begin{tabular}{|c|c|c|c|}
+\subsubsection{Results}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
 \hline
-{\bf Request Size (with ReqHeader)} & {\bf Message Size {[}Byte{]}} & {\bf Batch Size} & {\bf \begin{tabular}[c]{@{}c@{}}Avg. Throughput\\ {[}MB/s{]}\end{tabular}} \\ \hline
-150 B                               & 100                           & 1                & 27                                                                         \\ \hline
-1050 B                              & 100                           & 10               & 22                                                                         \\ \hline
-10.050 KB                           & 100                           & 100              & 30                                                                         \\ \hline
-100.050 KB                          & 100                           & 1000             & 32                                                                         \\ \hline
-1 MB                                & 100                           & 10000            & 40                                                                         \\ \hline
-550 B                               & 500                           & 1                & 66                                                                         \\ \hline
-1050 B                              & 500                           & 2                & 81                                                                         \\ \hline
-10.050 B                            & 500                           & 20               & 80                                                                         \\ \hline
-100.050 KB                          & 500                           & 200              & 96                                                                         \\ \hline
-1 MB                                & 500                           & 2000             & 68                                                                         \\ \hline
-1050 B                              & 1000                          & 1                & 104                                                                        \\ \hline
-10.050 B                            & 1000                          & 10               & 110                                                                        \\ \hline
-100.050 KB                          & 1000                          & 100              & 112                                                                        \\ \hline
-1 MB                                & 1000                          & 1000             & 87                                                                         \\ \hline
-10.050 B                            & 10000                         & 1                & 117                                                                        \\ \hline
-100.050 KB                          & 10000                         & 10               & *                                                                          \\ \hline
-1 MB                                & 10000                         & 100              & *                                                                          \\ \hline
+{\bf Benchmark Variable} & \multicolumn{3}{c|}{{\bf Avg. Throughput {[}MB/s{]}}} \\ \hline
+Message Size             & Scenario 1       & Scenario 2       & Scenario 3      \\ \hline
+100 B                    & 0                & 0                & 0               \\ \hline
+1000 B (1 KB)            & 0                & 0                & 0               \\ \hline
+10000 B (10 KB)          & 0                & 0                & 0               \\ \hline
+100000 B (100 KB)        & 0                & 0                & 0               \\ \hline
+1000000 (1 MB)           & 0                & 0                & 0               \\ \hline
 \end{tabular}
 \end{table}
+\captionof{table}{Results of benchmark "Effect of Message size"}
+
+\subsection{Benchmark "Log Persistency"}
+
+\subsection{Benchmark "Encode/Decode"}
+
+%\subsection{Network Throughput}
+%The socket based communication must not be a bottleneck in a high performance
+%broker. A producer should be able to send with near the maximal throughput of
+%its local network card, whereas the broker needs to handle the incoming data
+%streams as fast as possible. If the limits of a single network connection is
+%reached, the next step to improve performance is to balance the data
+%stream on multiple replicated brokers.
+
+%To test the network throughput for this thesis, a benchmark producer
+%which identify the limits is provided.
+
+
+
+%The variance seems to be due to Linux's I/O management facilities that batch
+%data and then flush it periodically.
+%-> Durchgeführte Tests 
+
+%-> Resultat Network Throuput 
+
+%-> Resultat Writing to the log 
+%-> Vergleich Kafka (ref to Blog) 
+
+%\begin{table}[h]
+%\begin{tabular}{|c|c|c|c|}
+%\hline
+%{\bf Request Size (with ReqHeader)} & {\bf Message Size {[}Byte{]}} & {\bf Batch Size} & {\bf \begin{tabular}[c]{@{}c@{}}Avg. Throughput\\ {[}MB/s{]}\end{tabular}} \\ \hline
+%150 B                               & 100                           & 1                & 27                                                                         \\ \hline
+%1050 B                              & 100                           & 10               & 22                                                                         \\ \hline
+%10.050 KB                           & 100                           & 100              & 30                                                                         \\ \hline
+%100.050 KB                          & 100                           & 1000             & 32                                                                         \\ \hline
+%1 MB                                & 100                           & 10000            & 40                                                                         \\ \hline
+%550 B                               & 500                           & 1                & 66                                                                         \\ \hline
+%1050 B                              & 500                           & 2                & 81                                                                         \\ \hline
+%10.050 B                            & 500                           & 20               & 80                                                                         \\ \hline
+%100.050 KB                          & 500                           & 200              & 96                                                                         \\ \hline
+%1 MB                                & 500                           & 2000             & 68                                                                         \\ \hline
+%1050 B                              & 1000                          & 1                & 104                                                                        \\ \hline
+%10.050 B                            & 1000                          & 10               & 110                                                                        \\ \hline
+%100.050 KB                          & 1000                          & 100              & 112                                                                        \\ \hline
+%1 MB                                & 1000                          & 1000             & 87                                                                         \\ \hline
+%10.050 B                            & 10000                         & 1                & 117                                                                        \\ \hline
+%100.050 KB                          & 10000                         & 10               & *                                                                          \\ \hline
+%1 MB                                & 10000                         & 100              & *                                                                          \\ \hline
+%\end{tabular}
+%\end{table}
 
 
 \section{Outlook}
