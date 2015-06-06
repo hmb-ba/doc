@@ -668,6 +668,7 @@ decodeRqMessage b = runGet requestMessageParser b
 
 
 \subsection{Encode Request/Response}
+\label{sec:impl-prot-encoding}
 Obviously the encode module provides the opposite functionalities as the decode
 module and was separated just for clarity. The implementation also rely on
 \fnurl{Data.Binary}{https://hackage.haskell.org/package/binary-0.4.1/docs/Data-Binary.html}

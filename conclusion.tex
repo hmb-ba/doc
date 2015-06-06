@@ -88,31 +88,31 @@ Apache Kafka or has it near the same throughput? Or are we still fare away from 
 approximation to the impressive performance of the reference system? This
 chapter will show the results of some benchmark tests.
 
-\subsection{Early tests}
-- Architecture prototype provided a console client which only produced one
-message per console input - no problems. Later in the construction phase of the broker, early test
-which repetively send requests uncovered many broker issues. 
-
-- Table : 
-Windows Full TCP -> Changing in Threading Concept
-Parsing error "not enought bytes" not over localhost -> Recv Exactly 
-RunPut not at latest point ins time -> 50 percent more performance
-Very slow writing performance -> false approach log
-
-\subsection{Profiling}
-- to specific analyze the complexity of the function we profiled. 
-- determine "bottleneck" functions
-
 \subsection{Test environment}
--> Test System
+The following tests and benchmarks are performed with one the following
+hardware setup:
 
-Broker Server Setup
+Broker Server:
 \begin{verbatim}
 Intel(R) Xeon(R) CPU E3-1245 v3 @ 3.40GHz
 One 7200 RPM SATA drive
 16GB of RAM
 1Gb Ethernet 
 \end{verbatim}
+
+Client Hardware:
+\begin{verbatim}
+Intel(R) Core(TM) i7-2720QM CPU @ 2.20GHz
+One SSD SATA drive
+16GB of RAM 
+1Gb Ethernet
+\end{verbatim}
+
+\subsection{HMB Performance Producer}
+The HMB performance producer is used for stress tests to the broker system. Is
+generates messages of given size and batch them to a single request. It then
+repeatedly calls the client library function sendRequest to pack, endode and
+send the request. The following code shows the simplified main function: 
 
 \begin{lstlisting}
 import qualified System.Entropy as E
@@ -121,9 +121,115 @@ main = do
     -- Socket setup 
     -- ....
 
-    randBytes <- E.getEntropy 1000
-    let
+    -- Get numberOfBytes and batchSize as variable input 
+    -- ....
+
+    randBytes <- E.getEntropy numberOfBytes 
+    let batch = [randBytes | x <- [1..batchSize]]
+
+    replicateM_ 1000000 (sendRequest sock req) 
+    putStrLn "done produce"
+    return ()
+
 \end{lstlisting}
+
+\subsection{Early stress tests}
+A early version of the broker provided a console client which produced only one
+message per console input. This setup demonstrated that encoding/decoding of a
+request worked. Also the different broker layers done their job well.    -
+Later in the construction phase of the broker, early test which repeatedly send
+a large amount of requests in short period of time uncovered many broker
+issues. This kind of stress test is very useful to test network related issues
+and performance lacks. The following table lists some of the major findings: 
+
+\begin{table}[H]
+\begin{tabular}{|p{4cm}|p{5cm}|p{6cm}|}
+\hline
+{\bf Uncovered Issue}                                                                                  & {\bf Cause}                                                                                                                                                                                                                 & {\bf Solution}                                                                                                                                                                                                                                                                                    \\ \hline
+Dramatically slowdown after short period of time                                                       & TCP Zero Window - Socket receive buffer of broker full                                                                                                                                                                      & Broker application was to slow in receiving, parsing and handling incoming requests. Threading concept need to be optimized (see \ref{sec:impl-broker-threading}). The process of parsing an incoming request need to be swap out to another thread, so that the network receive thread can reduce socket buffer fast enough. \\ \hline
+Parsing from socket error "not enough bytes"  when testing over network interface instead of loopback. & The len argument to the recv system call is merely the upper bound on the received length (e.g. the size of the target buffer); the call may produce less data than asked for & Introduced function which checks if really the exact amount of bytes is read. If not, the recv call is repeat until all requested bytes are present (see details in \ref{sec:impl-broker-socket-receive}).                                                                                                                                              \\ \hline
+Throughput drop when producing larger request with nested list                                         & Issue in encoding a request, called runPut on each sub element and appended to a whole.                                                                                                                                     & No appending of parsed sub elements. Restructure encode module by running runPut at latest point in time. This gaves +50\% performance in building requests (see \ref{sec:impl-prot-encoding}).                                                                                                                                      \\ \hline
+Very slow performance in persisting messages to the log (file system).                                 & No state and batching at broker side. Each incoming message ended in multiple file accesses which slowed down the whole process.                                                                                                                                & Messages need to be sum up to larger chunks of bytes. After defined period of time or amount of bytes, multiple messages need to be flushed to disk at once (see details of different approaches in \ref{sec:impl-broker-log}).                                                                                                                                      \\ \hline
+\end{tabular}
+\end{table}
+\captionof{table}{Uncovered issues in early stress tests}
+
+
+\subsection{Profiling}
+When dealing with thousands of request per seconds, function with high complexity
+can cause terribly bottlenecks. A method to analyze Haskell code for
+potentially slow functions is time and allocation profiling provided by GHC.
+
+-- Setup?
+-- Results 
+
+\subsection{Benchmark "Effect of Producer Batch size"}
+The goal of this benchmark is to analyze the network throughput between
+producer client and broker system.  The focus lies on the effect of changing
+the batch size at producer client to the resulting transmission of bytes per
+second. The batch size determines, how many messages will be packed together
+and sent to broker as single request, for efficiency. Increasing the batch size
+requires more memory. Persisting performance on the broker is not considered in
+this benchmark. 
+
+\begin{table}[H]
+\begin{tabular}{|l| p{12cm}|} \hline
+{\bf Message Size}   & 100 Bytes \\ \hline
+{\bf Batch Size}     & 1 | 10 | 100 | 1000 | 8192 (default Kafka benchmarks) | 16384 \\ \hline
+{\bf Tested Clients} &
+    \begin{itemize}
+        \item Kafka PerformanceProducer 2.10-0.8.2.0 (ref), single threaded
+        \item HMB Producer (ref), single threaded
+    \end{itemize}\\ \hline
+{\bf Tested Brokers} &
+    \begin{itemize}
+        \item Kafka Broker 2.10-0.8.2.0 (ref), no replication, one partition
+        \item HMB Broker, no replication, one partition
+    \end{itemize}\\ \hline
+{\bf Scenarios} &
+    \begin{itemize}
+        \item Kafka PerformanceProducer -> Kafka Broker
+        \item HMB Produer -> Kafka Broker
+        \item HMB Produder -> HMB Broker
+    \end{itemize} \\ \hline
+\end{tabular}
+\end{table}
+\captionof{table}{Benchmark conditions "Effect of Producer Batch size"}
+
+
+\subsection{Benchmark "Effect of Message size"}
+The goal of this benchmark is to analyze the network throughput between
+producer client and broker system. The focus lies on the effect of changing the
+size of a single message to the resulting transmission of bytes per
+second. Persisting performance on the broker is not considered in
+this benchmark.
+
+
+\begin{table}[H]
+\begin{tabular}{|l| p{12cm}|} \hline
+{\bf Message Size}   & 100 | 1000 | 10000 | 100000 | 1000000 Bytes \\ \hline
+{\bf Batch Size}     & 8192 (default Kafka benchmarks)\\ \hline
+{\bf Tested Clients} &
+    \begin{itemize}
+        \item Kafka PerformanceProducer 2.10-0.8.2.0 (ref), single threaded
+        \item HMB Producer (ref), single threaded
+    \end{itemize}\\ \hline
+{\bf Tested Brokers} &
+    \begin{itemize}
+        \item Kafka Broker 2.10-0.8.2.0 (ref), no replication, one partition
+        \item HMB Broker, no replication, one partition
+    \end{itemize}\\ \hline
+{\bf Scenarios} &
+    \begin{itemize}
+        \item Kafka PerformanceProducer -> Kafka Broker
+        \item HMB Produer -> Kafka Broker
+        \item HMB Produder -> HMB Broker
+    \end{itemize} \\ \hline
+\end{tabular}
+\end{table}
+\captionof{table}{Benchmark conditions "Effect of Producer Message size"}
+
+
 
 \subsection{Network Throughput}
 The socket based communication must not be a bottleneck in a high performance
