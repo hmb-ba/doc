@@ -40,7 +40,6 @@ an overview of what part of the protocol is implemented and what remains open:
         \fail Offset Request
         \fail Offset Response
     \end{itemize}
-
     \item Offset Commit/Fetch API
     \begin{itemize}
         \fail Consumer Metadata Request
@@ -56,11 +55,11 @@ an overview of what part of the protocol is implemented and what remains open:
 The main approach of this work is the implementation of a message broker in
 Haskell. The resulting application provides a server with basic functionality
 in networking and persisting messages. The broker supports Kafka clients as
-it is based on the protocol implementation mentioned above.
+it is based on the protocol implementation mentioned above. The following list
+gives an overview what features the broker system already provides and what
+remains open:
 
-..?: 
-
-Producing Messages: 
+Produce API: 
 \begin{itemize}
         \tick Publishing messages to specific topic and partition
         \tick Persist messages in log based file structure
@@ -69,7 +68,7 @@ Producing Messages:
         \fail Configurable Acknowledgements and Timeout
 \end{itemize}
 
-Fetch Messages: 
+Fetch API: 
 \begin{itemize}
         \tick Consuming messages of a specific topic and partition
         \tick Request Messages depending on given offset
@@ -78,9 +77,38 @@ Fetch Messages:
         \fail Support maximum amount of time to block, waiting if insufficient
         data is available
 \end{itemize}
-Clustering: The scope lies on a single broker system with a producer and
-consumer API. There is no support for broker replication yet. 
 
+Metadata API: 
+\begin{itemize}
+        \tick Fetching available topic names from broker 
+        \fail Fetching broker information
+        \fail Fetching topic-partition status
+        \fail Fetching replication information
+\end{itemize}
+
+Other API's:
+Not supported yet.
+
+Persistence (Log): 
+\begin{itemize}
+        \tick Persist messages in topic-partition specific log
+        \tick Batched access to file system
+        \tick Sendfile call for accessing data from the log
+        \tick Provide log index for more efficiency
+        \fail ...
+        \fail Data retention, whereas old data is discarded or Kafka's log compaction is applied. 
+\end{itemize}
+
+Remaining major broker features: 
+\begin{itemize}
+        \fail Clustering: as the scope of this thesis lies on a single broker
+        system, there is not support for brokers replication yet.
+        \fail Message Compression with GZIP
+        \fail Consumer Groups, as subscription model form multiple clients which consume a specific topic.
+        \fail Zookeeper Integration 
+\end{itemize}
+
+\newpage
 \section{Evaluation}
 After highlighting the implemented features above, the question about
 performance appears. Is the provided prototype already faster than the original
