@@ -1,2 +1,170 @@
 \chapter{Task Description}
-(by Josef Joller)
+\section{Betreuer}
+\begin{itemize}
+    \item J.M.Joller, Dozent für Informatik
+\end{itemize}
+
+\section{Ausgangslage, Problembeschreibung}
+Funktionale Programmieransätze werden zunehmend auch in klassischen
+Programmiersprachen eingebaut:  Lambdas, Streaming API um nur zwei Beispiele zu
+nennen. Sprachen wie Scala mit ihrem sehr reichen Typensystem sind aber in der
+Regel nur nicht und in ganzer Tiefe verständlich wenn der Entwickler über
+vertiefte Kenntnisse einer strikt funktionalen Programmiersprache besitzt. Die
+Erfahrungen in Industrieprojekten mit Scala zeigen, dass nur sehr gut
+ausgebildete Entwickler brauchbaren und wartbaren Scala Code schreiben können. 
+
+Auf Grund dieser Beobachtungen basiert der MAS Kurs über funktionale
+Programmierung auf Haskell, genau wie der Multi-Paradigmen Teilmodul im Modul
+Compilerbau.
+
+\section{Aufgabenstellung}
+Ein Ziel der Arbeit ist zunächst die Erarbeitung einer Übersicht zum
+Entwicklungsstand der Message basierten Middleware (MON), speziell der Event
+Streaming Ansätze. 
+
+\par
+\begingroup
+\leftskip4em
+\rightskip\leftskip
+Wesentliches Ergebnis dieses Teil ist die Einordnung des in Scala geschrieben
+Message Brokers "Kafka" von Apache / Linked. Kafka hat die Ansprüche "fast,
+scalable, durable, distributed by design" zu sein (Dokumentation von Apache
+Kafka: \url{http://kafka.apache.org/}).
+\par
+\endgroup
+
+Ein weiteres  Ziel ist die Definition und Implementierung des
+Kommunikations-Protokolls ("Wire-Protocol") von Kafka mithilfe von Haskell.
+
+\par
+\begingroup
+\leftskip4em
+\rightskip\leftskip
+Dieser Teil der Arbeit ist zentral, da über das Protokoll unterschiedlich
+(Programmier-Sprachen, Betriebssystem) entwickelte Clients mit Kafka
+kommunizieren können.
+\par
+\endgroup
+
+Das dritte Ziel ist die Implementierung von Grundfunktionen von Kafka in
+Haskell.
+
+\par
+\begingroup
+\leftskip4em
+\rightskip\leftskip
+Da Kafka vom Design her auf starke Dezentralisierung ausgerichtet ist, verwendet
+Kafka "ZooKeeper" (Apache) auf den unteren Layern. Diese Funktionalität
+(Multi-Cluster) übersteigt die Möglichkeiten einer Bachelorarbeit (BA). Die BA
+beschränkt sich auf einen Cluster.
+\par
+\endgroup
+
+Ein wichtiges Ziel ist der Performance-Vergleich der Haskell mit der Scala
+Implementierung.
+
+\par
+\begingroup
+\leftskip4em
+\rightskip\leftskip
+Dazu muss Kafka installiert und ein sinnvoller Benchmark definiert werden.
+\par
+\endgroup
+
+\section{Zur Durchführung}
+Die Bearbeitung der Aufgabe setzt eine Einarbeitung in technischen Grundlagen
+von Message Brokern und in die Programmierung mit Haskell  voraus.
+
+Solide Programmierkenntnisse und die Bereitschaft, sich rasch neues
+Domänenwissen anzueignen, werden vorausgesetzt. 
+
+Wegen der variablen Breite der Aufgabe eignet sich das Thema gut für eine
+Bearbeitung durch zwei Studierende. 
+
+Mit dem Betreuer finden in der Regel wöchentliche Besprechungen statt.
+Zusätzliche Besprechungen sind nach Bedarf durch die Studierenden zu
+veranlassen. Alle Besprechungen sind von den Studenten mit einer Traktandenliste
+vorzubereiten und die Ergebnisse sind in einem Protokoll zu dokumentieren, das
+dem Betreuer per E-Mail zugestellt wird.
+
+Für die Durchführung der Arbeit ist ein Projektplan zu erstellen. Dabei ist auf
+einen kontinuierlichen und sichtbaren Arbeitsfortschritt zu achten. An
+Meilensteinen gemäss Projektplan sind einzelne Arbeitsresultate in vorläufigen
+Versionen abzugeben. Über die abgegebenen Arbeitsresultate erhalten die
+Studierenden ein vorläufiges Feedback. Eine definitive Beurteilung erfolgt auf
+Grund der am Abgabetermin abgelieferten Implementierung und Dokumentation. 
+
+\section{Dokumentation und Abgabe}
+Wegen der beabsichtigten Verwendung der Ergebnisse in der Lehre wird auf
+Vollständigkeit sowie (sprachliche und grafische) Qualität der Dokumentation
+erhöhter Wert gelegt.
+
+Die Dokumentation zur Projektplanung und –Verfolgung ist gemäss den Richtlinien
+der Abteilung Informatik anzufertigen. Die Detailanforderungen an die
+Dokumentation der Recherche- und Entwicklungsergebnisse werden entsprechend dem
+konkreten Arbeitsplan festgelegt.
+
+Die Dokumentation ist vollständig auf CD in drei Exemplaren abzugeben.
+Neben der Dokumentation sind abzugeben:
+
+\begin{itemize}
+    \item ein Poster zur Präsentation der Arbeit
+    \item alle zum Nachvollziehen der Arbeit notwendigen Ergebnisse und Daten (Quellcode,
+        Buildskripte, Testcode, Testdaten usw.)
+    \item Material für eine Abschlusspräsentation (ca. 20’)
+\end{itemize}
+
+\section{Termine}
+\begin{table}[H]
+\begin{tabular}{|l|p{12cm}|}
+\cline{1-2}
+{\bf FS 2015}     & {\bf Beginn der Bachelorarbeit, Ausgabe der Aufgabenstellung
+durch die Betreuer}
+  \\ \cline{1-2}
+1. Semesterwoche  & Kick-off Meeting
+  \\ \cline{1-2}
+2. Semesterwoche  & Abgabe der Projektplanung (Entwurf), einschliesslich ggf. zu
+beschaffender Hardware
+  \\ \cline{1-2}
+4. Semesterwoche  & \begin{tabular}[c]{@{}l@{}}Abgabe eines vorläufigen
+Technologierechercheberichts und eines\\ detaillierten Vorschlags für einen
+Arbeitsplan. Festlegung des\\ Projektplans mit dem Betreuer\end{tabular}   \\
+\cline{1-2}
+6. Semesterwoche  & \begin{tabular}[c]{@{}l@{}}Abgabe eines Umsetzungsvorschlags
+für die Experimentierumgebung\\ (Funktionsumfang, Aufwandsabschätzung)\\
+Abstimmung und Festlegung mit dem Betreuer\end{tabular}              \\
+\cline{1-2}
+7. Semesterwoche  & Abgabe Anforderungs- und Domainanalyse für die
+Experimentierumgebung
+  \\ \cline{1-2}
+10. Semesterwoche & Reviewmeeting Softwaredesign für die Experimentierumgebung
+  \\ \cline{1-2}
+13. Semesterwoche & Vorstellung der Implementierung (Arbeitsstand)
+  \\ \cline{1-2}
+Anfang Juni 2015  & \begin{tabular}[c]{@{}l@{}}Abgabe der Kurzbeschreibung für
+die Diplomarbeitsbroschüre und des\\ A0-Posters zur Kontrolle an den
+Betreuer\end{tabular}                                                     \\
+\cline{1-2}
+Mitte Juni 2015   & Abgabe des Berichtes an den Betreuer (bis 12:00 Uhr),Abgabe
+des Posters im Studiengangsekretariat
+  \\ \cline{1-2}
+\end{tabular}
+\end{table}
+\captionof{table}{Termine}
+
+Die detaillierten Termine werden durch die Abteilung für Informatik festgelegt.
+Sie erhalten zur gegebenen Zeit ein email vom  Abteilungs-Sekretariat.
+
+\section{Literaturhinweise}
+\begin{itemize}
+    \item [1] Apache Kafka: \url{http://kafka.apache.org}
+    \item [2] Apache ZooKeeper: \url{http://zookeeper.apache.org}
+    \item [3] Haskell: \\
+           Hutton Programming Haskell
+           \url{http://www.cs.nott.ac.uk/~gmh/book.html}\\
+            Miran Lipovača; Learn you a Haskell
+            \url{http://leanyouahaskell.com} \\
+            Bryan O'Sullivan, Don Stewart, and John Goerzen  Real World Haskell 
+            \url{http://book.realworldhaskell.org}
+\end{itemize}
+
