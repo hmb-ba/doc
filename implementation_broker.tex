@@ -25,14 +25,12 @@ layers, each in its own module.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.4\textwidth]{images/impl-brok-layers.png}
+    \includegraphics[width=0.45\textwidth]{images/impl-brok-layers.png}
     \caption{Three subsystems of broker server application}
     \label{fig:impl-brok-layers}
 \end{figure}
 
-
-
-
+\newpage
 \section{Network Layer}
 \label{sec:broker-network}
 
@@ -70,11 +68,14 @@ network layer. For further details about the threading concept see section
 \subsubsection{Initialize Socket}
 
 First of all, the initialization process of a socket happens on the server by providing the following configuration parameters:
-\begin{description}
-  \item[Protocol Family] \textit{AF\_INET}, for network protocol IPv4
-  \item[Socket Type] \textit{Stream}, which provides sequenced, reliable, two-way, connection-based byte streams.
-  \item[Protocol Number] \textit{0}, which indicates that the caller does not want to specify the protocol and will leave it up to the service provider.
-\end{description}
+
+\begin{itemize}
+    \item {\bf Protocol Family:} \textit{AF\_INET}, for network protocol IPv4
+    \item {\bf Socket Type:} \textit{Stream}, which provides sequenced, reliable, two-way, connection-based byte streams.
+    \item {\bf Protocol Number:} \textit{0}, which indicates that the caller does not want to specify the protocol and will leave it up to the service provider.
+\end{itemize}
+
+\todo{Socketoption (Send, Recv Buffer, ReuseAddr, etc.)}
 
 \subsubsection{Bind Socket}
 
@@ -83,12 +84,12 @@ structure which is a constellation of an IP Address and Port. The constructor
 \textit{SockAddrInet} of the data type \textit{SockAddr} takes the following
 two arguments:
 
-\begin{description}
-  \item[Port Number] 4343
-  \item[Host Address] iNADDR\_ANY, which binds the socket to all interfaces
-\end{description}
+\begin{itemize}
+    \item {\bf Port Number} 4343
+    \item {\bf Host Address} iNADDR\_ANY, which binds the socket to all interfaces
+\end{itemize}
 
-TODO: static but could be done with dynamic configuration
+\todo{static but could be done with dynamic configuration}
 
 \subsubsection{Listen}
 
@@ -158,8 +159,9 @@ The actual message is already provided as binary data from the API layer. The
 network layer simply needs to send the bytes over the existing connection back
 to the client. For sending data over socket function sendAll from \fnurl{Network.Socket.ByteString.Lazy}
 {https://hackage.haskell.org/package/network-2.3.0.1/docs/Network-Socket-ByteString-Lazy.html}
-is used. This function continues to send data until either all
-data has been sent or an error occurs. For further details about the Error Handling, see section \ref{}
+is used. This function continues to send data until either all data has been
+sent or an error occurs. For further details about the Error Handling, see
+section \ref{}
 
 \begin{lstlisting}
 import qualified Data.ByteString.Lazy as B
@@ -215,7 +217,7 @@ handleRequest rm = do
 
 A message broker relies fundamentally on error handling has to be discussed very
 serious as fault tolerance and reliability are key requirements \todo{ref:
-relieablility in messaging section} of such a system. The first part of this
+reliablility in messaging section} of such a system. The first part of this
 section concentrates on the architectural details and decisions being made
 regarding the error handling. Using a demonstration of a message flow, possible
 edge cases they have to be considered will be uncovered in order to provide

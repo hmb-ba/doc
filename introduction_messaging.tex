@@ -9,7 +9,7 @@ understand the capabilities of Apache Kafka.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.35\textwidth]{images/messaging-intro.png}
+    \includegraphics[width=0.3\textwidth]{images/messaging-intro.png}
     \caption{Messaging terms}
     \label{fig:MBig:the-log}
 \end{figure}
@@ -30,7 +30,7 @@ a developers.\cite{POSA1}\cite{TAN06}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\textwidth]{images/messaging-simple.png}
+    \includegraphics[width=0.5\textwidth]{images/messaging-simple.png}
     \caption{Basic principle of a message queue}
     \label{fig:messaging-simple}
 \end{figure}
@@ -162,7 +162,7 @@ further unpack and finally get the transmitted data (5).
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.6\textwidth]{images/mom-schema.png}
+    \includegraphics[width=0.5\textwidth]{images/mom-schema.png}
     \caption{Schematic flow of communication in a basic messaging system }
     \label{fig:message-oriented-middleware}
 \end{figure}
@@ -268,7 +268,7 @@ which we can adapt for a message based environment by using the common terms.
         functionality from the rest of the client code. Based on incoming
         messages it calls services within the consumer component. }
 \end{description}
-
+\newpage
 \subsection{Consumption Model}
 A fundamental design decision of a message broker is whether consumers
     should pull data from brokers or brokers should push data to consumers. This
@@ -276,11 +276,7 @@ A fundamental design decision of a message broker is whether consumers
     push-based environment the consumers can be the bottleneck when its
     consumption rate falls below the rate of production. In a pull-based system
     consumers which fall back can catch up at any time, the risk of
-    bottleneck lies at the broker thus a message broker should scale well. On
-    the other hand in a pull-based environment a consumer never knows whether a
-    message is ready for consumption or not. In worst case this ends up with a
-    read loop where the consumer constantly need to check the queue. 
-
+    bottleneck lies at the broker thus a message broker should scale well.
 \begin{figure}[H]
     \centering
      \begin{sequencediagram}
@@ -315,6 +311,10 @@ A fundamental design decision of a message broker is whether consumers
     \caption{Basic flow of a Broker event based consumption}
     \label{fig:MB-SSD-1}
 \end{figure}
+\newpage 
+On the other hand in a pull-based environment a consumer never knows whether a
+message is ready for consumption or not. In worst case this ends up with a read
+loop where the consumer constantly need to check the queue. \todo{more details}
 
 \begin{figure}[H]
     \centering
@@ -414,6 +414,7 @@ A reliable delivery of messages can promise a specific behaviour to producer
     the strict same order they are sent from the producer to the broker. 
 
 \section{Challenges of a Messaging System}
+\todo[inline]{more details of cut off}
 \label{intro-messaging-characteristics}
 As described, a messaging system has its strengths in interoperability and louse
 coupling of distributed computers. 
