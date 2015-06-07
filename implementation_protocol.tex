@@ -782,6 +782,9 @@ For parsing received responsed sent from broker, the client library exposes
 functions for decoding the binary data. 
 
 \begin{lstlisting}
+To expose functionality for the client to decode responses sent from broker, the
+client library provides specific decode functions: 
+
 decodePrResponse :: BL.ByteString -> ResponseMessage
 decodePrResponse a = runGet produceResponseMessageParser a
 
@@ -790,9 +793,58 @@ decodeFtResponse b = runGet fetchResponseMessageParser b
 
 decodeMdResponse :: BL.ByteString -> ResponseMessage
 decodeMdResponse b = runGet metadataResponseMessageParser b
+\end{lstlisting}
+
+Instead of exposing the decode functions for response, it is conceivable to
+provide unpack functionality which decodes the request and extracts relevant
+fields to a simplified type structure (analog to sendRequest function above).
+
+\newpage
+\section{Testing}
+For Haskell there are multiple frameworks for automated testing provided. To
+test the functionality of the protocol implementation, \fnurl{hspec}
+{https://hackage.haskell.org/package/hspec} is used. It provides good
+integration within a cabal project (after setup run tests by simply call \lstinline{cabal test})
+and generates useful tests logs to \lstinline{/dist/test/}. It also supports
+interoperability to other frameworks like
+\fnurl{HUnit}{https://hackage.haskell.org/package/HUnit}.
+
+Major approach in the implemented tests is to determine if the encode and decode
+functions are corresponding. Therefore a given type (e.g. ProduceRequest) is
+encoded to bytestring and afterwards decoded back to the type. Is the resulting
+type equals to the original, than the process was successful. This helps to
+determine wrong or missing instruction in encoding/decoding when protocol
+changed. The goal is also to easily test abnormal input or varying
+for example the size of lists from zero to N elements. To simplify code of
+single tests, type fixtures are implemented. The fixtures helps to assemble
+types together from different fixtures whereas their fields are already filled
+with some sample values. 
+
+The following code shows an extract of the protocol tests:
+\begin{lstlisting}
+import Test.Hspec
+import SpecFixtures
+
+spec :: Spec
+spec = do
+  describe "Kafka.Protocol" $ do
+    context "MessageSet" $ do
+      it "Test1: Default Value" $ do
+        let ms = getMessageSetFixture $ getMessageFixture $ getPayloadFixture "Test"
+        testMs ms
+      it "Test2: No Value" $ do
+        let ms = getMessageSetFixture $ getMessageFixture $ getPayloadFixture ""
+        testMs ms
+      it "Test3: JSON like Value" $ do
+        let ms = getMessageSetFixture $ getMessageFixture $ getPayloadFixture
+           "[ obj : { value : 123 }]"
+        testMs ms
+
+testMs :: MessageSet -> Expectation
+testMs m = (runGet messageSetParser $ runPut $ buildMessageSet m) `shouldBe` m
 
 \end{lstlisting}
 
-TODO: Not yet implemented: Unpack Response Message to abstract types (like with
-Req)
+
+
 
