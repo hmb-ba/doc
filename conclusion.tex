@@ -111,12 +111,17 @@ Remaining major broker features:
 \newpage
 \section{Evaluation}
 After highlighting the implemented features above, the question about
-performance appears. Is the provided prototype already faster than the original
+performance appears. Is the provided prototype potentially faster than the original
 Apache Kafka or has it near the same throughput? Or are we still fare away from any
 approximation to the impressive performance of the reference system? This
-chapter will show the results of tests made.
+chapter describes the environment and tools with which the system are tested.
+It also gives insight in early stress tests which were very useful in finding
+network related bugs. Additional benchmarks are defined to demonstrate the
+performance of the final version of the Haskell message broker. For comparison, 
+the original Apache Kafka system is involved to the benchmarks by runing the
+equivalent tests on same hardware.
 
-\subsection{Test environment}
+\subsection{Test Setup}
 The following tests and benchmarks are performed with one the following
 hardware setup:
 
@@ -211,8 +216,8 @@ Start single threaded producing benchmark:
 %\subsubsection{Iptraf-ng}
 \newpage
 \subsection{Early stress tests}
-A early version of the broker provided a console client which produced only one
-message per console input. This setup demonstrated that encoding/decoding of a
+A early version of the broker provided a console client which produced 
+messages per console input. This setup demonstrated that encoding/decoding of a
 request worked. Also the different broker layers done their job well.
 Later in the construction phase of the broker, tests which repeatedly send
 a large amount of requests in short period of time where introduced. This kind
@@ -240,7 +245,7 @@ potentially slow functions is time and allocation profiling provided by GHC.
 -- Setup?
 -- Results 
 
-\subsection{Benchmark "Effect of Message Batch size"}
+\subsection{Producer Benchmark "Effect of Message Batch size"}
 The goal of this benchmark is to analyze the network throughput between
 producer client and broker system.  The focus lies on the effect of changing
 the batch size at producer client to the resulting transmission of bytes per
@@ -299,7 +304,7 @@ Batch Size [Byte]        & Scenario 1       & Scenario 2       & Scenario 3   & 
 \subsubsection{Conclusion}
 
 
-\subsection{Benchmark "Effect of Message size"}
+\subsection{Producer Benchmark "Effect of Message size"}
 The goal of this benchmark is to analyze the network throughput between
 producer client and broker system. The focus lies on the effect of changing the
 size of a single message to the resulting transmission of bytes per
