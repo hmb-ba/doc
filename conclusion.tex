@@ -138,10 +138,11 @@ One SSD SATA drive
 
 \subsection{HMB Performance Producer}
 \label{conc-eval-hmbperformanceprod}
-The HMB performance producer is used for stress tests to the broker system. Is
-generates messages of given size and batch them to a single request. It then
-repeatedly calls the client library function sendRequest to pack, endode and
-send the request. The following code shows the simplified main function: 
+The HMB performance producer is a simple console application used for stress
+tests to the broker system. Is generates messages of given size and batch them
+to a single request. It then repeatedly calls the client library function
+sendRequest to pack, endode and send the request. The following code shows the
+simplified main function: 
 
 \begin{lstlisting}
 import qualified System.Entropy as E
@@ -164,39 +165,51 @@ main = do
 
 \subsection{Kafka Performance Producer}
 \label{conc-eval-kafkaperformanceprod}
-\todo{intro}
-
-\fnurl{Kafka Performance Producer}
+The \fnurl{Kafka Performance Producer}
 {https://github.com/apache/kafka/blob/trunk/clients/src/main/java/org/apache/kafka/clients/tools/ProducerPerformance.java}
+is a official product of Apache Kafka to systematic test their broker
+system. It is a wrapper around the original Kafka producer client for producing
+as much messages as possible. It provides many \fnurl{configuration options}
+{http://kafka.apache.org/documentation.html\#newproducerconfigs} for specific
+benchmarks. Because the Haskell message broker offers Kafka compatibility,  this
+performance producer also can be used als alternative to the HMB performance
+producer to test 
 
-Setup (Kafka version 2.10.0-0.8.2.0):
- 
+The following listing shows the setup for the benchmarks of this thesis,
+values in [] brackets are variable. 
 \begin{verbatim}
 Start Zookeeper
 >bin/zookeeper-server-start.sh config/zookeeper.properties
+
 Start Kafka Node 
 > bin/kafka-server-start.sh config/server.properties
-Create Test Topic [TopicName] on broker server with [IP], one partition, no replication: 
->bin/kafka-topics.sh --zookeeper [IP]:2181 --create --topic [TopicName] --partitions 1 --replication-factor 1
+
+Create Test Topic [TopicName] on broker server with [IP], 
+one partition, no replication: 
+>bin/kafka-topics.sh --zookeeper [IP]:2181 
+    --create --topic [TopicName] --partitions 1 --replication-factor 1
+
 Start single threaded producing benchmark: 
-> bin/kafka-run-class.sh org.apache.kafka.clients.tools.ProducerPerformance [TopiName] [NumberOfMessages] [MessageSize] -1 acks=1 bootstrap.servers=esv4-hcl198.grid.linkedin.com:9092 buffer.memory=67108864 batch.size=[BatchSize]
+> bin/kafka-run-class.sh org.apache.kafka.clients.tools.ProducerPerformance 
+    [TopiName] [NumberOfMessages] [MessageSize] -1 acks=1 
+    bootstrap.servers=[IP]:[Port] buffer.memory=67108864 batch.size=[BatchSize]
 \end{verbatim}
 
 
-\subsection{Test tools}
-\subsubsection{Wireshark}
+%\subsection{Test tools}
+%\subsubsection{Wireshark}
 %Wireshark is used to track tcp streams of ongoing network communication. For the
 %To test network throughput and analyze transmitted tcp packaged the tool
 %Wireshark is used. 
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.85\textwidth]{images/benchmark/bench-1000-1-eth.png}
-    \caption{Example getting tcp throughput graph for specific benchmark test}
-\end{figure}
+%\begin{figure}[H]
+%    \centering
+%    \includegraphics[width=0.85\textwidth]{images/benchmark/bench-1000-1-eth.png}
+%    \caption{Example getting tcp throughput graph for specific benchmark test}
+%\end{figure}
 
-\subsubsection{Iptraf-ng}
-
+%\subsubsection{Iptraf-ng}
+\newpage
 \subsection{Early stress tests}
 A early version of the broker provided a console client which produced only one
 message per console input. This setup demonstrated that encoding/decoding of a
@@ -227,20 +240,23 @@ potentially slow functions is time and allocation profiling provided by GHC.
 -- Setup?
 -- Results 
 
-\subsection{Benchmark "Effect of Producer Batch size"}
+\subsection{Benchmark "Effect of Message Batch size"}
 The goal of this benchmark is to analyze the network throughput between
 producer client and broker system.  The focus lies on the effect of changing
 the batch size at producer client to the resulting transmission of bytes per
-second. The batch size determines, how many messages will be packed together
-and sent to broker as single request, for efficiency. Increasing the batch size
-requires more memory. Persisting performance on the broker is not considered in
-this benchmark. 
+second. The batch size determines the amount of bytes for which messages will
+be packed together and sent to broker as single request for efficiency.
+Increasing the batch size requires more memory. The size of a single message is
+fixed to 100 bytes, because if is the more interesting case for a messaging system
+(generally). It is easy to get good throughput in MB/sec if the messages are
+large, but much harder to get good throughput when the messages are small, as
+the overhead of processing each message dominates. 
 
 \subsubsection{Conditions}
 \begin{table}[H]
 \begin{tabular}{|l| p{12cm}|} \hline
 {\bf Message Size}   & 100 Bytes \\ \hline
-{\bf Batch Size}     & 1 | 10 | 100 | 1000 | 8192 (default Kafka benchmarks) | 16384 \\ \hline
+{\bf Batch Size [B]} & 100 | 1000 | 8192 (Kafka benchmarks) | 16384 (Kafka default) \\ \hline
 {\bf Tested Clients} &
     \begin{itemize}
         \item Kafka PerformanceProducer 2.10-0.8.2.0 (ref), single threaded
@@ -251,9 +267,13 @@ this benchmark.
         \item Kafka Broker 2.10-0.8.2.0 (ref), no replication, one partition
         \item HMB Broker, no replication, one partition
     \end{itemize}\\ \hline
-{\bf Scenarios} &
+{\bf Measurement} & Resulting TCP throughput over a period of 10 seconds, analyzed with
+    Wireshark. \\ \hline
+{\bf Scenarios} & Producing as much messages as possible from client (left) to broker (right).
+    The size of messages batched together varies in defined steps.
     \begin{enumerate}
-        \item Kafka PerformanceProducer -> Kafka Broker
+        \item Kafka Performance Producer -> Kafka Broker
+        \item Kafka Performance Producer -> HMB Broker
         \item HMB Produer -> Kafka Broker
         \item HMB Produder -> HMB Broker
     \end{enumerate} \\ \hline
@@ -264,16 +284,14 @@ this benchmark.
 \subsubsection{Results}
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|l|l|l|}
+\begin{tabular}{|l|l|l|l|l|}
 \hline
-{\bf Benchmark Variable} & \multicolumn{3}{c|}{{\bf Avg. Throughput {[}MB/s{]}}} \\ \hline
-Batch Size               & Scenario 1       & Scenario 2       & Scenario 3      \\ \hline
-1                        & 0                & 0                & 27              \\ \hline
-10                       & 0                & 0                & 22              \\ \hline
-100                      & 0                & 0                & 30              \\ \hline
-1000                     & 0                & 0                & 32              \\ \hline
-8192                     & 0                & 0                & 0               \\ \hline
-16384                    & 0                & 0                & 0               \\ \hline
+{\bf Benchmark Variable} & \multicolumn{4}{c|}{{\bf Avg. Throughput {[}MB/s{]}}} \\ \hline
+Batch Size [Byte]        & Scenario 1       & Scenario 2       & Scenario 3   & Scenario 4   \\ \hline
+100                      & 0                & 0                & 30   &           \\ \hline
+1000                     & 0                & 0                & 32   &           \\ \hline
+8192                     & 0                & 0                & 0    &           \\ \hline
+16384                    & 0                & 0                & 0    &           \\ \hline
 \end{tabular}
 \end{table}
 \captionof{table}{Results of benchmark "Effect of Producer Batch size"}
@@ -291,8 +309,8 @@ this benchmark.
 \subsubsection{Conditions}
 \begin{table}[H]
 \begin{tabular}{|l| p{12cm}|} \hline
-{\bf Message Size}   & 100 | 1000 | 10000 | 100000 | 1000000 Bytes \\ \hline
-{\bf Batch Size}     & 8192 (default Kafka benchmarks)\\ \hline
+{\bf Message Size}   & 10 | 100 | 1000 | 10000 | 100000 | Bytes \\ \hline
+{\bf Batch Size}     & 12800 \\ \hline
 {\bf Tested Clients} &
     \begin{itemize}
         \item Kafka PerformanceProducer 2.10-0.8.2.0 (ref), single threaded
@@ -303,9 +321,11 @@ this benchmark.
         \item Kafka Broker 2.10-0.8.2.0 (ref), no replication, one partition
         \item HMB Broker, no replication, one partition
     \end{itemize}\\ \hline
-{\bf Scenarios} &
-    \begin{enumerate}
-        \item Kafka PerformanceProducer -> Kafka Broker
+{\bf Scenarios} & Producing as much messages as possible from client (left) to broker (right).
+    The size of a messages varies in defined steps. The batch size thereby is a fixed value. 
+  \begin{enumerate}
+        \item Kafka Performance Producer -> Kafka Broker
+        \item Kafka Performance Producer -> HMB Broker
         \item HMB Produer -> Kafka Broker
         \item HMB Produder -> HMB Broker
     \end{enumerate} \\ \hline
@@ -316,22 +336,21 @@ this benchmark.
 \subsubsection{Results}
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|l|l|l|}
+\begin{tabular}{|l|l|l|l|l|}
 \hline
-{\bf Benchmark Variable} & \multicolumn{3}{c|}{{\bf Avg. Throughput {[}MB/s{]}}} \\ \hline
-Message Size             & Scenario 1       & Scenario 2       & Scenario 3      \\ \hline
-100 B                    & 0                & 0                & 0               \\ \hline
-1000 B (1 KB)            & 0                & 0                & 0               \\ \hline
-10000 B (10 KB)          & 0                & 0                & 0               \\ \hline
-100000 B (100 KB)        & 0                & 0                & 0               \\ \hline
-1000000 (1 MB)           & 0                & 0                & 0               \\ \hline
+{\bf Benchmark Variable} & \multicolumn{4}{c|}{{\bf Avg. Throughput {[}MB/s{]}}} \\ \hline
+Message Size             & Scenario 1       & Scenario 2       & Scenario 3     & Scenario 4 \\ \hline
+10 B                     &                  &                  & 0              &           \\ \hline
+100 B                    & 0                & 0                & 0              &            \\ \hline
+1000 B (1 KB)            & 0                & 0                & 0              &            \\ \hline
+10000 B (10 KB)          & 0                & 0                & 0              &            \\ \hline
+100000 B (100 KB)        & 0                & 0                & 0              &             \\ \hline
+1000000 (1 MB)           & 0                & 0                & 0              &             \\ \hline
 \end{tabular}
 \end{table}
 \captionof{table}{Results of benchmark "Effect of Message size"}
 
-\subsection{Benchmark "Log Persistency"}
-
-\subsection{Benchmark "Encode/Decode"}
+%\subsection{Benchmark "Encode/Decode"}
 
 %\subsection{Network Throughput}
 %The socket based communication must not be a bottleneck in a high performance
