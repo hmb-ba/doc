@@ -2,17 +2,17 @@
 \section{Results}
 \label{sec:conc-results}
 \subsection{Technology Research}
-The first result of this thesis is the prestudy documentation, which
-resumes gathered knowledge in the familiarization phase of this work.
-It gives an insight in messaging fundamentals and  takes a closer look to Apache
-Kafka and related topics.
+The first result of this thesis is the documentation of the technology research,
+which resumes gathered knowledge in the familiarization phase of this
+work. It gives an insight in messaging fundamentals and takes a closer look to
+Apache Kafka and related topics. The document can be offered for using as
+academic amendment for existing lectures.
 
 \subsection{Protocol Implementation}
 A fundamental result of this thesis is the implementation of the Apache Kafka
 protocol in Haskell. The design decision of separating protocol related code
 from the broker implementation leads to a isolated product which can be used as
-library for different project. The code is provided through an open sourced
-repository for further development. \todo{ref to Github}
+library for different project.
 
 A complete implementation of the Apache Kafka Protocol would go beyond the scope
 of this thesis as the focus lies not only in implementing the protocol but also
@@ -102,13 +102,6 @@ Persistence (Log):
         \fail Data retention, whereas old data is discarded after fix period of
             time or Kafka's log compaction is applied. 
 \end{itemize}
-%Remaining major broker features:
-%\begin{itemize}
-%        \fail ZooKeeper integration / Clustering: as the scope of this thesis lies on a single broker
-%        system, there is not support for brokers replication yet.
-%        \fail Remaining APIs (Offset API and Offset Commit/Fetch API)
-%        \fail Consumer Groups, as subscription model from multiple clients which consume a specific topic.
-%\end{itemize}
 
 \newpage
 \section{Evaluation}
