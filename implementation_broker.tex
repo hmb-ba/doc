@@ -743,7 +743,12 @@ type Indices = Map.Map (L.TopicStr, L.PartitionNr) [OffsetPosition]
 newtype IndexState = IndexState (MVar Indices)
 \end{lstlisting}
 
-\subsection{General functionality}
+\subsection{Common used functions}
+
+There are small amount of commonly used functions in the log as well as in the
+index. The \textit{LogConfig} seems to be the right location to place those
+intended to be imported with a qualified name such as simply \lstinline{L},
+standing for Log.
 
 \subsubsection{Determine Base Offset}
 \label{subsubsec:broker-log-general-baseoffset}
@@ -751,7 +756,7 @@ newtype IndexState = IndexState (MVar Indices)
 An incoming request -- which is at this point already parsed -- contains the
 topic as well as the partition number for the given set of messages. Thus,
 enough information is provided to identify the location -- in this case the path
--- of the related log file.  The thing that is still missing now, is either in
+-- of the related log or index file.  The thing that is still missing now, is either in
 which file the messages should be appended (in case of a produce request) or
 from which file the messages should be read from (in case of a fetch request).
 
@@ -830,17 +835,17 @@ bos <- getBaseOffsets (t, p)
     Just o  -> return (nextSmaller bos o)
 \end{lstlisting}
 
-\subsection{Write a log}
+\subsection{Append to Log}
 
-Writing data, type of MessageSet \todo{ref to type}, to a log is the
-fundamental process behind the scenes of handling a ProduceRequest \todo{ref
-to request}. But before actually writing data to the file system, several
-steps come in between and will contribute significantly to the concept of
-Apache Kafka's Log system \todo{ref to kafka log}. This section describes
-the implementation details of the mentioned steps in the order of occurrence.
+Writing data, type of MessageSet, to a log is the fundamental process behind the
+scenes of handling a \lstinline{produceRequest}
+(\ref{subsec:broker-api-producerequest}). But before actually writing data
+to the file system, several steps come in between and will contribute
+significantly to the concept of Apache Kafka's Log system which are adapted in
+this implementation. This section describes the implementation details of the
+mentioned steps in the order of occurrence.
 
-
-
+\subsection{Wrong approach}
 \subsubsection{Last Offset Position}
 
 Given the highest offset for a specific topic name and partition, the next step
