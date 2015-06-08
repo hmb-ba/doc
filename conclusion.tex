@@ -60,17 +60,16 @@ what part of the protocol is implemented and what remains open:
 \subsection{Haskell Message Broker}
 
 The main approach of this work is the implementation of a message broker in
-Haskell. The resulting application provides a server with basic functionality
-in handling requests via network and persisting messages. The broker is fully
-Kafka compatible as it is based on the protocol implementation.
-In comparison to original Apache Kafka there are of course a lot of features
-missing to offer the same functionality. Furthermore as the scope of this
-thesis lies on a single broker system, there is no support for broker
-replication yet. Nevertheless the provided Haskell Message broker is a
-prototype which shows feasibility of developing a similar system in a
-fully-fledged functional program language as Haskell is. The following list
-gives an overview what features the broker system already provides and what
-remains open in the particular area.
+Haskell. The resulting application provides a server with basic functionality in
+handling requests via network and persisting messages. The broker is fully Kafka
+compatible as it is based on the protocol implementation.  In comparison to
+original Apache Kafka there are of course a lot of features missing to offer the
+same functionality. Furthermore as the scope of this thesis lies on a single
+broker system, there is no support for broker replication yet. Nevertheless the
+provided Haskell Message broker is a prototype which shows feasibility of
+developing a similar system in a fully-fledged functional program language as
+Haskell is. The following list gives an overview what features the broker system
+already provides and what remains open in the particular area.
 
 Produce API:
 \begin{itemize}
@@ -101,7 +100,8 @@ Persistence (Log):
 \begin{itemize}
         \tick Persist messages in topic-partition specific log structure
         \tick Read messages from log, optimized with index file
-        \tick Provide LogManager for handling files and directories structure 
+        \tick Provide LogManager for handling files and directories structure
+        \fail Wirte Index to disk and rebuild the memory after the broker is restarted
         \fail Data retention, whereas old data is discarded after fix period of
             time or Kafka's log compaction is applied. 
 \end{itemize}
@@ -288,12 +288,12 @@ the overhead of processing each message dominates.
 {\bf Batch Size [B]} & 100 | 1000 | 8192 (Kafka benchmarks) | 16384 (Kafka default) \\ \hline
 {\bf Tested Clients} &
     \begin{itemize}
-        \item Kafka PerformanceProducer 2.10-0.8.2.0 (ref), single threaded
-        \item HMB Producer (ref), single threaded
+        \item Kafka PerformanceProducer 2.10-0.8.2.0, single threaded
+        \item HMB Producer, single threaded
     \end{itemize}\\ \hline
 {\bf Tested Brokers} &
     \begin{itemize}
-        \item Kafka Broker 2.10-0.8.2.0 (ref), no replication, one partition
+        \item Kafka Broker 2.10-0.8.2.0, no replication, one partition
         \item HMB Broker, no replication, one partition
     \end{itemize}\\ \hline
 {\bf Measurement} & Resulting TCP throughput over a period of 10 seconds, analyzed with
@@ -301,10 +301,10 @@ the overhead of processing each message dominates.
 {\bf Scenarios} & Producing as much messages as possible from client (left) to broker (right).
     The size of messages batched together varies in defined steps.
     \begin{enumerate}
-        \item Kafka Performance Producer -> Kafka Broker
-        \item Kafka Performance Producer -> HMB Broker
-        \item HMB Produer -> Kafka Broker
-        \item HMB Produder -> HMB Broker
+        \item Kafka Performance Producer $\rightarrow$ Kafka Broker
+        \item Kafka Performance Producer $\rightarrow$ HMB Broker
+        \item HMB Produer $\rightarrow$ Kafka Broker
+        \item HMB Produder $\rightarrow$ HMB Broker
     \end{enumerate} \\ \hline
 \end{tabular}
 \end{table}
@@ -342,12 +342,12 @@ this benchmark.
 {\bf Batch Size}     & 12800 \\ \hline
 {\bf Tested Clients} &
     \begin{itemize}
-        \item Kafka PerformanceProducer 2.10-0.8.2.0 (ref), single threaded
-        \item HMB Producer (ref), single threaded
+        \item Kafka PerformanceProducer 2.10-0.8.2.0, single threaded
+        \item HMB Producer, single threaded
     \end{itemize}\\ \hline
 {\bf Tested Brokers} &
     \begin{itemize}
-        \item Kafka Broker 2.10-0.8.2.0 (ref), no replication, one partition
+        \item Kafka Broker 2.10-0.8.2.0, no replication, one partition
         \item HMB Broker, no replication, one partition
     \end{itemize}\\ \hline
 {\bf Measurement} & Resulting TCP throughput over a period of 10 seconds, analyzed with
@@ -355,10 +355,10 @@ this benchmark.
 {\bf Scenarios} & Producing as much messages as possible from client (left) to broker (right).
     The size of a messages varies in defined steps. The batch size thereby is a fixed value. 
   \begin{enumerate}
-        \item Kafka Performance Producer -> Kafka Broker
-        \item Kafka Performance Producer -> HMB Broker
-        \item HMB Produer -> Kafka Broker
-        \item HMB Produder -> HMB Broker
+        \item Kafka Performance Producer $\rightarrow$ Kafka Broker
+        \item Kafka Performance Producer $\rightarrow$ HMB Broker
+        \item HMB Produer $\rightarrow$ Kafka Broker
+        \item HMB Produder $\rightarrow$ HMB Broker
     \end{enumerate} \\ \hline
 \end{tabular}
 \end{table}
@@ -431,18 +431,20 @@ Message Size             & Scenario 1       & Scenario 2       & Scenario 3     
 
 
 \section{Outlook}
-What are the next steps? As described in section \ref{sec:conc-results}, the
-resulting broker implementation is not a finalized product, rather a prototype.
-It shows that it is feasible to develop an Apache Kafka like broker system
-written in Haskell. A extendable and scalable implementation base and
-architecture is provided.  The first benchmarks demonstrated nearly the same
-performance than the original version. We are sure, with further work one could
-build the current version to an extraordinary broker system.
 
-Summarized, the next tasks to do at the prototype are as follows:
+What are the next steps? As described in section \ref{sec:conc-results}, the
+resulting broker implementation is not a finalized product -- it is a prototype.
+It shows that it is feasible to develop an Apache Kafka like broker system
+written in Haskell. An extendable and scalable implementation base and
+architecture is provided.  The first benchmarks demonstrated nearly the same
+performance than the original version. We are certain taht with further work one
+could build the current version to an extraordinary broker system.
+
+Summarized, the next tasks to do at the prototype would involve:
 \begin{enumerate}
     \item Implementation and handling of remaining API's
-    \item Work off more details for Client API 
+    \item Extending the log subsystem
+    \item Work off more details for Client API
     \item Further optimizations
 \end{enumerate}
 
