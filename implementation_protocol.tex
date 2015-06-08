@@ -189,14 +189,14 @@ used.
     \caption{Format of type RequestMessage}
     \label{fig:impl-prot-types-requestMessage}
 \end{figure}
-
+\todo{figure false! (see table)}
 \begin{table}[H]
 \centering
 \begin{tabular}{ l  l  p{10cm} }
 \hline
-RequestSize   & Data.Word16     & Gives the size of the subsequent request message in bytes. The client can read requests by first reading this 4 byte size as an integer N and then reading and parsing the subsequent N bytes of the request. \\ \hline
-ApiKey        & Data.Word32     & This is a numeric id for the API being invoked                                                                                                                                                              \\ \hline
-ApiVersion    & Data.Word32     & Number of element in following list.                                                                                                                                                                          \\ \hline
+RequestSize   & Data.Word32     & Gives the size of the subsequent request message in bytes. The client can read requests by first reading this 4 byte size as an integer N and then reading and parsing the subsequent N bytes of the request. \\ \hline
+ApiKey        & Data.Word16     & This is a numeric id for the API being invoked                                                                                                                                                              \\ \hline
+ApiVersion    & Data.Word16     & Number of element in following list.                                                                                                                                                                          \\ \hline
 CorrelationId & Data.Word32     & Will be passed back in the response by the broker unmodified. It is useful for matching request and response between the client and server.                                                                   \\ \hline
 StringLength  & Data.Word16     & Length, in bytes, of string ClientId                                                                                                                                                                          \\ \hline
 ClientID      & Data.ByteString & Identifier for the client application                                                                                                                                                                         \\ \hline
