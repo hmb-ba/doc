@@ -43,7 +43,8 @@ Furthermore three milestones were set to define particular objectives we want to
 achieve at a specific time (see table \ref{tab:MeilensteineZiele}).  After reaching the
 planed end of a milestone, a set-actual comparison is made (see
 \ref{sec:status-tracking}). Performed work is
-tracked via an Atlassian JIRA platform where we manage tasks for the project. 
+tracked via an Atlassian JIRA platform where we manage tasks for the project.
+Specific issues are tracked and managed via GitHub Repository. 
 
 
 \subsection{Time schedule}
@@ -72,7 +73,8 @@ tracked via an Atlassian JIRA platform where we manage tasks for the project.
         Code freeze, all planned features are implemented. Broker runs stable and
         benchmark results exist. 
         &
-        Stable broker and protocol implementation. Benchmarks results. \\ \hline
+        Stable broker and protocol implementation. Benchmarks results. Technical
+        report.\\ \hline
   %\begin{itemize}
   %  \item \ldot
   %\end{itemize} \\ \hline
@@ -97,7 +99,7 @@ tracked via an Atlassian JIRA platform where we manage tasks for the project.
     Practice programming Haskell & 
         \begin{itemize}
             \item Familiarize with the functional paradigm.
-            \item Setup developer environment and repositories. 
+            \item Setup developer environment. 
             \item Learn Haskell as functional programming language.
             \item Become acquainted to libraries regarding networking,
               building server application, and serialization.
@@ -112,8 +114,8 @@ tracked via an Atlassian JIRA platform where we manage tasks for the project.
         \begin{itemize}
             \item Set up basic server architecture.
             \item Set up concept for implementing the wire protocol.
-            \item Implement basic message workflow from producing messages and
-            persisting at broker to consuming the data from another clients.
+            \item Implement basic message workflow from producing messages to
+            persisting at broker.
             \item Implement simplified clients to demonstrate architecture
                 prototype prototype.
         \end{itemize} \\ \hline
@@ -125,25 +127,23 @@ tracked via an Atlassian JIRA platform where we manage tasks for the project.
    \textbf{Task} & \textbf{Subtasks} \\ \hline
     Protocol Implementation &
         \begin{itemize}
-            \item Build standalone package providing an independent Kafka
-                protocol library.
             \item Work out details of protocol implementation. Finish
                 implementation of relevant parts for producing and consuming
                 messages. 
             \item Implement client API for exposing simplified access to protocol
                 implementation.
-            \item Test Kafka compatibility.
+            \item Ensure and test Kafka compatibility.
         \end{itemize} \\ \hline
     Broker Implementation &
         \begin{itemize}
-            \item Work out server application handling multiple connections
-            sending produce or consume requests.
+            \item Work out details of server application.
             \item Develop message log persistency adapt from Apache Kafka. 
-            \item Optimize performance to approximate performance approach of
+            \item Optimizations to approximate performance approach of
             Apache Kafka. 
         \end{itemize} \\ \hline
     Benchmarking &
         \begin{itemize}
+            \item Define reasonable benchmarks.
             \item Test resulting broker implementation for performance.
             \item Comparing performance with Apache Kafka.
         \end{itemize} \\ \hline
@@ -151,7 +151,6 @@ tracked via an Atlassian JIRA platform where we manage tasks for the project.
 \captionof{table}{Tasks of construction phase}
 
 Last week of the schedule is reserved for completion work and documentation. 
-
 
 \newpage
 \section{Risk management}

@@ -1,6 +1,7 @@
 \chapter{Conclusion}
 \section{Results}
-\subsection{Prestudy}
+\label{sec:conc-results}
+\subsection{Technology Research}
 The first result of this thesis is the prestudy documentation, which
 resumes gathered knowledge in the familiarization phase of this work.
 It gives an insight in messaging fundamentals and  takes a closer look to Apache
@@ -60,11 +61,13 @@ Haskell. The resulting application provides a server with basic functionality
 in handling requests via network and persisting messages. The broker is fully
 Kafka compatible as it is based on the protocol implementation mentioned above.
 In comparison to original Apache Kafka there are of course a lot of features
-missing to offer the same functionality. Nevertheless the provided Haskell
-Message broker is a prototype which shows feasibility of developing and similar
-system in a fully-fledged functional program language as Haskell is.
-The following list gives an overview what features the broker system already
-provides and what remains open for the next steps.
+missing to offer the same functionality. Furthermore as the scope of this
+thesis lies on a single broker system, there is no support for broker
+replication yet. Nevertheless the provided Haskell Message broker is a
+prototype which shows feasibility of developing a similar system in a
+fully-fledged functional program language as Haskell is. The following list
+gives an overview what features the broker system already provides and what
+remains open in the particular area.
 
 Produce API:
 \begin{itemize}
@@ -79,7 +82,7 @@ Fetch API:
         \tick Consuming messages of a specific topic and partition depending on given offset
         \fail Support consuming from multiple topics and partitions per request
         \fail Support configurable min and max bytes for fetched data
-        \fail Support maximum amount of time to block, waiting if insufficient
+        \fail Support consumer groups
         data is available
 \end{itemize}
 
@@ -97,14 +100,15 @@ Persistence (Log):
         \tick Read messages from log, optimized with index file
         \tick Provide LogManager for handling files and directories structure 
         \fail Data retention, whereas old data is discarded after fix period of
-            time or Kafka's log compaction is applied. \end{itemize}
-Remaining major broker features:
-\begin{itemize}
-        \fail ZooKeeper integration / Clustering: as the scope of this thesis lies on a single broker
-        system, there is not support for brokers replication yet.
-        \fail Remaining APIs (Offset API and Offset Commit/Fetch API)
-        \fail Consumer Groups, as subscription model from multiple clients which consume a specific topic.
+            time or Kafka's log compaction is applied. 
 \end{itemize}
+%Remaining major broker features:
+%\begin{itemize}
+%        \fail ZooKeeper integration / Clustering: as the scope of this thesis lies on a single broker
+%        system, there is not support for brokers replication yet.
+%        \fail Remaining APIs (Offset API and Offset Commit/Fetch API)
+%        \fail Consumer Groups, as subscription model from multiple clients which consume a specific topic.
+%\end{itemize}
 
 \newpage
 \section{Evaluation}
@@ -405,21 +409,35 @@ Message Size             & Scenario 1       & Scenario 2       & Scenario 3     
 
 
 \section{Outlook}
--> What are the next step? 
+What are the next steps? As described in section \ref{sec:conc-results}, the
+resulting broker implementation is not a finalized product, rather a prototype.
+It shows that it is feasible to develop an Apache Kafka like broker system
+written in Haskell. A extendable and scalable implementation base and
+architecture is provided.  The first benchmarks demonstrated nearly the same
+performance than the original version. We are sure, with further work one could
+build the current version to an extraordinary broker system.
 
-- Further optimizations 
-- Implementation and handling of remaining API's 
-- Replication and Integration With Apache Zookeeper 
-- Ausbauen von Client API 
--> Open Source 
+Summarized, the next tasks to do at the prototype are as follows:
+\begin{enumerate}
+    \item Implementation and handling of remaining API's
+    \item Work off more details for Client API 
+    \item Further optimizations
+\end{enumerate}
 
--> 
-- broker results promissing
-- very extendable/scalable implementation base and architecture
-- with further work one could build the current prototype to an extraordinary
-broker system.
+After bringing the broker server to a stable and nearly feature complete
+application, the next step would be to introduce broker replication. This task
+probably is predestined for a further thesis whereas the goal is to analyze
+distributed replication in detail and work out ZooKeeper
+integration.
 
-As for now, the highlight remains the protocol implementation which has already
-been praised by the Haskell community and found its contributors they helped
-uncovering minor issues.
+The Haskell community is very vital and active. We experienced that at the
+\fnurl{ZuriHac 2015}{https://wiki.haskell.org/ZuriHac2015} (Google Zurich,
+29.05.15) or \fnurl{HaskellerZ Meetup}{http://www.meetup.com/de/HaskellerZ/}
+(ETH Zurich, 30.04.2015) we have participated during this thesis. The results
+of this work will still be published open source through the \fnurl{GitHub
+repositories}{https://github.com/hmb-ba}. The goal is to find contributors for
+further development. For this reason we will also present this work in a
+separate Meetup later in summer 2015. As for now, the highlight remains the
+protocol implementation which has already been praised by the Haskell community
+and found its contributors they helped uncovering minor issues.
 
