@@ -261,6 +261,7 @@ TODO
 -- Results 
 
 \subsection{Producer Benchmark "Effect of Message Batch size"}
+\label{sec:conc-benchmark-1}
 
 The goal of this benchmark is to analyze the network throughput between producer
 client and broker system.  The focus lies on the effect of changing the batch
@@ -273,11 +274,16 @@ bytes, because it is the more interesting case for a messaging system
 large, but much harder to get good throughput when the messages are small, as
 the overhead of processing each message dominates.
 
+Calculation batch size in bytes:
+\begin{verbatim}
+    Messages Batched * (Message Size + Message Overhead) + Request Overhead 
+\end{verbatim}
+
 \subsubsection{Conditions}
 \begin{table}[H]
 \begin{tabular}{|l| p{12cm}|} \hline
 {\bf Message Size}   & 100 Bytes \\ \hline
-{\bf Batch Size [B]} & 100 | 1000 | 8192 (Kafka benchmarks) | 16384 (Kafka default) \\ \hline
+{\bf Batch Size [B]} & 195 | 1000 | 8192 | 16384 (Kafka default) | 56769 \\ \hline
 {\bf Tested Clients} &
     \begin{itemize}
         \item Kafka PerformanceProducer 2.10-0.8.2.0, single threaded
@@ -295,32 +301,159 @@ the overhead of processing each message dominates.
     \begin{enumerate}
         \item Kafka Performance Producer $\rightarrow$ Kafka Broker
         \item Kafka Performance Producer $\rightarrow$ HMB Broker
-        \item HMB Produer $\rightarrow$ Kafka Broker
-        \item HMB Produder $\rightarrow$ HMB Broker
+        \item HMB Producer $\rightarrow$ Kafka Broker
+        \item HMB Producer $\rightarrow$ HMB Broker
     \end{enumerate} \\ \hline
 \end{tabular}
 \end{table}
 \captionof{table}{Benchmark conditions "Effect of Producer Batch size"}
-
+\newpage
 \subsubsection{Results}
+The results fora each specific scenarios are given below. The graph shows the
+TCP throughput in bytes in period of ten to twenty seconds.
+
+Scenario 1, Kafka $\rightarrow$ Kafka:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|} \hline
+195 (1 Msg) & 1387 ($\sim$10 Msgs)& 8192 ($\sim$65 Msgs)\\ \hline
+\includegraphics[width=0.25\textwidth]{images/benchmark-1/benchmark-1-s1-bs195.png}
+&
+\includegraphics[width=0.25\textwidth]{images/benchmark-1/benchmark-1-s1-bs1387.png}
+&
+\includegraphics[width=0.2\textwidth]{images/benchmark-1/benchmark-1-s1-bs8192.png} \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|} \hline
+16384 ($\sim$130 Msgs)& 56769 ($\sim$450 Msgs)\\ \hline
+\includegraphics[width=0.25\textwidth]{images/benchmark-1/benchmark-1-s1-bs16384.png}
+&
+\includegraphics[width=0.25\textwidth]{images/benchmark-1/benchmark-1-s1-bs56769.png} \\ \hline
+\end{tabular}
+\end{table}
+
+Scenario 2, Kafka $\rightarrow$ HMB:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|} \hline
+195 (1 Msg) & 1387 ($\sim$10 Msgs)& 8192 ($\sim$65 Msgs)\\ \hline
+\includegraphics[width=0.2\textwidth]{images/benchmark-1/benchmark-1-s2-bs195.png}
+&
+\includegraphics[width=0.25\textwidth]{images/benchmark-1/benchmark-1-s2-bs1387.png}
+&
+\includegraphics[width=0.2\textwidth]{images/benchmark-1/benchmark-1-s2-bs8192.png} \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|} \hline
+16384 ($\sim$130 Msgs)& 56769 ($\sim$450 Msgs)\\ \hline
+\includegraphics[width=0.2\textwidth]{images/benchmark-1/benchmark-1-s2-bs16384.png}
+&
+\includegraphics[width=0.2\textwidth]{images/benchmark-1/benchmark-1-s2-bs56769.png} \\ \hline
+\end{tabular}
+\end{table}
+
+\newpage
+Scenario 3, HMB $\rightarrow$ Kafka:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|} \hline
+195 (1 Msg) & 1387 ($\sim$10 Msgs)& 8192 ($\sim$65 Msgs)\\ \hline
+\includegraphics[width=0.2\textwidth]{images/benchmark-1/benchmark-1-s3-bs200.png}
+&
+\includegraphics[width=0.25\textwidth]{images/benchmark-1/benchmark-1-s3-bs1400.png}
+&
+\includegraphics[width=0.2\textwidth]{images/benchmark-1/benchmark-1-s3-bs8192.png} \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|} \hline
+16384 ($\sim$130 Msgs)& 56769 ($\sim$450 Msgs)\\ \hline
+\includegraphics[width=0.2\textwidth]{images/benchmark-1/benchmark-1-s3-bs16384.png}
+&
+\includegraphics[width=0.2\textwidth]{images/benchmark-1/benchmark-1-s3-bs56769.png} \\ \hline
+\end{tabular}
+\end{table}
+
+Scenario 4, HMB $\rightarrow$ HMB:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|} \hline
+195 (1 Msg) & 1387 ($\sim$10 Msgs)& 8192 ($\sim$65 Msgs)\\ \hline
+\includegraphics[width=0.2\textwidth]{images/benchmark-1/benchmark-1-s4-bs195.png}
+&
+\includegraphics[width=0.25\textwidth]{images/benchmark-1/benchmark-1-s4-bs1387.png}
+&
+\includegraphics[width=0.2\textwidth]{images/benchmark-1/benchmark-1-s4-bs8192.png} \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|} \hline
+16384 ($\sim$130 Msgs)& 56769 ($\sim$450 Msgs)\\ \hline
+\includegraphics[width=0.2\textwidth]{images/benchmark-1/benchmark-1-s4-bs16384.png}
+&
+\includegraphics[width=0.2\textwidth]{images/benchmark-1/benchmark-1-s4-bs56769.png} \\ \hline
+\end{tabular}
+\end{table}
+
+\newpage
+\subsubsection{Conclusion}
 \begin{table}[H]
 \centering
 \begin{tabular}{|l|l|l|l|l|}
 \hline
-{\bf Benchmark Variable} & \multicolumn{4}{c|}{{\bf Avg. Throughput {[}MB/s{]}}} \\ \hline
+{\bf Benchmark Variable} & \multicolumn{4}{c|}{{\bf Avg. Throughput {[}MB/s{]}}} \\ \hline \hline
 Batch Size [Byte]        & Scenario 1       & Scenario 2       & Scenario 3   & Scenario 4   \\ \hline
-100                      & 0                & 0                & 30   &           \\ \hline
-1000                     & 0                & 0                & 32   &           \\ \hline
-8192                     & 0                & 0                & 0    &           \\ \hline
-16384                    & 0                & 0                & 0    &           \\ \hline
+195  (1 Msg)             & 9                & 8                & 10           & 9            \\ \hline
+1387 ($\sim$10 Msgs)     & 24               & 12               & 11           & 16           \\ \hline
+8192 ($\sim$65 Msgs)     & 68               & 54               & 13           & 15           \\ \hline
+16384 ($\sim$130 Msgs)   & 80               & 32               & 14           & 16           \\ \hline
+56769 ($\sim$450 Msgs)   & 98               & 48               & 16           & 17           \\ \hline
 \end{tabular}
 \end{table}
 \captionof{table}{Results of benchmark "Effect of Producer Batch size"}
 
-\subsubsection{Conclusion}
+The result of this benchmark demonstrates the positive effect to the throughput
+by increasing the producing batch size. The original Kafka setup (scenario 1),
+shows a significant rise by increasing the batch size. However the
+HMB setup (scenario 4) cannot use batching to full capacity. Obviously this
+benchmark exposes the HMB producer as major bottleneck. Using the Kafka
+producer to the HMB broker (scenario 2) gives lot better results instead of
+using the HMB producer. Scenario 3 approves this suspicion. The handling
+of requests on the HMB broker is quite efficient but there is still a demand
+for further optimizations to get same performance than Kafka.
 
+\subsubsection{Consequences}
+During the benchmark it was conspicuous that the HMB broker is
+not using full capacity of CPU. While Kafka is obviously getting use of
+multi-threading, at HMB the most load weigh on a single thread. This is why
+there is only one API handler thread running at the time, which is definitely
+a point to optimize in future.
 
+TODO: Figure of CPU workload
+
+Another point with demand to optimization is the producer which manifests a
+bottleneck with messages of 100 bytes (when the message size gets bigger, the
+result is much better! ref). Because the provided HMB producer is quite simple
+(actually just built to test), another task for the futur is to work off details for
+optimized producer client which would definitely lead to better results. 
+
+\newpage
 \subsection{Producer Benchmark "Effect of Message size"}
+\label{sec:conc-benchmark-2}
 The goal of this benchmark is to analyze the network throughput between
 producer client and broker system. The focus lies on the effect of changing the
 size of a single message to the resulting transmission of bytes per
@@ -428,12 +561,14 @@ What are the next steps? As described in section \ref{sec:conc-results}, the
 resulting broker implementation is not a finalized product -- it is a prototype.
 It shows that it is feasible to develop an Apache Kafka like broker system
 written in Haskell. An extendable and scalable implementation base and
-architecture is provided.  The first benchmarks demonstrated nearly the same
-performance than the original version. We are certain taht with further work one
-could build the current version to an extraordinary broker system.
+architecture is provided. The provided benchmarks (\ref{sec:conc-benchmark-1}
+and \ref{sec:conc-benchmark-2}) demonstrate good performance put also uncover
+some major bottlenecks. We are certain that with further work one could build
+the current version to an extraordinary broker system.
 
 Summarized, the next tasks to do at the prototype would involve:
 \begin{enumerate}
+    \item Facing uncovered bottlenecks (see benchmarks)
     \item Implementation and handling of remaining API's
     \item Extending the log subsystem
     \item Work off more details for Client API
