@@ -641,8 +641,8 @@ will result in time complexity of O(1).
 
 In the following part of this section, important parts of the code base will be
 explained. To make the code more readable and easier to manage, separate types
-were defined which are only used in the log subsystem. The following table gives
-an overview of these types:
+were defined. Those are only used in the log subsystem and are defined within
+the \textit{LogConfig}. The following table gives an overview of these types:
 
 \begin{table}[H]
 \resizebox{\textwidth}{!}{%
@@ -718,7 +718,30 @@ this case a map of logs or indices. \cite{marlow2013parallel}
 
 \subsubsection{Log State}
 
+The \lstinline{LogState} represents an MVar holding a list of maps. Each of which whos key is a tuple of
+\lstinline{String} and \lstinline{Int} representing the topic and partition
+number combination. The value for those maps is the actual log, which is a list
+of \lstinline{MessageSet}.
+
+\begin{lstlisting}
+import qualified HMB.Internal.LogConfig as L
+type Logs = Map.Map (L.TopicStr, L.PartitionNr) Log
+newtype LogState = LogState (MVar Logs)
+\end{lstlisting}
+
 \subsubsection{Index State}
+
+Same as for the \lstinline{LogState}, the \lstinline{IndexState} represents an
+MVar containing a list maps and also the key remains the same. However the value
+of those maps will hold a list of \lstinline{OffsetPosition}, whose name is
+adapted form Apache Kafka and is a tuple of the \lstinline{RelativeIndex} and
+\lstinline{PhysicalPosition} of the related log entry.
+
+\begin{lstlisting}
+import qualified HMB.Internal.LogConfig as L
+type Indices = Map.Map (L.TopicStr, L.PartitionNr) [OffsetPosition]
+newtype IndexState = IndexState (MVar Indices)
+\end{lstlisting}
 
 \subsection{General functionality}
 
