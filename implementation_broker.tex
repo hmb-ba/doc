@@ -207,8 +207,10 @@ handleRequest rm = do
 \end{lstlisting}
 
 \subsubsection{HandleProduceRequest}
+\label{subsec:broker-api-producerequest}
 
 \subsubsection{HandleFetchRequest}
+\label{subsec:broker-api-fetchrequest}
 
 \subsubsection{HandleMetadataRequest}
 
@@ -216,16 +218,15 @@ handleRequest rm = do
 \label{sec:broker-error-handling}
 
 A message broker relies fundamentally on error handling has to be discussed very
-serious as fault tolerance and reliability are key requirements \todo{ref:
-reliablility in messaging section} of such a system. The first part of this
-section concentrates on the architectural details and decisions being made
-regarding the error handling. Using a demonstration of a message flow, possible
-edge cases they have to be considered will be uncovered in order to provide
-reliability to the user of this broker. The second part covers the techniques
-being used in Haskell to handle the previously described concept and cases where
-errors may occur. This will also involve part of the concept behind the error
-handling of Apache Kafka -- which is partly integrated in the Apache Kafka
-Protocol and thus adapted in this implementation.
+serious as fault tolerance and reliability are key requirements of such a
+system. The first part of this section concentrates on the architectural details
+and decisions being made regarding the error handling. Using a demonstration of
+a message flow, possible edge cases they have to be considered will be uncovered
+in order to provide reliability to the user of this broker. The second part
+covers the techniques being used in Haskell to handle the previously described
+concept and cases where errors may occur. This will also involve part of the
+concept behind the error handling of Apache Kafka -- which is partly integrated
+in the Apache Kafka Protocol and thus adapted in this implementation.
 
 \subsection{Message flow}
 
@@ -479,7 +480,55 @@ Considerations Bounded Chans
     \label{fig:impl-brok-threading}
 \end{figure}
 
+\newpage
 \section{Log}
+
+The log subsystem is responsible for handling persistence of the messages being
+produced and consumed. This component plays an decisive role while handling a
+\textit{fetchRequest} (\ref{subsec:broker-api-fetchrequest}) as well as a
+\textit{produceRequest} (\ref{subsec:broker-api-producerequest}) and thus it's
+being used extensively in the API layer (\ref{sec:broker-api}). In this section
+the applied concepts -- which are adapted from Apache Kafka -- will be explained
+before a proper introduction to the components of the log subsystem is given.
+After this follows the explanation of the code for the  most important
+functionalities where information about design decisions and potential threats
+are given.
+
+\subsection{Components}
+
+Even if the log subsystem lives within the broker environment, it is from an
+architectural point of view fully decoupled and only relies on the protocol
+library.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\textwidth]{images/broker-log-overview.png}
+    \caption{Architecture of Log Subsystem}
+    \label{fig:broker-log-overview}
+\end{figure}
+
+As illustrated in figure \ref{fig:broker-log-overview} the \textit{LogManager}
+acts an interface to any component that uses functionalities of the log -- which
+is this case will be the API layer. The \textit{LogManager} is then able to use
+exposed functionalities of the hidden (displayed as dashed) \textit{Log} or
+\textit{Index} modules.
+
+\begin{lstlisting}
+module HMB.Internal.LogManager
+( new
+, append
+, readLog
+, State
+) where
+\end{lstlisting}
+
+As for now, the functionalities the \textit{LogManager} provides it to create a
+new log and to append or read messages to/from an existing log. Further
+functionalities are provided but yet still managed by the \textit{Log} or
+\textit{Index} module itself. The last and perhaps most special thing that is
+exposed is the \lstinline{State} which is the representation of the
+current Log and Index, as discussed later in this section.
+
 \label{sec:impl-broker-log}
 \subsection{Storage Layout}
 \label{log-broker-storage}
@@ -586,9 +635,9 @@ the index contain an offset relative to the base offset. The second field
 represents the physical position of the related log message. Compare to a log
 message, this can be considered as very small. In addition, there is to note
 that not every message within the log is going to be indexed. By default, an
-index entry is created only after \textbf{4096 Bytes} of log data.
+index entry is created only after \textit{4096 Bytes} of log data.
 
-\subsubsection{Lookup}
+\subsubsection{Usage and advantages}
 
 As per protocol specification, the request to fetch messages (see
 \ref{subsubsec:protocol-fetchrequest}) holds the offset of the wanted message.
@@ -616,6 +665,11 @@ will result in time complexity of O(1).
 
 \subsection{Types}
 
+In the following part of this section, important parts of the code base will be
+explained. To make the code more readable and easier to manage, separate types
+were defined which are only used in the log subsystem. The following table gives
+an overview of these types:
+
 \begin{table}[H]
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{|l|l|l|}
@@ -623,9 +677,6 @@ will result in time complexity of O(1).
 \textbf{Type synonym} & \textbf{Parameter}           & \textbf{Description}                     \\ \hline
 TopicStr              & String                       & Parsed topic name as String              \\ \hline
 PartitionNr           & Int                          & Parsed partition number as Int           \\ \hline
-FilemessageSet        & {[}MessageSet{]}             &                                          \\ \hline
-OffsetIndex           & {[}OffsetPosition{]}         &                                          \\ \hline
-LogSegment            & (Log, OffsetIndex)           &                                          \\ \hline
 RelativeOffset        & Word32                       & 4 Byte offset relative to the BaseOffset \\ \hline
 FileOffset            & Word32                       & 4 Byte physical offset of a Log file     \\ \hline
 OffsetPosition        & (RelativeOffset, FileOffset) & Tuple of relative and physical offset    \\ \hline
