@@ -207,8 +207,10 @@ handleRequest rm = do
 \end{lstlisting}
 
 \subsubsection{HandleProduceRequest}
+\label{subsec:broker-api-producerequest}
 
 \subsubsection{HandleFetchRequest}
+\label{subsec:broker-api-fetchrequest}
 
 \subsubsection{HandleMetadataRequest}
 
@@ -216,16 +218,15 @@ handleRequest rm = do
 \label{sec:broker-error-handling}
 
 A message broker relies fundamentally on error handling has to be discussed very
-serious as fault tolerance and reliability are key requirements \todo{ref:
-reliablility in messaging section} of such a system. The first part of this
-section concentrates on the architectural details and decisions being made
-regarding the error handling. Using a demonstration of a message flow, possible
-edge cases they have to be considered will be uncovered in order to provide
-reliability to the user of this broker. The second part covers the techniques
-being used in Haskell to handle the previously described concept and cases where
-errors may occur. This will also involve part of the concept behind the error
-handling of Apache Kafka -- which is partly integrated in the Apache Kafka
-Protocol and thus adapted in this implementation.
+serious as fault tolerance and reliability are key requirements of such a
+system. The first part of this section concentrates on the architectural details
+and decisions being made regarding the error handling. Using a demonstration of
+a message flow, possible edge cases they have to be considered will be uncovered
+in order to provide reliability to the user of this broker. The second part
+covers the techniques being used in Haskell to handle the previously described
+concept and cases where errors may occur. This will also involve part of the
+concept behind the error handling of Apache Kafka -- which is partly integrated
+in the Apache Kafka Protocol and thus adapted in this implementation.
 
 \subsection{Message flow}
 
@@ -479,8 +480,55 @@ Considerations Bounded Chans
     \label{fig:impl-brok-threading}
 \end{figure}
 
-\section{Log}
-\label{sec:impl-broker-log}
+\newpage
+\section{Log Subsystem}
+
+The log subsystem is responsible for handling persistence of the messages being
+produced and consumed. This component plays an decisive role while handling a
+\textit{fetchRequest} (\ref{subsec:broker-api-fetchrequest}) as well as a
+\textit{produceRequest} (\ref{subsec:broker-api-producerequest}) and thus it's
+being used extensively in the API layer (\ref{sec:broker-api}). In this section
+the applied concepts -- which are adapted from Apache Kafka -- will be explained
+before a proper introduction to the components of the log subsystem is given.
+After this follows the explanation of the code for the  most important
+functionalities where information about design decisions and potential threats
+are given.
+
+\subsection{Components}
+
+Even if the log subsystem lives within the broker environment, it is from an
+architectural point of view fully decoupled and only relies on the protocol
+library.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\textwidth]{images/broker-log-overview.png}
+    \caption{Architecture of Log Subsystem}
+    \label{fig:broker-log-overview}
+\end{figure}
+
+As illustrated in figure \ref{fig:broker-log-overview} the \textit{LogManager}
+acts an interface to any component that uses functionalities of the log -- which
+is this case will be the API layer. The \textit{LogManager} is then able to use
+exposed functionalities of the hidden (displayed as dashed) \textit{Log} or
+\textit{Index} modules.
+
+\begin{lstlisting}
+module HMB.Internal.LogManager
+( new
+, append
+, readLog
+, State
+) where
+\end{lstlisting}
+
+As for now, the functionalities the \textit{LogManager} provides it to create a
+new log and to append or read messages to/from an existing log. Further
+functionalities are provided but yet still managed by the \textit{Log} or
+\textit{Index} module itself. The last and perhaps most special thing that is
+exposed is the \lstinline{State} which is the representation of the
+current Log and Index, as discussed later in this section.
+
 \subsection{Storage Layout}
 \label{log-broker-storage}
 
@@ -539,32 +587,6 @@ log
    |--00000000000000000000.log
 \end{verbatim}
 
-\subsection{On-disk format}
-
-\subsubsection{Index entry}
-
-The structure of an entry within the index file describes only 2 fields, each of
-them 32 bit long:
-
-\begin{itemize}
-    \item 4 Bytes: Offset, relative to the base offset (file name)
-    \item 4 Bytes: Physical Position, relative to the beginning of the log file
-\end{itemize}
-
-The relative offset of an index entry added with it's base offset represents an
-actual message within the log. The second information, the physical position
-then tells on what position the message resides within the log.
-
-\subsubsection{Log entry}
-
-The log contains a sequence of log entries whereas the on-disk format of a log
-entry is is part of the reason why the Apache Kafka becomes that valuable. In
-fact, the on-disk format is exactly the same as the format of the MessageSet
-(see \ref{impl-protocol-types-data}) transmitted with a ProduceRequest
-\todo{add requests to protocol and link this}. Thus, data does not have to be
-modified in any way and can directly be extracted and written to the file
-system.
-
 
 \subsection{Index}
 
@@ -586,9 +608,9 @@ the index contain an offset relative to the base offset. The second field
 represents the physical position of the related log message. Compare to a log
 message, this can be considered as very small. In addition, there is to note
 that not every message within the log is going to be indexed. By default, an
-index entry is created only after \textbf{4096 Bytes} of log data.
+index entry is created only after \textit{4096 Bytes} of log data.
 
-\subsubsection{Lookup}
+\subsubsection{Usage and advantages}
 
 As per protocol specification, the request to fetch messages (see
 \ref{subsubsec:protocol-fetchrequest}) holds the offset of the wanted message.
@@ -614,7 +636,13 @@ the interval of index creation is fixed at a certain amount of bytes, a lookup
 of the actual log message, given the position of the closest indexed message
 will result in time complexity of O(1).
 
+
 \subsection{Types}
+
+In the following part of this section, important parts of the code base will be
+explained. To make the code more readable and easier to manage, separate types
+were defined. Those are only used in the log subsystem and are defined within
+the \textit{LogConfig}. The following table gives an overview of these types:
 
 \begin{table}[H]
 \resizebox{\textwidth}{!}{%
@@ -623,9 +651,6 @@ will result in time complexity of O(1).
 \textbf{Type synonym} & \textbf{Parameter}           & \textbf{Description}                     \\ \hline
 TopicStr              & String                       & Parsed topic name as String              \\ \hline
 PartitionNr           & Int                          & Parsed partition number as Int           \\ \hline
-FilemessageSet        & {[}MessageSet{]}             &                                          \\ \hline
-OffsetIndex           & {[}OffsetPosition{]}         &                                          \\ \hline
-LogSegment            & (Log, OffsetIndex)           &                                          \\ \hline
 RelativeOffset        & Word32                       & 4 Byte offset relative to the BaseOffset \\ \hline
 FileOffset            & Word32                       & 4 Byte physical offset of a Log file     \\ \hline
 OffsetPosition        & (RelativeOffset, FileOffset) & Tuple of relative and physical offset    \\ \hline
@@ -633,6 +658,90 @@ BaseOffset            & Int                          & 8 Byte offset as Int     
 \end{tabular}
 }
 \end{table}
+
+
+\subsection{On-disk format}
+
+\subsubsection{Log entry}
+
+The log contains a sequence of log entries whereas the on-disk format of a log
+entry is is part of the reason why the Apache Kafka becomes that valuable. In
+fact, the on-disk format is exactly the same as the format of the MessageSet
+(see \ref{impl-protocol-types-data}) transmitted with a ProduceRequest
+(\ref{subsec:protocol-types-producerequest}). Thus, data does not have to be
+modified in any way and can directly be extracted and written to the file
+system.
+
+\subsubsection{Index entry}
+
+The structure of an entry within the index file describes only 2 fields, each of
+them 32 bit long:
+
+\begin{itemize}
+    \item 4 Bytes: Offset, relative to the base offset (file name)
+    \item 4 Bytes: Physical Position, relative to the beginning of the log file
+\end{itemize}
+
+The relative offset of an index entry added with it's base offset represents an
+actual message within the log. The second information, the physical position
+then tells on what position the message resides within the log.
+
+
+\subsection{In-memory format}
+
+As it turned out that working with disk alone -- in stateless fashion so to
+speak -- is not only very difficult to manage but also extremely slow (see
+\todo{separate section of stateless approach}), a more convenient and powerful
+approach needs to be introduced to handle data on a running broker system.
+Therefore an efficient implementation of a key-value data structure, namely
+\fnurl{Data.Map}{https://hackage.haskell.org/package/containers-0.4.0.0/docs/Data-Map.html},
+seems to be suitable for both, the log itself but also the index. Data.Map
+provides functionality that will come after all needs of this subsystem and with
+a time complexity for insertion as well as for searching of O(\textit{log n})
+scalability should be covered quiet well. \\
+
+With this approach of using a data structure for the log as well as the index,
+it is more important than ever to lock appropriately in order to handle
+concurrent data access. Therefore the
+\fnurl{MVar}{https://hackage.haskell.org/package/base-4.8.0.0/docs/Control-Concurrent-MVar.html}
+provides a flexible and powerful locking primitive. An MVar can be thought of as
+a box which is either empty or full.  The \lstinline{takeMVar} operation removes
+the value from a full MVar and returns it, but waits (or blocks) if the MVar is
+currently empty.  Symmetrically, the \lstinline{putMVar} operation puts a value
+into the MVar but blocks if the MVar is already full.  The MVar is a fundamental
+building block that generalizes many different communication and synchronization
+patterns. As for the log subsystem, the MVar is used as a \textit{container for
+shared mutable state}. This is a common design pattern in Haskell when several
+threads need read an write access to some state whereas the state value
+represents an ordinary immutable Haskell data structure stored in an MVar---in
+this case a map of logs or indices. \cite{marlow2013parallel}
+
+\subsubsection{Log State}
+
+The \lstinline{LogState} represents an MVar holding a list of maps. Each of which whos key is a tuple of
+\lstinline{String} and \lstinline{Int} representing the topic and partition
+number combination. The value for those maps is the actual log, which is a list
+of \lstinline{MessageSet}.
+
+\begin{lstlisting}
+import qualified HMB.Internal.LogConfig as L
+type Logs = Map.Map (L.TopicStr, L.PartitionNr) Log
+newtype LogState = LogState (MVar Logs)
+\end{lstlisting}
+
+\subsubsection{Index State}
+
+Same as for the \lstinline{LogState}, the \lstinline{IndexState} represents an
+MVar containing a list maps and also the key remains the same. However the value
+of those maps will hold a list of \lstinline{OffsetPosition}, whose name is
+adapted form Apache Kafka and is a tuple of the \lstinline{RelativeIndex} and
+\lstinline{PhysicalPosition} of the related log entry.
+
+\begin{lstlisting}
+import qualified HMB.Internal.LogConfig as L
+type Indices = Map.Map (L.TopicStr, L.PartitionNr) [OffsetPosition]
+newtype IndexState = IndexState (MVar Indices)
+\end{lstlisting}
 
 \subsection{General functionality}
 
