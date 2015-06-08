@@ -481,7 +481,7 @@ Considerations Bounded Chans
 \end{figure}
 
 \newpage
-\section{Log}
+\section{Log Subsystem}
 
 The log subsystem is responsible for handling persistence of the messages being
 produced and consumed. This component plays an decisive role while handling a
@@ -529,7 +529,6 @@ functionalities are provided but yet still managed by the \textit{Log} or
 exposed is the \lstinline{State} which is the representation of the
 current Log and Index, as discussed later in this section.
 
-\label{sec:impl-broker-log}
 \subsection{Storage Layout}
 \label{log-broker-storage}
 
@@ -588,32 +587,6 @@ log
    |--00000000000000000000.log
 \end{verbatim}
 
-\subsection{On-disk format}
-
-\subsubsection{Index entry}
-
-The structure of an entry within the index file describes only 2 fields, each of
-them 32 bit long:
-
-\begin{itemize}
-    \item 4 Bytes: Offset, relative to the base offset (file name)
-    \item 4 Bytes: Physical Position, relative to the beginning of the log file
-\end{itemize}
-
-The relative offset of an index entry added with it's base offset represents an
-actual message within the log. The second information, the physical position
-then tells on what position the message resides within the log.
-
-\subsubsection{Log entry}
-
-The log contains a sequence of log entries whereas the on-disk format of a log
-entry is is part of the reason why the Apache Kafka becomes that valuable. In
-fact, the on-disk format is exactly the same as the format of the MessageSet
-(see \ref{impl-protocol-types-data}) transmitted with a ProduceRequest
-\todo{add requests to protocol and link this}. Thus, data does not have to be
-modified in any way and can directly be extracted and written to the file
-system.
-
 
 \subsection{Index}
 
@@ -663,6 +636,7 @@ the interval of index creation is fixed at a certain amount of bytes, a lookup
 of the actual log message, given the position of the closest indexed message
 will result in time complexity of O(1).
 
+
 \subsection{Types}
 
 In the following part of this section, important parts of the code base will be
@@ -684,6 +658,67 @@ BaseOffset            & Int                          & 8 Byte offset as Int     
 \end{tabular}
 }
 \end{table}
+
+
+\subsection{On-disk format}
+
+\subsubsection{Log entry}
+
+The log contains a sequence of log entries whereas the on-disk format of a log
+entry is is part of the reason why the Apache Kafka becomes that valuable. In
+fact, the on-disk format is exactly the same as the format of the MessageSet
+(see \ref{impl-protocol-types-data}) transmitted with a ProduceRequest
+(\ref{subsec:protocol-types-producerequest}). Thus, data does not have to be
+modified in any way and can directly be extracted and written to the file
+system.
+
+\subsubsection{Index entry}
+
+The structure of an entry within the index file describes only 2 fields, each of
+them 32 bit long:
+
+\begin{itemize}
+    \item 4 Bytes: Offset, relative to the base offset (file name)
+    \item 4 Bytes: Physical Position, relative to the beginning of the log file
+\end{itemize}
+
+The relative offset of an index entry added with it's base offset represents an
+actual message within the log. The second information, the physical position
+then tells on what position the message resides within the log.
+
+
+\subsection{In-memory format}
+
+As it turned out that working with disk alone -- in stateless fashion so to
+speak -- is not only very difficult to manage but also extremely slow (see
+\todo{separate section of stateless approach}), a more convenient and powerful
+approach needs to be introduced to handle data on a running broker system.
+Therefore an efficient implementation of a key-value data structure, namely
+\fnurl{Data.Map}{https://hackage.haskell.org/package/containers-0.4.0.0/docs/Data-Map.html},
+seems to be suitable for both, the log itself but also the index. Data.Map
+provides functionality that will come after all needs of this subsystem and with
+a time complexity for insertion as well as for searching of O(\textit{log n})
+scalability should be covered quiet well. \\
+
+With this approach of using a data structure for the log as well as the index,
+it is more important than ever to lock appropriately in order to handle
+concurrent data access. Therefore the
+\fnurl{MVar}{https://hackage.haskell.org/package/base-4.8.0.0/docs/Control-Concurrent-MVar.html}
+provides a flexible and powerful locking primitive. An MVar can be thought of as
+a box which is either empty or full.  The \lstinline{takeMVar} operation removes
+the value from a full MVar and returns it, but waits (or blocks) if the MVar is
+currently empty.  Symmetrically, the \lstinline{putMVar} operation puts a value
+into the MVar but blocks if the MVar is already full.  The MVar is a fundamental
+building block that generalizes many different communication and synchronization
+patterns. As for the log subsystem, the MVar is used as a \textit{container for
+shared mutable state}. This is a common design pattern in Haskell when several
+threads need read an write access to some state whereas the state value
+represents an ordinary immutable Haskell data structure stored in an MVar---in
+this case a map of logs or indices. \cite{marlow2013parallel}
+
+\subsubsection{Log State}
+
+\subsubsection{Index State}
 
 \subsection{General functionality}
 

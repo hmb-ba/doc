@@ -1,14 +1,16 @@
-\chapter{Implementation Protocol} \label{sec-protocol} This chapter provides
-details of the implementation of the Kafka protocol, which acts as basis for all
-further functionality. The definition of the original protocol is given as
-context free grammar for the request and response binary format. Therefore it
-seemed likely to adopt the rules of the grammar to our protocol implementation
-by map them with the Haskell type system. In a second step encoding and decoding
-functionality was implemented for getting messages from data structure to binary
-format and backwards. In addition to the protocol, a client library will be
-provided to not isolate client implementations from protocol implementation but
-also allow to build simple Apache Kafka or HMB clients in Haskell without
-touching the protocol at all.
+\chapter{Implementation Protocol} 
+\label{sec-protocol} 
+
+This chapter provides details of the implementation of the Kafka protocol, which
+acts as basis for all further functionality. The definition of the original
+protocol is given as context free grammar for the request and response binary
+format. Therefore it seemed likely to adopt the rules of the grammar to our
+protocol implementation by map them with the Haskell type system. In a second
+step encoding and decoding functionality was implemented for getting messages
+from data structure to binary format and backwards. In addition to the protocol,
+a client library will be provided to not isolate client implementations from
+protocol implementation but also allow to build simple Apache Kafka or HMB
+clients in Haskell without touching the protocol at all.
 
 The protocol implementation consists of the following modules: 
 \begin{itemize}
@@ -207,6 +209,8 @@ Request       &                 & API specific Request type (either ProduceReque
 TODO: Because the RequestSize is only needed once to determine the length of the whole Request, it is is not part of the type RequestMessage
 
 \subsubsection{ProduceRequest}
+\label{subsec:protocol-types-producerequest}
+
 Request Payload for Produce API. Sends MessageSet's (see 
 \ref{impl-protocol-types-data}) to the broker. For efficiency it allows sending
 message sets intended for many topic partitions in a single request (see
