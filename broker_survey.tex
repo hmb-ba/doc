@@ -17,8 +17,7 @@ mainly comparing the following characteristics---which we already defined in
          \item Fault Tolerance
 \end{itemize}
 
-\section{Implementations}
-%\subsection{Traditional Message Broker}
+\subsubsection{Example implementations}
 
 \begin{description}
     \item [Rabbit MQ] \hfill \\
@@ -114,13 +113,13 @@ mainly comparing the following characteristics---which we already defined in
         \label{fig:amazon-kinesis}
     \end{figure}
     }
-    \item [Scribe] \hfill \\
-    { Push based, no pub-sub, static configuration}
-    \item [Kastrell] \hfill \\
-    {no clustering; no pub-sub}
+    %\item [Scribe] \hfill \\
+    %{ Push based, no pub-sub, static configuration}
+    %\item [Kastrell] \hfill \\
+    %{no clustering; no pub-sub}
     \item [Apache Flume] \hfill \\
     {Flume is a distributed service specialized on being a reliable way of
-    getting event data into HDFS \todo{gls}. The typical deployment consists
+    getting event data into HDFS. The typical deployment consists
     of a number of logical nodes, arranged into three tiers. The first tier
     is the agent tier. Agent nodes are typically installed on the machines
     that generate the data and are the initial point of contact with Flume.

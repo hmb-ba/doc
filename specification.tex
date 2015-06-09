@@ -1,18 +1,18 @@
 \chapter{Specification}
 \section{Purpose}
-The prestudy of this thesis gives an insight in the fundamentals of messaging, especially
+The prestudy of this thesis gives an insight into the fundamentals of messaging, especially
 the purpose of message brokers for big data event streaming. We also compare
-the most related broker implementations and provide detailed information about Apache
+the most relevant broker implementations and provide detailed information about Apache
 Kafka. The second part of this work is focusing on the implementation of a message
-broker in the functional program language Haskell\todo{ref}. The goal is to get
-use of the advantages of the functional paradigm regarding to the resulting
-throughput performance. By using the example of Apache Kafka the main purpose
+broker in the functional programming language \fnurl{Haskell}{https://www.haskell.org/}. 
+The goal is to make use of the advantages of the functional paradigm regarding the resulting
+throughput performance. By using the example of Apache Kafka, the main purpose
 lies on building a server application which implements the main functionality of
 Apache Kafka. 
 
 \section{Components}
 
-Basically, the architecture consists of two main components namely the broker and
+Basically, the architecture consists of two main components, namely the broker and
 the client, whereas the client can act as producer, consumer or both. The broker
 is a server which only reacts to requests that are sent from clients. Every
 request contains an API key which the broker uses to determine which action it
@@ -42,17 +42,17 @@ with a client without a request.
 \end{figure}
 
 Both, the client and broker component need to use the same underlying protocol
-for communication. Because Apache Kafka is used as benchmark for this project
-and compatibility to existing Kafka clients want to be provided, the Kafka
-Protocol version 0.8.x \todo{ref} is chosen to implement. Therefore a third
+for communication. Because Apache Kafka is used as the benchmark for this project
+and compatibility to existing Kafka clients is to be provided, the Kafka
+Protocol version 0.8.x has been chosen to be implemented. Therefore, a third
 component which fully implements this protocol is introduced additionally. It
-exposes the appropriate functions and types as library. This component fully
+exposes the appropriate functions and types as a library. This component fully
 separates the clients from the broker. 
 
-To support interoperability the implementation of a client should be simplified
+To support interoperability, the implementation of a client should be simplified
 as much as possible. Therefore we provide a client library which provides functionalities to
-easily implement a Haskell client for a Kafka based broker. The goal of this, is to be able to
-setup a client without knowing too much details about the Apache Kafka protocol
+easily implement a Haskell client for a Kafka-based broker. The goal of this, is to be able to
+set up a client without knowing too many details about the Apache Kafka protocol
 itself.
 
 \begin{figure}[H]
@@ -65,9 +65,9 @@ itself.
 \section{Workflow}
 
 The main purpose of this broker implementation can be split in two cases. Case
-one covers producing a message and persisting in the brokers log. Case two
+one covers producing a message and persisting in the broker's log. Case two
 allows to consume persisted messages on request. As for clients, depending on
-which API to be used, the client can act either as producer or consumer.
+which API is to be used, the client can act either as producer or consumer.
 
 \subsection{Produce messages}
 
@@ -84,30 +84,30 @@ persisting the message on the broker.
 
 \begin{description}
     \item [(1)] 
-        {Packing Produce Request: Getting input data to protocol conform data structure.}
+        {Packing Produce Request: Transforming input data into protocol-conforming data structure.}
     \item [(2)] 
-        {Serializing and send Produdce Request: Encoding data structure to an
+        {Serializing and sending Produce Request: Encoding data structure to an
             binary  string and transmit over a tcp socket to the broker.}
     \item [(3)] 
         {Parsing and Handling Produce Request: Broker receives the binary string
-            and parse it back to the appropriate data structure. The request
+            and parses it back to the appropriate data structure. The request
             handler of the  broker checks the API Key of the request. If it is a
-            produce request, the containg message will be written to the
+            produce request, the containing message will be written to the
             appropriate topic log.}
     \item [(4)] 
         {Send Produce Response: A response is packed, serialized and transmitted
             back to the client. The response contains an error code which has
-            the value 0 if everything worked well otherwise another value for a
+            the value 0 if everything worked well, otherwise another value for a
             specific problem. }
     \item [(5)] 
         {Parse Produce Response: Producer client receives a binary string and
-            parses it to valid response data structure }
+            parses it to a valid response data structure }
 \end{description}
 
 \subsection{Consume messages}
 
-The case where the client acts as a consumer, the workflow does not distinguish from
-producing message. Instead of the translation from request message to the log, persisted messages
+In the case where the client acts as a consumer, the workflow is not different from the one for
+producing a message. Instead of the translation from request message to the log, persisted messages
 are read from the log and are delivered from the broker to the client.
 
 \begin{figure}[H]
@@ -119,20 +119,20 @@ are read from the log and are delivered from the broker to the client.
 
 \begin{description}
     \item [(1)] 
-        {Continously send fetch request: Consumer client sends fetch
-        requests in configurable intervall as binary string to the broker. } 
+        {Continuously send fetch request: Consumer client sends fetch
+        requests in configurable interval as a binary string to the broker. } 
     \item [(2)] 
         {Parsing and handling fetch request: Broker receives the binary string
-            and parse it back to the appropriate data structure. The request
+            and parses it back to the appropriate data structure. The request
             handler of the broker checks the API Key of the request. If it is a
             fetch request, the broker reads messages of the requested topic and
-            packs it to a fetch response. message will be written to the
+            packs them to a fetch response. The message will be written to the
             appropriate topic log.}
     \item [(3)] 
         {Send fetch response: The fetch request which contains the requested
-        messages is send back to the consumer client.}
+        messages is sent back to the consumer client.}
     \item [(4)] 
-        {Parse Response:Consumer client receives a binary string and parses it
-        to valid response data structure }
+        {Parse Response: Consumer client receives a binary string and parses it
+        to a valid response data structure. }
 \end{description}
 
