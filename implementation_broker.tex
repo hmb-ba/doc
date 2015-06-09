@@ -118,7 +118,7 @@ the socket buffer. To get the size of a whole request we read the first four
 bytes which determines the request size according to the protocol and parse it
 to an numeral value.
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Receiving data from socket}]
 import qualified Network.Socket.ByteString.Lazy as S 
 import qualified Data.ByteString.Lazy as BL
 
@@ -139,7 +139,7 @@ less data than specified. Therefore we implement the following function to get
 the data in
 chunks until the entire request is read. 
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Receive exactly amount of bytes}]
 recvExactly :: Socket -> Int64 -> IO BL.ByteString 
 recvExactly sock size = BL.concat . reverse <$> loop [] 0 
   where
@@ -163,7 +163,7 @@ is used. This function continues to send data until either all data has been
 sent or an error occurs. For further details about the Error Handling, see
 section \ref{}
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Send data via socket}]
 import qualified Data.ByteString.Lazy as B
 import qualified Network.Socket.ByteString.Lazy as S
 
@@ -199,7 +199,7 @@ For nearly all provided API's, the broker needs access to the functions provided
 by the log subsystem described in section \ref{sec:impl-broker-log}. Therefore the
 API layer initializes the LogManager of passes it to the handling function
 below:
-\begin{lstlisting}
+\begin{lstlisting}[caption={Handling requests depending on ApiKey}]
 handleRequest :: RequestMessage -> LogManager.State 
                  -> IO (Either HandleError BL.ByteString)
 handleRequest rm = do
@@ -236,7 +236,7 @@ Unnested to three tuples which can be feed to LogManager each as single call:
 \end{verbatim}
 
 Thanks to Haskell's list comprehension the unnesting of the request can be made quite elegant: 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Handling produce request}]
 handleProduceRequest :: RequestMessage -> LogManager.State 
                         -> IO (Either HandleError BL.ByteString)
 handleProduceRequest rm s = do
@@ -272,7 +272,7 @@ file structure and gives the available topics.
 Information regarding the broker host includes local IP. Therefore the library
 \fnurl{Network.Info}{https://hackage.haskell.org/package/network-info} is used: 
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Get broker's host adress}]
 import qualified Network.Info as N
 getHost :: IO N.NetworkInterface
 getHost = do
@@ -355,12 +355,12 @@ actions based on the given error type.
 Error types related to the networking layer are simply distinguished between an
 error occurred either in the receiving or responding process.
 
-\begin{code}
+\begin{lstlisting}[caption={SocketError type}]
 data SocketError =
       SocketRecvError String
       | SocketSendError String
       deriving Show
-\end{code}
+\end{lstlisting}
 
 Any further details are not separated by sub-types but instead, can be described
 in the first argument of the \lstinline{SocketError}, namely a
@@ -372,7 +372,7 @@ of the application. Those types can be considered as an interface for errors
 between the request handler and the underlying subsystems. They are not known to
 any subsystem at all, but are known to the request handler.
 
-\begin{code}
+\begin{lstlisting}[caption={Handle Error type}]
 data HandleError =
         PrWriteLogError Int String
       | PrPackError String
@@ -381,8 +381,7 @@ data HandleError =
       | SendResponseError String
       | UnknownRqError
         deriving Show
-\end{code}
-
+\end{lstlisting}
 
 \subsection{Error Handlers}
 
@@ -425,13 +424,13 @@ that the connection may be broken or the client will not receive any more data
 using the current connection. Given this, the current implementation does only
 print the occurred error on console:
 
-\begin{code}
+\begin{lstlisting}[caption={Catching error of type SocketError}]
 handleSocketError :: (Socket, SockAddr) -> SocketError -> IO()
 handleSocketError (sock, sockaddr) (SocketRecvError e) = do
   putStrLn $ "[Socket Receive Error] " ++ e
 handleSocketError (sock, sockaddr) (SocketSendError e) = do
   putStrLn $ "[Socket Send Error] " ++ e
-\end{code}
+\end{lstlisting}
 
 While further logging of errors is out of scope within this thesis, the given
 architecture may very well be able to do so. At the point after the pattern
@@ -449,7 +448,7 @@ response message containing the appropriate error code. However, the current
 implementation does not suppport response message caused by an error but instead
 does print a notification on broker side as shown in the code below:
 
-\begin{code}
+\begin{lstlisting}[caption={Catching error of type HandleError}]
 handleHandlerError :: (Socket, SockAddr) -> HandleError -> IO()
 handleHandlerError (s, a) (ParseRequestError e) = do
     putStrLn $ (show "[ParseError]: ") ++ e
@@ -463,7 +462,7 @@ handleHandlerError (s, a) e = do
     S.sendAll s $ C.pack $ show e
     sClose s
     putStrLn $ "***Host " ++ (show a) ++ "disconnected ***"
-\end{code}
+\end{lstlisting}
 
 
 \section{Threading}
@@ -530,7 +529,7 @@ data is type ByteString. Because the response to a particular request need to be
 sent back over the right connection, every chunk of ByteString holds its corresponding
 socket connection information in a tuple:
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Initialize channels for threading}]
 import qualified Data.ByteString.Lazy as B
 
 type ChanMessage = ((Socket, SockAddr), B.ByteString)
@@ -807,7 +806,7 @@ The \lstinline{LogState} represents an MVar holding a map which uses a tuple of
  combination---as key. The corresponding value is the actual log, which is a list
 of \lstinline{MessageSet}.
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Definition of log state (MVar)}]
 import qualified HMB.Internal.LogConfig as L
 type Logs = Map.Map (L.TopicStr, L.PartitionNr) Log
 newtype LogState = LogState (MVar Logs)
@@ -822,7 +821,7 @@ adapted form Apache Kafka. \lstinline{OffsetPosition} represents a single index
 entry and therefore holds a tuple of the \lstinline{RelativeIndex} and
 \lstinline{PhysicalPosition}. 
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Definition of index state (MVar)}]
 import qualified HMB.Internal.LogConfig as L
 type Indices = Map.Map (L.TopicStr, L.PartitionNr) [OffsetPosition]
 newtype IndexState = IndexState (MVar Indices)
@@ -852,7 +851,7 @@ transformations to identify the file with the highest number. This is why one
 does not get around reading the content of this directory. Handling the case
 where no file exists leads to the creation of a new log with the offset of zero.
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Determining highest offset of given list}]
 maxOffset :: [Int] -> Int
 maxOffset [] = 0
 maxOffset [x] = x
@@ -867,7 +866,7 @@ offset \textit{400} and yet there are two different pairs of log- and index
 files: \textit{100}, \textit{300}. The correct one would be \textit{300} as the
 message must reside within this file.
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Determining offset which is next smaller regarding given offset}]
 %todo: code for next smaller
 nextSmaller :: [Int] -> Int -> Int
 nextSmaller [] _ = 0
@@ -890,7 +889,7 @@ strings, which will give the list of all offsets within the directory. The
 filter function basically omits the files other than the ones ending with
 \textit{".log"} as well as the root directories, typically \textit{".", ".."}.
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Determining all base offsets for given topic and partition}]
 getBaseOffsets :: (TopicStr, Int) -> IO [BaseOffset]
 getBaseOffsets (t, p) = do
 dirs <- getDirectoryContents $ getLogFolder (t, p)
@@ -903,7 +902,7 @@ extracts the offset as an \textit{Int} from a \textit{String}. As an example,
 \textit{"00000000000000000005.log" :: String } will be transformed to
 \textit{0000000000000000005 :: Int}:
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Get numeric value (offset) from given string (filename)}]
 offsetFromFileName :: [Char] -> Int
 offsetFromFileName = read . reverse . snd . splitAt 4 . reverse
 \end{lstlisting}
@@ -912,7 +911,7 @@ Finally, the \lstinline{Maybe Offset} helps to distinguish between the highest o
 (\lstinline{Nothing}) or the next smaller \lstinline{BaseOffset} related to a provided
 \lstinline{Just Offset}. 
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Get highest base offset existing of given topic and partition}]
 getLastBaseOffset :: (TopicStr, Int) -> Maybe Offset -> IO BaseOffset
 getLastBaseOffset (t, p) o = do
 bos <- getBaseOffsets (t, p)
@@ -969,7 +968,7 @@ well as the topic and partition combination and the set of messages to append.
 As illustrated in figure \ref{fig:broker-log-append} not only the log is
 involved in this process but also the index.
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Append function exposed by LogManager}]
 append :: (State, L.TopicStr, L.PartitionNr, Log) -> IO ()
 append ((Log.LogState ls, Index.IndexState is), t, p, ms) = do
   logs <- takeMVar ls
@@ -1052,7 +1051,7 @@ not only the map of the specific log but the entire collection of logs. As topic
 and partition are required anyways in this function, working with the entire
 collection is easier to handle on the log manager side.
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Append messages to log}]
 append :: (L.TopicStr, L.PartitionNr) -> Logs -> IO Logs
 append (t, p) logs = do
   let logToSync = find (t, p) logs
@@ -1068,7 +1067,7 @@ The flush interval describes the length of the log and returns true if the
 amount of messages reached the limit of 500, which is the default value of
 Apache Kafka.
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Check if enough messages are given for flush to disk}]
 isFlushInterval :: Log -> Bool
 isFlushInterval log = 500 <= length log
 \end{lstlisting}
@@ -1086,7 +1085,7 @@ file. The \lstinline{withFile} function from \fnurl{System.IO
 the file and passes the resulting handle to the computation act.  The handle
 will be closed on exit from \lstinline{withFile}.
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Write message to file in AppendMode}]
 write :: (L.TopicStr, Int, Log) -> IO ()
 write (t, p, ms) = do
   bo <- getBaseOffset (t, p) Nothing -- todo: directory state
@@ -1105,7 +1104,7 @@ the current size of the log file, including the size of the upcoming log
 entries being persisted later during this request cycle. Thus, adding both sizes
 will result in the correct physical offset after the messages are persisted.
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Appending entry to index}]
 append :: Indices -> (L.TopicStr, L.PartitionNr) -> Log -> Int64 -> IO Indices
 append idx (t, p) ms logSize = do
   let old = find (t, p) idx
@@ -1152,7 +1151,7 @@ system call under POSIX.
 
 %todo ...DESCRIBE MMAP LIBRARY...
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Get last index entry (OffsetPosition) from index}]
 getLastOffsetPosition :: (TopicStr, Int) -> BaseOffset -> IO OffsetPosition
 getLastOffsetPosition (t, p) bo = do 
   let path = getPath (getLogFolder (t, p)) (indexFile bo)
@@ -1182,7 +1181,7 @@ Fortunately, the mmap wrapper function \textit{mmapFileByteStringLazy} takes a
 The range is defined by the offset, which is the beginning byte of the file
 region and the size tells the mapping length.
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Get last message offset from log, start at position given}]
 getLastLogOffset :: (TopicStr, Int) -> BaseOffset -> OffsetPosition -> IO Offset
 getLastLogOffset (t, p) bo (rel, phys) = do
   let path = getPath (logFolder t p) (logFile bo)
@@ -1254,7 +1253,7 @@ by sending a producer request or as a consumer by sending a fetch request. After
 sending the client wait for a corresponding response from the broker.
 
 Init stream socket an open connection to a given host address and port (broker must be running on same ip and port): 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Init client connection to broker}]
   sock <- socket AF_INET Stream defaultProtocol 
   setSocketOption sock ReuseAddr 1
   putStrLn "Give IP"
@@ -1264,10 +1263,9 @@ Init stream socket an open connection to a given host address and port (broker m
   port <- getLine
   connect sock (SockAddrInet port ip)
 \end{lstlisting}
-\todo{port convertierung}
 
 If connection succeeded give client id and topic name: 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Read meta information from client input}]
   putStrLn "Give Client Id"
   clientId <- getLine
   putStrLn "Give Topic Name"
@@ -1279,7 +1277,7 @@ packs the input into a protocol conform produce request, whereas the function
 sendRequest encodes the request an send it over given socket connection.
 Afterwards a response from broker is expected. If there is a response the client
 can decode it with the API function decodePrResponse. 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Publish each console input as single request to the broker}]
   forever $  do 
     putStrLn "Nachricht eingeben"
     inputMessage <- getLine

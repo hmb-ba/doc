@@ -75,7 +75,8 @@ Offset Fetch API (Oft)  & OffsetFetchRequest    & OffsetFetchResponse    \\ \hli
 As a result, a typical data type is described as follows, while details are
 hidden for demonstration purposes.:
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Example of defined protocol types with name
+convention}]
 -- more
 data Partition =
     ----------------------
@@ -160,7 +161,7 @@ deriving from
 \fnurl{\lstinline{Enum}}{http://hackage.haskell.org/package/base-4.8.0.0/docs/Prelude.html\#t:Enum} is provided and implicitly represents the
 appropriate error code by its order.
 
-\begin{code}
+\begin{lstlisting}[caption={Defined types for ErrorCode}]
 data ErrorCode =
         NoError
       | Unknown
@@ -180,7 +181,7 @@ data ErrorCode =
       | ConsumerCoordinatorNotAvailableCode
       | NotCoordinatorForConsumerCodeA
         deriving (Show, Enum)
-\end{code}
+\end{lstlisting}
 
 \subsection{Types related to Request}
 A request message is the on-wire format of data which is getting from client to
@@ -663,7 +664,7 @@ it's big endian network order and decode it to appropriate types.
 
 The following code shows the function for parsing an arbitrary request:
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Decode of RequestMessage, depending on ApiKey}]
 import Data.Binary.Get
 
 requestMessageParser :: Get RequestMessage 
@@ -686,7 +687,7 @@ requestMessageParser = do
 Batched sequences are decodes as Data.List whereas the following function
 provides a generic way to decode a list with given size and a parse each
 element:
-\begin{lstlisting}
+\begin{lstlisting}[caption={Decode list of any type}]
 parseList :: Int -> (Get a) -> Get [a]
 parseList i p = do 
   if (i < 1) 
@@ -726,7 +727,7 @@ A batched sequence of MessageSets is a special case where the protocol does not 
 field which determines the number of elements. There is just a field which contains
 the size in bytes of all message sets. Therefore we implemented an according
 list decoder for sequences of MessageSets:
-\begin{lstlisting}
+\begin{lstlisting}[caption={Decode list of MessageSet's}]
 parseMessageSets :: Int -> Get [MessageSet]
 parseMessageSets i = do
     if (i < 1)
@@ -757,7 +758,7 @@ module and was separated just for clarity. The implementation also rely on
 and use the Put Monad (Data.Binary.Put) to construct ByteStrings.
 
 The following code shows the function for encoding an arbitrary request:
-\begin{lstlisting}
+\begin{lstlisting}[caption={Encode RequestMessage, depending on ApiKey}]
 buildRqMessage :: RequestMessage -> Put
 buildRqMessage e = do
   putWord32be $ rqSize e
@@ -776,7 +777,7 @@ buildRqMessage e = do
 
 Batched sequences are encoded as Data.List whereas the following function
 provides a generic way to build the list in given size and encode each element:
-\begin{lstlisting}
+\begin{lstlisting}[caption={Encode list of any type}]
 buildList :: (a -> Put) -> [a] -> Put
 buildList builder [] = putLazyByteString BL.empty
 buildList builder [x] = builder x
@@ -815,7 +816,7 @@ Metadata type needs to be defined. Each of them consists of a Head, which
 contains the header information every request needs to include. Furthermore, the
 libary types allow the client to define nested sequences of topics and
 partitions to fully support the batching approach of the Kafka protocol. 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Simplified types for client API}]
 data Req = Produce Head [ToTopic] | Fetch Head [FromTopic] | Metadata Head [OfTopic]
 data Head = Head
   { apiV      :: Int
@@ -827,7 +828,7 @@ data Head = Head
 The following example shows the definition of a produce call to publish batched messages
 for multiple topics and partitions. 
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Example of using types from client API}]
   let head = Head 0 0 clientId
   let ms = [randBytes | x <- [1..10]]
   let req = Produce 
@@ -843,7 +844,7 @@ library exposes a \lstinline{sendRequest} function. It packes the provided
 \lstinline{Req} to the protocol conform \lstinline{RequestMessage} and encode it
 to ByteString. Finally, the binary data is sent to the given socket.
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Pack and send function of client API}]
 sendRequest :: Socket -> RequestMessage -> IO ()
 sendRequest socket requestMessage = do
     SBL.sendAll socket msg
@@ -863,7 +864,7 @@ instance Packable Req where
 For parsing received responsed sent from broker, the client library exposes
 functions for decoding the binary data. 
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={Exposed decode functions of client API}]
 To expose functionality for the client to decode responses sent from broker, the
 client library provides specific decode functions: 
 
@@ -903,7 +904,7 @@ types together from different fixtures whereas their fields are already filled
 with some sample values. 
 
 The following code shows an extract of the protocol tests:
-\begin{lstlisting}
+\begin{lstlisting}[caption={Extract from protocol tests with hspec}]
 import Test.Hspec
 import SpecFixtures
 
@@ -926,7 +927,3 @@ testMs :: MessageSet -> Expectation
 testMs m = (runGet messageSetParser $ runPut $ buildMessageSet m) `shouldBe` m
 
 \end{lstlisting}
-
-
-
-
