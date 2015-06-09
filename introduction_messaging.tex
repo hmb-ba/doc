@@ -17,16 +17,16 @@ understand the capabilities of Apache Kafka.
 \section{What is Messaging?}
 
 A distributed system consists of a collection of multiple autonomous components,
-connected through network, which enables to coordinate  their activities (e.g.\
-computers) and to share resources. To a user, these systems are perceived as a
-single, integrated computing facility. Other than centralised systems,
-distributed systems have it's advantages in economics, performance and
+connected through a network, which enables to coordinate  their activities (e.g.\
+computers) and to share resources. To a user, these systems appear as a
+single, integrated computing facility. Unlike centralised systems,
+distributed systems have their advantages in economics, performance and
 scalability and reliability. In fact, this approach allows to build reliable
 applications, scaled using low cost computers, and thus can serve massive
 performance needs whether on demand or continuously.  Although distributed
 systems have many advantages, compared to local applications, they also bring
-many challenges, as explained in detail later on, which have to be considered as
-a developers.\cite{POSA1}\cite{TAN06}
+many challenges, as explained in detail later on, which have to be considered by 
+developers.\cite{POSA1}\cite{TAN06}
 
 \begin{figure}[H]
     \centering
@@ -39,7 +39,7 @@ Messaging integrates distributed applications to an overall system by providing
 message queues for communication between them (see figure
 \ref{fig:messaging-simple}). One application can publish its messages to the
 queue and another application can asynchronously read from it at any time.
-Thereby a message is just a simple and independent unit with a data structure
+A message is just a simple and independent unit with a data structure
 which contains a meta header and the transmitted information. The messaging
 technology enables high-speed, asynchronous, program-to-program communication
 with reliable delivery.
@@ -53,24 +53,24 @@ following:
 \begin{enumerate}
     \item{\textbf{Fallacy: The network is reliable}
 
-        There are always a plenty of things that can go wrong in a network like
+        There are always plenty of things that can go wrong in a network, like
         power failures, bad connectivity or natural disasters. Therefore a
-        network must never be seen as fail-safe. One always have to assume that
+        network must never be seen as fail-safe. One always has to assume that
         sent data is possibly getting lost on the wire. A messaging system runs
         with an underlying middleware (\ref{intro-messaging-mom}) which deals
         with failures on each side of the communication. This allows to get
-        control of which messages has been successfully delivered and which need
-        to be redelivered. Thus, the original sender never has the guarantee
-        that the sent message has arrived at the desired destination but it
-        always has the confirmation of the middleware that the data has put in a
-        message queue. In case of failure the messaging system can initiate
+        knowledge about which messages has been successfully delivered and which
+        need to be redelivered. Thus, the original sender never has the guarantee
+        that the sent message has arrived at the desired destination, but it
+        always has the confirmation of the middleware that the data has been put 
+        in a message queue. In case of failure the messaging system can initiate
         appropriate actions to delegate a failed transmission.
 
       }
 
     \item{\textbf{Fallacy: Bandwidth is infinite and the Latency is zero }
 
-        Since communicating over network is significant slower than local
+        Since communicating over network is significantly slower than local
         operations, a distributed system has to deal with delays and
         interruptions of any length. Messaging supports a storage capacity which
         leads to a persistent way of communication where it is not required that
@@ -82,28 +82,29 @@ following:
 
     \item{\textbf{Fallacy: Topology doesn't change}
 
-        Applications, systems and topologies changes over time, and in most
+        Applications, systems and topologies change over time, and in most
         scenarios this will often affect the collaborating components in the
         distributed network too. Therefore distributed nodes should be decoupled
         as far as possible. Messaging tries to achieved this with the underlying
-        middleware.(\ref{intro-messaging-mom}) The sender and receiver whether
-        do communicate nor do they need to know them directly. They always
-        communicate via the middleware software. In case of significant changes,
-        only the interface to the messaging system needs to be updated.
+        middleware.(\ref{intro-messaging-mom}) The sender and receiver do not need
+        to know whether or not to communicate, nor do they need to know the other 
+        side directly. They always communicate via the middleware software. In 
+        case of significant changes, only the interface to the messaging system 
+        needs to be updated.
 
       }
 
     \item{\textbf{Fallacy: The network is homogeneous}
 
-        In real world, applications are always different. In distributed systems
-        data need to be transmitted between nodes which use different
+        In the real world, applications are always different. In distributed systems
+        data needs to be transmitted between nodes which use different
         programming languages, operating platforms, and data formats.  This is
         called interoperability which actually means that systems based on
         different technologies can collaborate together by using the same
         standards or protocols. Messaging provides either a common interface or
-        a protocol on the wire which can be implemented from various
-        applications. While using a messaging system in an enterprise
-        environment it is much more efficient to integrate a new application to
+        a protocol on the wire which can be implemented by various
+        applications. When using a messaging system in an enterprise
+        environment, it is much more efficient to integrate a new application to
         the existing data flow instead of implementing a new interface for
         another technology. The newly introduced component can be linked to the
         existing platform by just using the underlying messaging protocol.\\
@@ -111,11 +112,11 @@ following:
         In the past, several companies like IBM or Microsoft developed their own
         proprietary standards and protocols for asynchronous messaging systems
         -- probably to keep it locked in their customer base. In June 2001 the
-        Java Message Service API (JMS) was released as best-known standard for
+        Java Message Service API (JMS) was released as the best-known standard for
         messaging systems. However, it is only an interface without a specific
         protocol, JMS implementations need to define their own. Fortunately in
         June 2006 a pool of multiple companies for network technologies defined
-        the Advanced Message Queueing Protocol (AMQP) as a open standard for an
+        the Advanced Message Queueing Protocol (AMQP) as an open standard for an
         interoperable messaging protocol. \cite{PrpAMQP}
 
     }
@@ -127,15 +128,15 @@ following:
 \section{Message Oriented Middleware}
 \label{intro-messaging-mom}
 
-Because networks are not inherently reliable, messaging would never be as
+Because networks are not inherently reliable, messaging would never be
 efficient without a systems that manages the capabilities of messaging by acting
-as mediator. To introducing an intermediate component between distributed
-applications may be a very good choice as it would reduces the close coupling of
+as mediator. To introduce an intermediate component between distributed
+applications may be a very good choice as it would reduce the close coupling of
 communication styles such as sockets-based or RMI/RPC. This additional component
-is known as the messaging system or message-oriented middleware (MOM), and is
-all about passing messages in any format from one application to another whereas
+is known as the messaging system or message-oriented middleware (MOM) and is
+all about passing messages in any format from one application to another where
 the parties do not need to knows each other directly. \cite{TAN06} The MOM
-provides a specific API for both the sender as well for the receiver:
+provides a specific API for both the sender and the receiver:
 
 \begin{table}[H]
 \centering
@@ -150,14 +151,14 @@ provides a specific API for both the sender as well for the receiver:
 \end{table}
 
 In a basic scenario including an application A being the sender of a message and
-an application B being the receiver, the MOM --running either on the node itself
-or dedicated in the local network-- holds a local queue to store incoming
+an application B being the receiver, the MOM -- running either on the node itself
+or dedicated in the local network -- holds a local queue to store incoming
 messages and manages an address-lookup database for mapping destination names to
 network locations. Overall, the flow of a message sent from A to B will be as
 follows: first, the sender packs its data into the appropriate message format
 (1) and puts the message in a local queue (2). The MOM then delivers the message
-over the network to the local queue of the receiver (3). After all, the receiver
-system will fetch the message and stores it in its own local queue (4) to
+over the network to the local queue of the receiver (3). Finally, the receiver
+system fetches the message and stores it in its own local queue (4) to
 further unpack and finally get the transmitted data (5).
 
 \begin{figure}[H]
@@ -180,12 +181,12 @@ implies that each system needs to hold the addresses of all the other nodes that
 wants to communicate with. When a target address changes, all the applications that
 communicate with the changed target must be updated. 
 
-In most scenarios there is also a need for transforming messages to different
+In most scenarios there is also a need for transforming messages to a different
 format where these implementations have to be made on every node, which leads to
-duplicating code. In an architecture with many collaborating applications
-point-to-point messaging can end up in a mess of connection which is hard to
+duplicating code. In an architecture with many collaborating applications,
+point-to-point messaging can end up in a mesh, of connections which is hard to
 maintain.  For more complex integration solutions, a centralised solution
-whereas the MOM runs on a location independent platform is required. This is
+whereas the MOM runs on a location-independent platform is required. This is
 where the central hub (broker) comes into game. \cite{MSDNIntegration}
 
 \begin{figure}[H]
@@ -199,12 +200,12 @@ where the central hub (broker) comes into game. \cite{MSDNIntegration}
 \label{intro-messaging-broker}
 A messaging system with point-to-point connections can decouple two systems
 by using a managed queue on each side of a collaboration. But there is
-still the need of configuration the endpoints on each side. In general, a
+still the need of configuring the endpoints on each side. In general, a
 message broker is a dedicated component which decouples source and
 target systems by assuming full responsibility for coordinating communication between
-all connected nodes. Thereby the main tasks of a message broker are the
-dynamically registration of endpoints, determining location of target system
-(a.k.a. routing) and performing of the communication as well transformation of a
+all connected nodes. The main tasks of a message broker are the
+dynamic registration of endpoints, determining the location of a target system
+(a.k.a. routing) and performing the communication as well as the transformation of a
 message from one format to another. Furthermore the broker can provide temporal
 persistence of messages. \cite{MSDNIntegration} \\
 
@@ -223,15 +224,15 @@ persistence of messages. \cite{MSDNIntegration} \\
 
 \section{Message Broker in Detail}
 \subsection{The Broker Pattern }
-As initial point for the detailed definition of a message broker we take the
-\textit{Broker Pattern} of  \textit{Patterns of Software Architecture Volume1}
+As the initial point for the detailed definition of a message broker we take the
+\textit{Broker Pattern} of  \textit{Patterns of Software Architecture Volume 1}
 which can be used to structure distributed systems with decoupled components.
-Basically it differs between two types of brokers, where the \textit{Direct
+Basically it distinguishes between two types of brokers, where the \textit{Direct
 Broker} performs a initialization of a connection but the following communication
-is only between the two endpoints. For messaging, the second variant
-\textit{Indirect Broker}, is lot more interesting because it maintains all of
+is only between the two endpoints. For messaging, the second variant,
+\textit{Indirect Broker}, is a lot more interesting because it maintains all of
 the communication between the nodes at every time. So let us define the message
-broker as refinement of the Indirect Broker Pattern for message-based
+broker as a refinement of the Indirect Broker Pattern for message-based
 communication.\cite{POSA1} 
 
 %\subsection{Structure}
@@ -240,7 +241,7 @@ which we can adapt for a message based environment by using the common terms.
 
 \begin{description}
     \item[Producer (adapted from Client component)] \hfill \\
-        {Applications that either generating data for later processing or
+        {Applications that either generate data for later processing or
         access a service from another client in the messaging system. In both
         cases the producer pushes its messages to the broker and in general does
         not care about it anymore.}
@@ -256,27 +257,27 @@ which we can adapt for a message based environment by using the common terms.
         producer. It also must have kind of a directory for locating registered
         consumers.} 
     \item[Consumer (adapted from Server component)] \hfill \\
-        {Basically the consumer is a endpoint which receives and processes a
-            message for further activities. An \textit{Event-Driven-Consumer}
+        {Basically the consumer is an endpoint which receives and processes a
+            message for further activities. An \textit{Event Driven Consumer}
             handles incoming messages automatically as they are pushed from the
-            broker. A \textit{Polling-Consumer} explicitly gets messages when it
-            wants to receive it from the broker. If a consumer provides a
+            broker. A \textit{Polling Consumer} explicitly gets messages when it
+            wants to receive them from the broker. If a consumer provides a
             service to other clients, it also can act as a producer for sending
             back messages as response.}
-\item[Consumer API (adapted from Server-Side-Proxy)] \hfill \\
+    \item[Consumer API (adapted from Server Side Proxy)] \hfill \\
         {Structural component which encapsulates messaging-specific
         functionality from the rest of the client code. Based on incoming
-        messages it calls services within the consumer component. }
+        messages it calls services within the consumer component.}
 \end{description}
 \newpage
 \subsection{Consumption Model}
 A fundamental design decision of a message broker is whether consumers
     should pull data from brokers or brokers should push data to consumers. This
-    has direct impacts to the performance of a broker system. In a
+    has a direct impact on the performance of a broker system. In a
     push-based environment the consumers can be the bottleneck when its
-    consumption rate falls below the rate of production. In a pull-based system
+    consumption rate falls below the rate of production. In a pull-based system,
     consumers which fall back can catch up at any time, the risk of
-    bottleneck lies at the broker thus a message broker should scale well.
+    bottleneck lies at the broker, thus a message broker should scale well.
 \begin{figure}[H]
     \centering
      \begin{sequencediagram}
@@ -312,9 +313,9 @@ A fundamental design decision of a message broker is whether consumers
     \label{fig:MB-SSD-1}
 \end{figure}
 \newpage 
-On the other hand in a pull-based environment a consumer never knows whether a
-message is ready for consumption or not. In worst case this ends up with a read
-loop where the consumer constantly need to check the queue. \todo{more details}
+On the other hand, in a pull-based environment a consumer never knows whether a
+message is ready for consumption or not. In the worst case this ends up with a read
+loop where the consumer constantly needs to check the queue. \todo{more details}
 
 \begin{figure}[H]
     \centering
@@ -356,7 +357,7 @@ loop where the consumer constantly need to check the queue. \todo{more details}
             {consumerProx}{(10) Forward Data}{consumer}{}
         \end{messcall}
     \end{sequencediagram}
-    \caption{Basic flow of a Broker with polling based consumption}
+    \caption{Basic flow of a Broker with polling-based consumption}
     \label{fig:MB-SSD-1}
 \end{figure}
 
@@ -378,20 +379,20 @@ loop where the consumer constantly need to check the queue. \todo{more details}
 \subsection{Topic and Subscription Model}
 \label{intro-messaging-publishsubscribe}
 Message Broker systems are persisting incoming messages in an enhanced type of a
-message queue, namely topic. A topic allows the broker to deliver a message to
-multiple independent consumers. Sending messages to the broker in form of
+message queue, named topic. A topic allows the broker to deliver a message to
+multiple independent consumers. Sending messages to the broker in the form of
 publishing to a specific topic and on the other hand receiving messages only for
 the specified topic, is called publish/subscribe. In contrast to a one-to-one
 queue, the message broker requires the abilities to match messages on an
-application based level to act as a gateway for topic related messages. Based on
+application-based level to act as a gateway for topic-related messages. Based on
 the informations provided within the messages, the broker is able to
 provide the messages to the client acting as a subscriber. In fact,
 this publish/subscribe queue delivers a copy of the topic related messages to
 the output channel. This also means that there can be more than one client that
-consumes the topic specific
+consumes the topic-specific
 messages and thus there can be more than one subscriber. Especially this feature
 of having multiple consumers of a message channel, is decisive for using a
-message broker in environment where a distributed system processes the same stream of
+message broker in an environment where a distributed system processes the same stream of
 data in multiple ways. \todo{ref to chapter}
 \cite{EIP03} \cite{TAN06}
 
@@ -403,49 +404,50 @@ data in multiple ways. \todo{ref to chapter}
 \end{figure}
 
 \subsection{Reliable Delivery}
-A reliable delivery of messages can promise a specific behaviour to producer
-    and consumer. A message broker typically supports one ore more of the
+    A reliable delivery of messages can promise a specific behaviour to producers
+    and consumers. A message broker typically supports one ore more of the
     following guarantees.
     \textit{At most once} guarantees that messages may be lost but are never
-    redelivered. \textit{At least once} is defined that messages are never lost
+    redelivered. \textit{At least once} defines that messages are never lost
     but may be redelivered. The \textit{Exactly once} semantic which is very
     typical guarantees that each message is delivered only once. Broker system
     which use the \textit{In Order} semantic deliver messages to the consumer in
-    the strict same order they are sent from the producer to the broker. 
+    the strict same order in which they are sent from the producer to the broker. 
 
 \section{Challenges of a Messaging System}
 \todo[inline]{more details of cut off}
 \label{intro-messaging-characteristics}
-As described, a messaging system has its strengths in interoperability and louse
+As described, a messaging system has its strengths in interoperability and loose
 coupling of distributed computers. 
 %Messaging löst also gewisse Schwierigkeiten von Distributed System bring aber
 %selber neue Challenges auf: 
 A message broker in turn has also many further
-characteristic. The most related to our work are:
+characteristics. The ones most related to our work are:
 
 \begin{description}
     \item [Independence] \hfill \\
-    { The more independent a
+    {   The more independent a
         message broker is, the better it can be integrated in a existing
         environment. The use of standards and effective standardized interfaces
         promotes independence.}
+        
     \item [Scalability] \hfill \\
-    {Ability to dynamically increase performance depending on work load.  }
+    {    Ability to dynamically increase performance depending on work load. }
     \item [Latency]\hfill \\
-    {Elapsed time it takes to process a single message for consumption.  }
-\item [Fault Tolerance] \hfill \\
-        {Ability to recovery after a failure with minimal message loss.
-            Possibility to build redundancy through clustering \todo{gls} and
-            replication strategy such as master slave \todo{gls} or state machine
-            replication\todo{gls}. It is a significant characteristic how a
+    {    Time it takes to process a single message for consumption.  }
+    \item [Fault Tolerance] \hfill \\
+    {    Ability to recover after a failure with minimal message loss.
+            Possibility to build redundancy through clustering and
+            replication strategies such as master-slave or state machine
+            replication. It is a significant characteristic how a
             message broker syncs its replications and elects which of the nodes
             to get active if the master fails. Also it is important that in case
             of failure the system can recover as quickly as possible and with
             minimal throughput deficit.   }
-        \item [Persistency] \hfill \\ 
-        {Ability to offer durable and persistent messages even of the broker
+    \item [Persistency] \hfill \\ 
+        {Ability to offer durable and persistent messages even if the broker
             systems restarts, crashes or consumer is inactive for a longer period of time
-            (for instance batch processing system). }
+            (for instance batch processing systems). }
     \item [Throughput] \hfill \\
         {Proportion of messages which can be sent to a broker to the amount of
         messages which can be consumed in a fixed time interval.}
