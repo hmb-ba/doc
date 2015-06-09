@@ -688,6 +688,7 @@ then tells on what position the message resides within the log.
 
 
 \subsection{In-memory format}
+\label{subsec:broker-log-inmemory}
 
 As it turned out that working with disk alone -- in stateless fashion so to
 speak -- is not only very difficult to manage but also extremely slow (see
@@ -856,7 +857,7 @@ mentioned steps in the order of occurrence.
             {manager}{(1) Find existing log}{log}{}
         \end{call}
         \begin{call}
-            {manager}{(2) Determine last offset}{manager}{}
+            {manager}{(2) Increment offset of new messages}{manager}{}
         \end{call}
         \begin{call}
             {manager}{(3) Concatenate new messages to log}{manager}{}
@@ -875,13 +876,20 @@ mentioned steps in the order of occurrence.
     \label{fig:broker-log-append}
 \end{figure}
 
+The log manager is responsible to append entries to the log and therefore
+exposes the function \lstinline{append} which takes the tuple of both states as
+well as the topic and partition combination and the set of messages to append.
+As illustrated in figure \ref{fig:broker-log-append} not only the log is
+involved in this process but also the index.
+
 \begin{lstlisting}
 append :: (State, L.TopicStr, L.PartitionNr, Log) -> IO ()
 append ((Log.LogState ls, Index.IndexState is), t, p, ms) = do
   logs <- takeMVar ls
   let log = Log.find (t, p) logs -- (1)
-  let llo = fromMaybe 0 (Log.lastOffset log) -- (2)
-  let newLog = log ++ Log.continueOffset (llo + 1) msA -- (3)
+  let llo = fromMaybe (-1) (Log.lastOffset log)
+  let recvLog = Log.continueOffset (llo + 1) ms -- (2)
+  let newLog = log ++ recvLog -- (3)
 
   indices <- takeMVar is
   let index = Index.lastOrNull $ Index.find (t, p) indices -- (4)
@@ -897,6 +905,58 @@ append ((Log.LogState ls, Index.IndexState is), t, p, ms) = do
   syncedLogs <- Log.append (t, p) newLogs -- (6)
   putMVar ls syncedLogs
 \end{lstlisting}
+
+The concept behind the \lstinline{append} function is that the log manger takes
+the value of the MVar, then computes log and index specific functions in a pure
+fashion, and after the append process is completed puts the value back in the
+MVar.  During this process---between \lstinline{takeMVar} and
+\lstinline{putMVar}---the resource is locked. As for now, concurrent appending
+is not supported but with this concept may become possible in future. The
+following listing describes the computations happening in between the mentioned
+unwrapping of MVar:
+
+\begin{description}
+  \item[(1)]
+
+    The log which related to the given topic and partition combination is being
+    searched within all yet existing and not to the disk persisted logs residing
+    in the in-memory data structure (\ref{subsec:broker-log-inmemory}). Except
+    for the first message topic and partition combination, there will always be
+    at least one element within this map. The remaining element in this list is
+    required to later be able to continue the offset number for the incoming
+    message sets.
+
+  \item[(2)]
+
+    Having the very last entry in a log allows to further increment the offset
+    over the set of messages received messages.
+
+  \item[(3)]
+
+    The new list of message sets is now appended to the old log.
+
+  \item[(4)]
+
+    At this point it may now be possible that the new log reached the size of
+    the log interval. The first step in order to determine is to get the offset
+    of the last index entry. Keeping in mind that index holds only the relative
+    offset, the base offset has to be added.
+
+  \item[(5)]
+
+    The log provides the function \lstinline{sizeRange} that takes a start and
+    end offset and calculates the size in bytes of this range of messages. If
+    this size reaches the index interval (4096 bytes) an index entry will be
+    created.
+
+  \item[(6)]
+
+    Finally the log entry can be written to the data structure and eventually to
+    disk. Writing to disk is hidden in the \lstinline{append} function of the
+    log as it batches messages and only writes if the total log size of 500
+    messages is being reached.
+
+\end{description}
 
 \subsection{Wrong approach}
 \subsubsection{Last Offset Position}
