@@ -4,7 +4,7 @@
 This chapter provides details of the implementation of the Kafka protocol, which
 acts as basis for all further functionality. The definition of the original
 protocol is given as context free grammar for the request and response binary
-format. Therefore it seemed likely to adopt the rules of the grammar to our
+format \cite{kafka-protocol}. Therefore it seemed likely to adopt the rules of the grammar to our
 protocol implementation by map them with the Haskell type system. In a second
 step encoding and decoding functionality was implemented for getting messages
 from data structure to binary format and backwards. In addition to the protocol,
@@ -29,7 +29,10 @@ three kind of types:
 \begin{enumerate}
   \item Related to request
   \item Related to response
-  \item Related to data (for either request or response but can also be used for the \fnurl{Apache Kafka Log}{http://kafka.apache.org/documentation.html\#log} component since log files (on-disk) hold the same structure)
+  \item Related to data (for either request or response but can also be used for
+      the \fnurl{Apache Kafka
+      Log}{http://kafka.apache.org/documentation.html\#log} component since log
+      files (on-disk) hold the same structure) 
 \end{enumerate}
 
 As mentioned before, the representation of the protocol structure is implemented
@@ -183,7 +186,7 @@ broker.
 
 Each request message has its same header fields independent for which API they are used. 
 The real payload of the request is individual to the particular API which is
-used. 
+used.
 
 \begin{figure}[H]
     \centering
@@ -191,7 +194,7 @@ used.
     \caption{Format of type RequestMessage}
     \label{fig:impl-prot-types-requestMessage}
 \end{figure}
-\todo{figure false! (see table)}
+
 \begin{table}[H]
 \centering
 \begin{tabular}{ l  l  p{10cm} }
@@ -206,7 +209,17 @@ Request       &                 & API specific Request type (either ProduceReque
 \end{tabular}
 \end{table}
 
-TODO: Because the RequestSize is only needed once to determine the length of the whole Request, it is is not part of the type RequestMessage
+Regarding to the API key the following numeric codes are already provided by the
+protocol implementation (other API's are not implemented yet): 
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ll}
+        {\bf API Name}  & {\bf ApiKey Value} \\
+        ProduceRequest  & 0                  \\
+        FetchRequest    & 1                  \\
+        MetadataRequest & 3                 
+    \end{tabular}
+\end{table}
 
 \subsubsection{ProduceRequest}
 \label{subsec:protocol-types-producerequest}
@@ -234,8 +247,6 @@ ListLength    & Data.Word32 & Number of element in following list.              
 {[}RqPrTopic{]} & Data.List   & Sequence of RqPrTopics, see below.                                                                                                  \\ \hline
 \end{tabular}
 \end{table}
-
-TODO: Functionality of ReqAcks and Timeout are not implemented yet. 
 
 A ProduceRequest includes N repetitions of the RqPrTopic type whereas the producer
 client is able to send messages for multiple different topics:
@@ -339,6 +350,31 @@ MaxBytes        & Data.Word32 & Minimum number of bytes of messages that must be
 \end{tabular}
 \end{table}
 
+\subsubsection{Metadata Request}
+The request format for the metadata is fairly simple. Actually the
+RequestMessage header with the appropriate APIkey suffices to initiate the
+broker to reponse meta information about existing topics, partitions and
+brokers. The request contains an optional list of topics, for which explicit
+information is requested.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-metadataRequest.png}
+    \caption{Format of type MetadataRequest, * = N repetitions}
+    \label{fig:impl-prot-types-ftPartition}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+ListLength    & Data.Word32 & Number of element in following list.                                                                                             \\ \hline
+StringLength      & Data.Word16     & Length, in bytes, of string TopicName.              \\ \hline
+TopicName         & Data.ByteString & . The topic to produce metadata for. If
+empty the request will yield metadata for all topics  \\ \hline
+\end{tabular}
+\end{table}
+
 \subsection{Types related to Response}
 A response message is the on-wire format of data which is getting from broker to
 client.
@@ -394,7 +430,7 @@ ListLength        & Data.Word32     & Number of element in following list.\\ \hl
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-prPayload.png}
-    \caption{Format of type RsPrPayload. * = N repetitions}
+    \caption{Format of type RsPrPayload, * = N repetitions}
     \label{fig:impl-prot-types-prPayload}
 \end{figure}
 
@@ -420,7 +456,6 @@ sequence of MessageSet's (see \ref{impl-protocol-types-data}).
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-fetchResponse.png}
     \caption{Format of type FetchResponse}
-    \label{fig:impl-prot-types-fetchResponse}
 \end{figure}
 
 \begin{table}[H]
@@ -439,7 +474,6 @@ ListLength        & Data.Word32     & Number of element in following list.\\ \hl
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-ftPayload.png}
     \caption{Format of type RsFtPayload}
-    \label{fig:impl-prot-types-ftPayload}
 \end{figure}
 
 \begin{table}[H]
@@ -454,6 +488,70 @@ MessageSetSize      & Data.Word32 & The size in bytes of the message set for thi
 \end{tabular}
 \end{table}
 
+\subsubsection{Metadata Response}
+As simple the metadata request is, the more complex the response format turns
+out. It contains information about provided brokers, topics, partitions and
+their replication status. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-metadataResponse.png}
+    \caption{Format of type MetadataResponse, * = N repetitions}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-mdPayloadBroker.png}
+    \caption{Format of type RsMdPayloadBroker} 
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-mdPayloadTopic.png}
+    \caption{Format of type RsMdPayloadTopic, * N repetitions} 
+\end{figure}
+
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+ListLength        & Data.Word32     & Number of element in following list.\\ \hline
+[RsMdPayloadBroker] & Data.List     & Sequence of RsMdPayloadBroker, contains
+node Id, hostname and port information of broker.  \\ \hline
+ListLength        & Data.Word32     & Number of element in following list.\\ \hline
+[RsMdPayloadTopic] & Data.List     & Sequence of RsMdPayloadTopic, contains all,
+or the requested topic names with approriate error code which determines status.
+Also contains a sequence of RsMdPayloadMetadata, see below. \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-mdPartitionMetadata.png}
+    \caption{Format of type RsMdPartitionMetadata} 
+\end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ l  l  p{10cm} }
+\hline
+PartitionErrorCode  & Data.Word16 & Partition specific error code.                                                          \\ \hline
+PartitionNumber     & Data.Word32 & Number of Partition this metadata is for.                                               \\ \hline
+Leader              & Data.Word32 & The node id for the broker currently acting as leader for this partition.
+                       If no leader exists because when beeinh in the middle of
+                       a leader election this id will be -1.                                                                \\ \hline
+ListLength        & Data.Word32     & Number of element in following list.                                                  \\ \hline
+[Replicas]         & Data.List & The set of alive nodes that currently acts as
+                       slaves for the leader for this partition, given as
+                       Data.Word32.                                                                                        \\ \hline
+ListLength        & Data.Word32     & Number of element in following list.                                                  \\ \hline
+[Isr]   & Data.List   & The set subset of the replicas that are "caught up" to
+                       the leader, given as Data.Word32.        \\ \hline
+\end{tabular}
+\end{table}
+
+
 \subsection{Types related to Data}
 \label{impl-protocol-types-data}
 The actual transported data has a common structure,
@@ -465,7 +563,7 @@ from it.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-messageSet.png}
-    \caption{Format of type MessageSet}
+    \caption{Format of type MessageSet including type Message and Payload}
     \label{fig:impl-prot-types-messageSet}
 \end{figure}
 
@@ -484,12 +582,12 @@ Message is part of the MessageSet and contains a checksum to check integrity of
 the actual payload of the message. To abstract the fields which are checked we
 combine them in another type, see Payload.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-message.png}
-    \caption{Format of type Message}
-    \label{fig:impl-prot-types-message}
-\end{figure}
+%\begin{figure}[H]
+%    \centering
+%    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-message.png}
+%    \caption{Format of type Message}
+%    \label{fig:impl-prot-types-message}
+%\end{figure}
 
 \begin{table}[H]
 \centering
@@ -503,12 +601,12 @@ Payload &      & Payload format, see below.                                     
 \subsubsection{Payload}
 This types defines the actual payload of a message with its meta info.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-payload.png}
-    \caption{Format of type Payload}
-    \label{fig:impl-prot-types-payload}
-\end{figure}
+%\begin{figure}[H]
+%    \centering
+%    \includegraphics[width=0.7\textwidth]{images/impl-prot-types-payload.png}
+%    \caption{Format of type Payload}
+%    \label{fig:impl-prot-types-payload}
+%\end{figure}
 
 \begin{table}[H]
 \centering
@@ -519,35 +617,11 @@ Attributes  & Data.Word8      & This byte holds metadata attributes about the me
 KeyLen      & Data.Word32     & Determines length of Key field in bytes.                                                                                                                         \\ \hline
 Key         & Data.ByteString & The key is an optional message key that is used for partition assignment. The key can be null.                                                                  \\ \hline
 ValueLength & Data.Word32     & Determines length of Value field in bytes.                                                                                                                      \\ \hline
-Value       & Data.ByteString & The actual message contents as an opaque byte array. The message can be null.                                                                                   \\ \hline
+Value       & Data.ByteString & The actual message contents as an byte array. The message can be null. Kafka also supports recursive messages in which case 
+                                the value may itself contain a message set. This
+                                functionality is not implemented yet.                                                                                                                            \\ \hline
 \end{tabular}
 \end{table}
-
-TODO: Kafka supports recursive messages in which case this may itself contain a message set. --> not implemented yet  
-
-%\subsection{API's}
-%\todo{-> verschieben in Kap Kafka detail? }
-%\subsubsection{Metadata API}
-%Describes the currently available brokers, their host and port information, and
-%gives information about which broker hosts which partitions.
-
-
-%\subsubsection{Fetch API}
-%Fetchs / Consumes messages from the broker.
-%\subsubsection{Offset API}
-%Get information about the available offsets for a given topic partition
-
-%\textbf{Not implemented yet}
-
-%\subsubsection{Offset Commit API}
-%Commit a set of offsets for a consumer group
-
-%\textbf{Not implemented yet}
-
-%\subsubsection{Offset Commit API}
-%Fetch a set of offsets for a consumer group
-
-%\textbf{Not implemented yet}
 
 \section{Encode / Decode}
 

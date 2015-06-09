@@ -215,6 +215,7 @@ handleRequest rm = do
    return handle
 \end{lstlisting}
 
+\newpage
 \subsubsection{HandleProduceRequest}
 \label{subsec:broker-api-producerequest}
 Handling a produce request implies that the API layer passes the containing
@@ -229,7 +230,7 @@ Simplified structure of nested sequences in request:
 Example:
 [TopicA [Part0 [M], Part1 [M]], Topic B [Part0 [M]]]
 
-Unnested to three tuples:
+Unnested to three tuples which can be feed to LogManager each as single call:
 [(TopicA, Part0, [M]), (TopicA, Part1, [M]), (TopicB, Part0, [M])]
 
 \end{verbatim}
@@ -241,8 +242,9 @@ handleProduceRequest :: RequestMessage -> LogManager.State
 handleProduceRequest rm s = do
   let req = rqRequest rm
   w <- tryIOError(mapM LogManager.append (unnestReq req))
-  case w of
-        .... 
+
+  -- further code 
+
   where
     unnestReq req = [(s, BC.unpack(rqToName x)
                     , fromIntegral(rqPrPartitionNumber y)
@@ -250,17 +252,36 @@ handleProduceRequest rm s = do
                     | x <- rqPrTopics req, y <- rqToPartitions x]
 \end{lstlisting}
 
-
 \subsubsection{HandleFetchRequest}
 \label{subsec:broker-api-fetchrequest}
-Analog to the produce request, handling a fetch request leads to
-\lstinline{readLog} call on the \lstinline{LogManager}.
+Analog to the produce request, handling a fetch request leads to an according
+\lstinline{readLog} call on the \lstinline{LogManager}. The retrieved messages
+are packed and encoded to a protocol conform fetch response.
 
 Fetching data for multiple topics or partitions is not yet supported.
+
 \subsubsection{HandleMetadataRequest}
+Handling a request to the metadata API includes gathering informationen of the
+broker system and provided topics and pack them to a metadata response. Getting
+replication and partition related informations is no implemented yet.
 
-\subsection{Encoding Responses}
+For retrieving a list of provided topics again the \lstinline{LogManager} is
+involved. The exposed function \lstinline{getTopicNames} analyses the existing
+file structure and gives the available topics.
 
+Information regarding the broker host includes local IP. Therefore the library
+\fnurl{Network.Info}{https://hackage.haskell.org/package/network-info} is used: 
+
+\begin{lstlisting}
+import qualified Network.Info as N
+getHost :: IO N.NetworkInterface
+getHost = do
+  ns <- N.getNetworkInterfaces
+  return $ head $ 
+        filter ((N.NetworkInterface name ipv4 ipv6 mac) -> name == "eth0") ns
+\end{lstlisting}
+
+\newpage
 \section{Error Handling}
 \label{sec:broker-error-handling}
 
