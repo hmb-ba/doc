@@ -311,7 +311,7 @@ ReplicaId      & Data.Word32 & Indicates the node id of the replica initiating t
 MaxWaitTime    & Data.Word32 & Maximum amount of time in milliseconds to block,waiting if insufficient data is available at the time the request is,issued. \\ \hline
 MinBytes       & Data.Word32 & Minimum number of bytes of messages that must be available to give a response.                                               \\ \hline
 ListLength     & Data.Word32 & Number of elements in following list.                                                                                        \\ \hline
-{[}FtTopics{]} & Data.List   & Sequence of FtTopics, see below                                                                                              \\ \hline
+{[}RqFtTopics{]} & Data.List   & Sequence of FtTopics, see below                                                                                              \\ \hline
 \end{tabular}
 \end{table}
 
@@ -329,7 +329,7 @@ ListLength     & Data.Word32 & Number of elements in following list.            
 StringLength      & Data.Word16     & Length, in bytes, of string TopicName.              \\ \hline
 TopicName         & Data.ByteString & Name of the topic the fetch is for . \\ \hline
 ListLength        & Data.Word32     & Number of element in following list.                \\ \hline
-[FtPartition]     & Data.List       & Sequence of FtPartitions, see below.                \\ \hline
+[RqFtPartition]     & Data.List       & Sequence of FtPartitions, see below.                \\ \hline
 \end{tabular}
 \end{table}
 
@@ -465,7 +465,7 @@ sequence of MessageSet's (see \ref{impl-protocol-types-data}).
 StringLength      & Data.Word32     & Length, in bytes, of string TopicName. \\ \hline
 TopicName         & Data.ByteString & Name of the topic this response entry corresponds to.\\ \hline
 ListLength        & Data.Word32     & Number of element in following list.\\ \hline
-{[}RsPrPayload{]} & Data.List       & Sequence of RsPrPayload, see below.
+{[}RsFtPayload{]} & Data.List       & Sequence of RsPrPayload, see below.
 \\ \hline
 \end{tabular}
 \end{table}
