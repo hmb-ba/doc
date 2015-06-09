@@ -483,16 +483,15 @@ Considerations Bounded Chans
 \newpage
 \section{Log Subsystem}
 
-The log subsystem is responsible for handling persistence of the messages being
+The log subsystem is responsible for persistence of messages being
 produced and consumed. This component plays an decisive role while handling a
 \textit{fetchRequest} (\ref{subsec:broker-api-fetchrequest}) as well as a
 \textit{produceRequest} (\ref{subsec:broker-api-producerequest}) and thus it's
 being used extensively in the API layer (\ref{sec:broker-api}). In this section
 the applied concepts -- which are adapted from Apache Kafka -- will be explained
 before a proper introduction to the components of the log subsystem is given.
-After this follows the explanation of the code for the  most important
-functionalities where information about design decisions and potential threats
-are given.
+Afterwards follows a code explanation for the  most important functionalities where
+information about design decisions and potential threats are given.
 
 \subsection{Components}
 
@@ -509,9 +508,9 @@ library.
 
 As illustrated in figure \ref{fig:broker-log-overview} the \textit{LogManager}
 acts an interface to any component that uses functionalities of the log -- which
-is this case will be the API layer. The \textit{LogManager} is then able to use
-exposed functionalities of the hidden (displayed as dashed) \textit{Log} or
-\textit{Index} modules.
+in this case will be the API layer. The \textit{LogManager} is then able to use
+exposed functionalities of the hidden modules \textit{Log} and
+\textit{Index} (displayed as dashed). 
 
 \begin{lstlisting}
 module HMB.Internal.LogManager
@@ -522,13 +521,14 @@ module HMB.Internal.LogManager
 ) where
 \end{lstlisting}
 
-As for now, the functionalities the \textit{LogManager} provides it to create a
+As for now, the functionalities the \textit{LogManager} provide is to create a
 new log and to append or read messages to/from an existing log. Further
 functionalities are provided but yet still managed by the \textit{Log} or
-\textit{Index} module itself. The last and perhaps most special thing that is
-exposed is the \lstinline{State} which is the representation of the
-current Log and Index, as discussed later in this section.
+\textit{Index} module itself. Also exposed is the \lstinline{State} type which is
+the representation of the current Log and Index, as discussed later in this
+section.
 
+\newpage
 \subsection{Storage Layout}
 \label{log-broker-storage}
 
@@ -543,15 +543,16 @@ There are two types of files they reside within the folder that specifies the
 topic and partition (see folder structure):
 
 \begin{description}
-    \item[.index] Containing a sequence of index entries
-    \item[.log] Containing a sequence of log entries
+    \item[.index] Containing a sequence of index entries as binary data
+    \item[.log] Containing a sequence of log entries as binary data
 \end{description}
 
 Both of the file types hold the same name which stays for the base offset and
 can be considered as an unique identifier representing a 64 bit integer as a 20
 character file name. As it was defined for Apache Kafka, the \textbf{base
-offset} is the offset of the first log entry. For example if a log holds
-messages whereas the first message has the offset \textit{5 :: Int64} the file
+offset} is the offset of the first log entry stored in this file. For example if
+a log holds messages whereas the first message has the offset \textit{5 ::
+Int64} the file
 name of this log will be \textit{00000000000000000005.log} and the related
 index file \textit{00000000000000000005.index}.
 
@@ -587,62 +588,78 @@ log
    |--00000000000000000000.log
 \end{verbatim}
 
+\newpage
+\subsection{Log}
+
+The log contains a sequence of log entries whereas the on-disk format of a log
+entry is is part of the reason why the Apache Kafka becomes that valuable. In
+fact, the on-disk format is exactly the same as the format of the MessageSet
+(see \ref{impl-protocol-types-data}) transmitted with a ProduceRequest
+(\ref{subsec:protocol-types-producerequest}). Thus, data does not have to be
+modified in any way and can directly be extracted and written to the file
+system.
+
 
 \subsection{Index}
-
 Every segment of a log has it's corresponding index, represented as a file with
-the suffix \textit{.index}. Both the log and the index file hold the same name
-name as it represents the base offset.
+the suffix \textit{.index}. Whereas the log file contains the actual messages structured in a
+message format (see \ref{impl-protocol-types-data}) and for each message within
+this file, the first 64 bits describe the incremented offset. Now, looking up
+this file for messages with a specific offset becomes very expensive since log
+files may grow in the range of gigabytes. And to be able to produce messages,
+the broker actually has to do such kind of lookups to determine the latest
+offset and be able to further increment incoming messages correctly. This is why
+there is an index.
 
-Whereas the log file contains the actual messages structured in a
-message format and for each message within this file, the first 64 bits describe
-the incremented offset. Now, looking up this file for messages with a specific
-offset becomes very expensive since log files may grow in the range of gigabytes.
-And to be able to produce messages, the broker actually has to do such kind of
-lookups to determine the latest offset and be able to further increment
-incoming messages correctly. This is why there is an index.
+Basically the index file contains quite simple entries with the following
+structure: 
+\begin{verbatim}
+    Relative Offset (4 Bytes)
+    Physical Position (4 Bytes)
+\end{verbatim}
 
-As described before, the file name represents the base offset. In contrast to
-the log, where the offset is incremented for each message, the messages within
-the index contain an offset relative to the base offset. The second field
-represents the physical position of the related log message. Compare to a log
-message, this can be considered as very small. In addition, there is to note
-that not every message within the log is going to be indexed. By default, an
-index entry is created only after \textit{4096 Bytes} of log data.
+The first field of an index entry---the relative offset---refers to a specific
+message in the corresponding log file. On the other hand, the second field
+represents the physical position of the refered message within the log file.
+Instead of storing the whole eight bytes of the message offset, the index entry
+only holds a relative offset to the base offset. This obviously reduces the
+size of the index. In addition, there is to note that not every message within
+the log is going to be indexed. By default, an index entry is created only after
+\textit{4096 Bytes} of log data.
 
 \subsubsection{Usage and advantages}
 
 As per protocol specification, the request to fetch messages (see
 \ref{subsubsec:protocol-fetchrequest}) holds the offset of the wanted message.
-Given this offset, one can determine the base offset and is discussed later on
+Given this offset, one can determine the base offset and is discussed later
 in the log section (see \ref{subsubsec:broker-log-general-baseoffset}).
-Assuming to have a valid base offset as well as the actual offset of the wanted
-message, it is not a big deal to figure out the relative offset of this
-message:
+Assuming to have a valid base offset as well as the actual offset of the
+requested message, it is not a big deal to figure out the relative offset of
+this message:
 
 \begin{verbatim}
-Relative Offset = Offset - Base Offset
+    Relative Offset = Given Offset - Base Offset
 \end{verbatim}
 
 Given the relative offset, a lookup over the log can be processed. Remembering
 that the index is significantly smaller than the log and relies in memory, this
 lookup becomes reasonably fast. In fact, the file system will proceed a binary
-search and thus results in time complexity of O(log \textit{n}), where
+search on the index and thus results in time complexity of O(log \textit{n}), where
 \textit{n} is the number of index entries.
 
-A successful lookup will then bring the information of the physical position of
-closest message to wanted message within the log -- and this is valuable. While
+A successful index lookup will then bring the the physical position of
+the closest message the requested message within the log -- and this is valuable. While
 the interval of index creation is fixed at a certain amount of bytes, a lookup
 of the actual log message, given the position of the closest indexed message
 will result in time complexity of O(1).
 
-
+\newpage
 \subsection{Types}
 
 In the following part of this section, important parts of the code base will be
 explained. To make the code more readable and easier to manage, separate types
-were defined. Those are only used in the log subsystem and are defined within
-the \textit{LogConfig}. The following table gives an overview of these types:
+are defined. Those are only used in the log subsystem and are defined within
+the module \textit{LogConfig}. The following table gives an overview of these types:
 
 \begin{table}[H]
 \resizebox{\textwidth}{!}{%
@@ -659,32 +676,22 @@ BaseOffset            & Int                          & 8 Byte offset as Int     
 }
 \end{table}
 
+%\subsection{On-disk format}
 
-\subsection{On-disk format}
+%\subsubsection{Log entry}
+%\subsubsection{Index entry}
 
-\subsubsection{Log entry}
+%The structure of an entry within the index file describes only 2 fields, each of
+%them 32 bit long:
 
-The log contains a sequence of log entries whereas the on-disk format of a log
-entry is is part of the reason why the Apache Kafka becomes that valuable. In
-fact, the on-disk format is exactly the same as the format of the MessageSet
-(see \ref{impl-protocol-types-data}) transmitted with a ProduceRequest
-(\ref{subsec:protocol-types-producerequest}). Thus, data does not have to be
-modified in any way and can directly be extracted and written to the file
-system.
+%\begin{itemize}
+%    \item 4 Bytes: Offset, relative to the base offset (file name)
+%    \item 4 Bytes: Physical Position, relative to the beginning of the log file
+%\end{itemize}
 
-\subsubsection{Index entry}
-
-The structure of an entry within the index file describes only 2 fields, each of
-them 32 bit long:
-
-\begin{itemize}
-    \item 4 Bytes: Offset, relative to the base offset (file name)
-    \item 4 Bytes: Physical Position, relative to the beginning of the log file
-\end{itemize}
-
-The relative offset of an index entry added with it's base offset represents an
-actual message within the log. The second information, the physical position
-then tells on what position the message resides within the log.
+%The relative offset of an index entry added with it's base offset represents an
+%actual message within the log. The second information, the physical position
+%then tells on what position the message resides within the log.
 
 
 \subsection{In-memory format}
