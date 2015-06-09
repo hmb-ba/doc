@@ -845,6 +845,59 @@ significantly to the concept of Apache Kafka's Log system which are adapted in
 this implementation. This section describes the implementation details of the
 mentioned steps in the order of occurrence.
 
+\begin{figure}[H]
+    \centering
+     \begin{sequencediagram}
+        %\newthread{broker}{Broker}
+         \newinst[0]{manager}{Log Manager}
+         \newinst[4]{log}{Log}
+         \newinst[4]{index}{Index}
+        \begin{call}
+            {manager}{(1) Find existing log}{log}{}
+        \end{call}
+        \begin{call}
+            {manager}{(2) Determine last offset}{manager}{}
+        \end{call}
+        \begin{call}
+            {manager}{(3) Concatenate new messages to log}{manager}{}
+        \end{call}
+        \begin{call}
+            {manager}{(4) Determine last index}{log}{}
+        \end{call}
+        \begin{call}
+            {manager}{(5) Create index entry if interval is reached}{index}{} 
+        \end{call}
+        \begin{call}
+            {manager}{(6) Append log}{log}{}
+        \end{call}
+    \end{sequencediagram}
+    \caption{The process of appending a log}
+    \label{fig:broker-log-append}
+\end{figure}
+
+\begin{lstlisting}
+append :: (State, L.TopicStr, L.PartitionNr, Log) -> IO ()
+append ((Log.LogState ls, Index.IndexState is), t, p, ms) = do
+  logs <- takeMVar ls
+  let log = Log.find (t, p) logs -- (1)
+  let llo = fromMaybe 0 (Log.lastOffset log) -- (2)
+  let newLog = log ++ Log.continueOffset (llo + 1) msA -- (3)
+
+  indices <- takeMVar is
+  let index = Index.lastOrNull $ Index.find (t, p) indices -- (4)
+  bo <- Log.getBaseOffset (t, p) Nothing
+  let lastIndexedOffset = fromIntegral (fst index) + (fromIntegral bo)
+  if Index.isInterval (Log.sizeRange (Just lastIndexedOffset) Nothing newLog) -- (5)
+     then do
+        syncedIndices <- Index.append indices (t, p) newLog (Log.size newLog)
+        putMVar is syncedIndices
+     else do
+        putMVar is indices
+  let newLogs = Map.insert (t, p) newLog logs
+  syncedLogs <- Log.append (t, p) newLogs -- (6)
+  putMVar ls syncedLogs
+\end{lstlisting}
+
 \subsection{Wrong approach}
 \subsubsection{Last Offset Position}
 
