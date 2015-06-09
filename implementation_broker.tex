@@ -537,33 +537,35 @@ The storage layout is exactly the same as the one defined for Apache Kafka (see
 configurable and set to the folder named \textbf{./log} within the installation
 directory of the broker. Each folder represents a partition of a specific topic
 whereas the name of the folder is a combination of the topic name and the
-partition number. 
+partition number.
 
 There are two types of files they reside within the folder that specifies the
 topic and partition (see folder structure):
+\begin{itemize}
+    \item {\bf .log}: Containing a sequence of log entries as binary data
+    \item{\bf .index}: Containing a sequence of index entries as binary data
+\end{itemize}
 
-\begin{description}
-    \item[.index] Containing a sequence of index entries as binary data
-    \item[.log] Containing a sequence of log entries as binary data
-\end{description}
-
-Both of the file types hold the same name which stays for the base offset and
-can be considered as an unique identifier representing a 64 bit integer as a 20
-character file name. As it was defined for Apache Kafka, the \textbf{base
-offset} is the offset of the first log entry stored in this file. For example if
-a log holds messages whereas the first message has the offset \textit{5 ::
-Int64} the file
-name of this log will be \textit{00000000000000000005.log} and the related
-index file \textit{00000000000000000005.index}.
+Instead of holding only one storage file per topic-partition combination, the
+log can be segmented into multiple files due to reasons of lookup optimization.
+Apache Kafka starts segmenting a log after it reaches a configurable size of one
+gigabyte. Because of this, both of the file types hold the same name which stays
+for the base offset and can be considered as an unique identifier representing a
+64 bit integer as a 20 character file name. As it was defined for Apache Kafka,
+the \textbf{base offset} is the offset of the first log entry stored in a file.
+For example if a log holds messages whereas the first message has the offset
+\textit{5 :: Int64} the file name of this log will be
+\textit{00000000000000000005.log} and the related index file
+\textit{00000000000000000005.index}.
 
 Using this naming convention and by
 viewing multiple log files one can extract information about what range of
 messages reside in which log. This is a very efficient way to perform a lookup
 which is needed for example to append new log messages or archive old messages.
 
-For example the topics named \textit{TopicA, TopicB and TopicC} with the
-partitions \textit{0} and \textit{1}:
-
+The following example shows a storage layout for topics \textit{TopicA, TopicB and TopicC} with the
+partitions \textit{0} and \textit{1}. Partition 0 of topic A and B are already
+segmented to two combinations of index and log file. 
 \begin{verbatim}
 log
 |
@@ -598,7 +600,6 @@ fact, the on-disk format is exactly the same as the format of the MessageSet
 (\ref{subsec:protocol-types-producerequest}). Thus, data does not have to be
 modified in any way and can directly be extracted and written to the file
 system.
-
 
 \subsection{Index}
 Every segment of a log has it's corresponding index, represented as a file with
@@ -694,14 +695,18 @@ BaseOffset            & Int                          & 8 Byte offset as Int     
 %then tells on what position the message resides within the log.
 
 
-\subsection{In-memory format}
+\subsection{In-memory storage}
 \label{subsec:broker-log-inmemory}
 
 As it turned out that working with disk alone -- in stateless fashion so to
-speak -- is not only very difficult to manage but also extremely slow (see
-\todo{separate section of stateless approach}), a more convenient and powerful
-approach needs to be introduced to handle data on a running broker system.
-Therefore an efficient implementation of a key-value data structure, namely
+speak -- is not only very difficult to manage (especially regarding multi-
+threading) but also extremely slow when
+dealing with thousands of requests in short period of time (see
+\todo{separate section of stateless approach}). A more convenient and powerful
+approach needs to be introduced to handle huge amount of data on a running broker
+system. Therefore an intermediate storage between file system and broker to
+optimize file accesses is demanded. An efficient implementation of a key-value
+data structure, namely
 \fnurl{Data.Map}{https://hackage.haskell.org/package/containers-0.4.0.0/docs/Data-Map.html},
 seems to be suitable for both, the log itself but also the index. Data.Map
 provides functionality that will come after all needs of this subsystem and with
@@ -724,11 +729,12 @@ threads need read an write access to some state whereas the state value
 represents an ordinary immutable Haskell data structure stored in an MVar---in
 this case a map of logs or indices. \cite{marlow2013parallel}
 
+\newpage
 \subsubsection{Log State}
 
-The \lstinline{LogState} represents an MVar holding a list of maps. Each of which whos key is a tuple of
-\lstinline{String} and \lstinline{Int} representing the topic and partition
-number combination. The value for those maps is the actual log, which is a list
+The \lstinline{LogState} represents an MVar holding a map which uses a tuple of
+\lstinline{String} and \lstinline{Int}---representing the topic and partition
+ combination---as key. The corresponding value is the actual log, which is a list
 of \lstinline{MessageSet}.
 
 \begin{lstlisting}
@@ -740,10 +746,11 @@ newtype LogState = LogState (MVar Logs)
 \subsubsection{Index State}
 
 Same as for the \lstinline{LogState}, the \lstinline{IndexState} represents an
-MVar containing a list maps and also the key remains the same. However the value
-of those maps will hold a list of \lstinline{OffsetPosition}, whose name is
-adapted form Apache Kafka and is a tuple of the \lstinline{RelativeIndex} and
-\lstinline{PhysicalPosition} of the related log entry.
+MVar containing a map same key. However the value
+of this map holds a list of \lstinline{OffsetPosition}, whose name is
+adapted form Apache Kafka. \lstinline{OffsetPosition} represents a single index
+entry and therefore holds a tuple of the \lstinline{RelativeIndex} and
+\lstinline{PhysicalPosition}. 
 
 \begin{lstlisting}
 import qualified HMB.Internal.LogConfig as L
@@ -764,11 +771,12 @@ standing for Log.
 An incoming request -- which is at this point already parsed -- contains the
 topic as well as the partition number for the given set of messages. Thus,
 enough information is provided to identify the location -- in this case the path
--- of the related log or index file.  The thing that is still missing now, is either in
+-- of the related log or index file. Because each log is separated into multiple
+files, the thing that is still missing now, is either in
 which file the messages should be appended (in case of a produce request) or
 from which file the messages should be read from (in case of a fetch request).
 
-In case of producing messages, the wanted file is the one named after the
+In case of producing messages, the wanted log segment is the one named after the
 highest offset. To be able to determine existing files, followed by string
 transformations to identify the file with the highest number. This is why one
 does not get around reading the content of this directory. Handling the case
