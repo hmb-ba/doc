@@ -68,6 +68,7 @@ Offset API (Of)         & OffsetRequest         & OffsetResponse         \\ \hli
 Offset Commit API (Ofc) & OffsetCommitRequest   & OffsetCommitResponse   \\ \hline
 Offset Fetch API (Oft)  & OffsetFetchRequest    & OffsetFetchResponse    \\ \hline
 \end{tabular}
+\caption{Naming convention protocol types}
 \end{table}
 
 %\subsubsection{Example}
@@ -147,6 +148,7 @@ Arrays                     & Repeated structures. Always be encoded as an int32
 size containing the length N followed by N,repetitions of the structure which
 can itself be made up of other,primitive types & Data.List                          \\ \hline
 \end{tabular}
+ \caption{Primitive types of protocol implementation}
 \end{table}
 
 \subsection{Error Codes}
@@ -201,7 +203,7 @@ used.
 \hline
 RequestSize   & Data.Word32     & Gives the size of the subsequent request message in bytes. The client can read requests by first reading this 4 byte size as an integer N and then reading and parsing the subsequent N bytes of the request. \\ \hline
 ApiKey        & Data.Word16     & This is a numeric id for the API being invoked                                                                                                                                                              \\ \hline
-ApiVersion    & Data.Word16     & Number of element in following list.                                                                                                                                                                          \\ \hline
+ApiVersion    & Data.Word16     & Numeric version number for API (default value: 0)                                                                                                                                                                          \\ \hline
 CorrelationId & Data.Word32     & Will be passed back in the response by the broker unmodified. It is useful for matching request and response between the client and server.                                                                   \\ \hline
 StringLength  & Data.Word16     & Length, in bytes, of string ClientId                                                                                                                                                                          \\ \hline
 ClientID      & Data.ByteString & Identifier for the client application                                                                                                                                                                         \\ \hline
@@ -209,7 +211,7 @@ Request       &                 & API specific Request type (either ProduceReque
 \end{tabular}
 \end{table}
 
-Regarding to the API key the following numeric codes are already provided by the
+Regarding to the ApiKey the following numeric codes are already provided by the
 protocol implementation (other API's are not implemented yet): 
 \begin{table}[h]
     \centering
@@ -219,7 +221,9 @@ protocol implementation (other API's are not implemented yet):
         FetchRequest    & 1                  \\
         MetadataRequest & 3                 
     \end{tabular}
+    \caption{Implemented API's with ApiKey Value}
 \end{table}
+
 
 \subsubsection{ProduceRequest}
 \label{subsec:protocol-types-producerequest}
