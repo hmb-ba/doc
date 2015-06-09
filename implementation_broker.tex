@@ -861,6 +861,8 @@ significantly to the concept of Apache Kafka's Log system which are adapted in
 this implementation. This section describes the implementation details of the
 mentioned steps in the order of occurrence.
 
+\subsubsection{LogManager append}
+
 \begin{figure}[H]
     \centering
      \begin{sequencediagram}
@@ -908,7 +910,7 @@ append ((Log.LogState ls, Index.IndexState is), t, p, ms) = do
 
   indices <- takeMVar is
   let index = Index.lastOrNull $ Index.find (t, p) indices -- (4)
-  bo <- Log.getBaseOffset (t, p) Nothing
+  bo <- L.getBaseOffset (t, p) Nothing
   let lastIndexedOffset = fromIntegral (fst index) + (fromIntegral bo)
   if Index.isInterval (Log.sizeRange (Just lastIndexedOffset) Nothing newLog) -- (5)
      then do
@@ -972,6 +974,90 @@ unwrapping of MVar:
     messages is being reached.
 
 \end{description}
+
+\subsubsection{Log append}
+
+Initiated by the log manager, the \lstinline{append} function of the log takes
+not only the map of the specific log but the entire collection of logs. As topic
+and partition are required anyways in this function, working with the entire
+collection is easier to handle on the log manager side.
+
+\begin{lstlisting}
+append :: (L.TopicStr, L.PartitionNr) -> Logs -> IO Logs
+append (t, p) logs = do
+  let logToSync = find (t, p) logs
+  if isFlushInterval logToSync
+      then do
+          write (t, p, logToSync)
+          let keepLast = [last logToSync]
+          return (Map.insert (t, p) keepLast logs)
+      else return logs
+\end{lstlisting}
+
+The flush interval describes the length of the log and returns true if the
+amount of messages reached the limit of 500, which is the default value of
+Apache Kafka.
+
+\begin{lstlisting}
+isFlushInterval :: Log -> Bool
+isFlushInterval log = 500 <= length log
+\end{lstlisting}
+
+If the flush interval is not reached yet, the entire collection is returned.
+Note that at this point, the new log entries given by the request are already
+appended. This is the step what makes writing to disk fast since messages are
+not written to disk for each request but instead are batched until this limit is
+reached.
+
+If the interval is reached, the actual process of writing to disk can begin.
+The batched in-memory log will be encoded and eventually appended to the log
+file. The \lstinline{withFile} function from \fnurl{System.IO
+}{https://hackage.haskell.org/package/base-4.2.0.1/docs/System-IO.html} opens
+the file and passes the resulting handle to the computation act.  The handle
+will be closed on exit from \lstinline{withFile}.
+
+\begin{lstlisting}
+write :: (L.TopicStr, Int, Log) -> IO ()
+write (t, p, ms) = do
+  bo <- getBaseOffset (t, p) Nothing -- todo: directory state
+  let logPath = L.getPath (L.logFolder t p) (L.logFile bo)
+  withFile logPath AppendMode $ \hdl -> BL.hPut hdl $ encode ms
+\end{lstlisting}
+
+
+\subsubsection{Index append}
+
+Appending an index entry requires the relative offset of the last message
+of the set of messages that is given by the log manager. Therefore the base
+offset will be subtracted from the offset of the last message. The second value
+of the tuple is the physical offset. The physical offset basically represents
+the current size of the log file, including the size of the upcoming log
+entries being persisted later during this request cycle. Thus, adding both sizes
+will result in the correct physical offset after the messages are persisted.
+
+\begin{lstlisting}
+append :: Indices -> (L.TopicStr, L.PartitionNr) -> Log -> Int64 -> IO Indices
+append idx (t, p) ms logSize = do
+  let old = find (t, p) idx
+  bo <- L.getBaseOffset (t, p) Nothing 
+  let path = L.getPath (L.logFolder t p) (L.indexFile bo)
+  fs <- getFileSize path
+  let new = pack (fromIntegral (msOffset (last ms)) - bo
+                                  , fs + (fromIntegral logSize)) 
+  let newIndex = old ++ [new]
+  return $ Map.insert (t, p) newIndex idx
+\end{lstlisting}
+
+At the moment, only in-memory persistence is supported for the log. On-disk
+persistence is fundamentally important to recover the index if the broker
+restarts -- by accident or not.
+
+\textit{As for now, index append remains as a mayor performance issue. Each
+  time an index entry is being created, \lstinline{L.getBaseOffset} results in
+  an additional I/O where a lookup of the directory structure is being made as
+  well as string transformation is being proceeded. Besides this, the file size
+of the log file has to be determined too. And since everything is
+single-threaded this becomes even worse.}
 
 \subsection{Wrong approach}
 \subsubsection{Last Offset Position}
