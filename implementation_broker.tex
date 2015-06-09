@@ -172,47 +172,94 @@ sendResponse (socket, addr) responsemessage =
              try(S.sendAll socket responsemessage) :: IO (Either IOError ())
 \end{lstlisting}
 
+\newpage
 \section{API Layer}
 \label{sec:broker-api}
-The API layer covers the following actions: 
-\begin{enumerate}
-    \item Decode Request
-    \item Handle Request
-    \item Encode Response
-\end{enumerate}
+This part of the broker is a quite thin layer which basically handles incoming
+requests, initiate actions needed and prepare appropriate responses. It fulfills
+essential part of the error handling which is detailed described in section. 
+\ref{sec:broker-error-handling}. 
 
-Whereas the parts of decoding a requests and encoding a responses simply uses functions
-provided by the protocol implementation (see chapter \ref{sec-protocol}), the
-main focus of the API layer lies on handling the requests properly. 
-
-\subsection{Handle Request}
+\subsection{Decode Request}
 \label{sec:impl-broker-api-handle}
-Depending on the API key field of type RequestMessage, the request handler
-determines the appropriate action. In case of an unkown API key, a handleError
-and otherwise a builded ResponseMessage (ByteString) ist given. 
+After getting the next bytestring from \lstinline{RequestChan} (see threading
+concept in section \ref{sec:impl-broker-threading}), the incoming request first
+gets decoded. For this part the API layer simply uses functions provided by the
+protocol implementation (see chapter \ref{sec-protocol}).
 
+\subsection{Handling Requests}
+The main focus of the API layer lies on handling the
+requests properly. Depending on the API key field of type
+\lstinline{RequestMessage}, the
+request handler determines an appropriate action. In case of an valid API key,
+a encoded ResponseMessage is passed back to the Network Layer via
+\lstinline{ResponseChan}.
+
+For nearly all provided API's, the broker needs access to the functions provided
+by the log subsystem described in section \ref{sec:impl-broker-log}. Therefore the
+API layer initializes the LogManager of passes it to the handling function
+below:
 \begin{lstlisting}
-handleRequest :: RequestMessage -> IO (Either HandleError BL.ByteString)
+handleRequest :: RequestMessage -> LogManager.State 
+                 -> IO (Either HandleError BL.ByteString)
 handleRequest rm = do
    handle <- case rqApiKey rm of
-    0  -> handleProduceRequest (rqRequest rm)
-    1  -> handleFetchRequest (rqRequest rm)
-    2  -> handleOffsetRequest (rqRequest rm)
-    3  -> handleMetadataRequest (rqRequest rm)
-    8  -> handleOffsetCommitRequest (rqRequest rm)
-    9  -> handleOffsetFetchRequest (rqRequest rm)
-    10 -> handleConsumerMetadataRequest (rqRequest rm)
+    0  -> handleProduceRequest rm
+    1  -> handleFetchRequest rm
+    2  -> handleOffsetRequest rm
+    3  -> handleMetadataRequest rm
+    8  -> handleOffsetCommitRequest rm
+    9  -> handleOffsetFetchRequest rm
+    10 -> handleConsumerMetadataRequest rm
     _  -> return (Left UnknownRqError)
    return handle
 \end{lstlisting}
 
 \subsubsection{HandleProduceRequest}
 \label{subsec:broker-api-producerequest}
+Handling a produce request implies that the API layer passes the containing
+messages to the append function provided by the \lstinline{LogManager}. Because
+a request can contain messages for multiple topics or partitions and each combination
+refers to another log file the job of the API layer is to unnest the request so
+single calls to the \lstinline{LogManager}.
+\begin{verbatim}
+Simplified structure of nested sequences in request:
+[Topic [Partition [M]]]
+
+Example:
+[TopicA [Part0 [M], Part1 [M]], Topic B [Part0 [M]]]
+
+Unnested to three tuples:
+[(TopicA, Part0, [M]), (TopicA, Part1, [M]), (TopicB, Part0, [M])]
+
+\end{verbatim}
+
+Thanks to Haskell's list comprehension the unnesting of the request can be made quite elegant: 
+\begin{lstlisting}
+handleProduceRequest :: RequestMessage -> LogManager.State 
+                        -> IO (Either HandleError BL.ByteString)
+handleProduceRequest rm s = do
+  let req = rqRequest rm
+  w <- tryIOError(mapM LogManager.append (unnestReq req))
+  case w of
+        .... 
+  where
+    unnestReq req = [(s, BC.unpack(rqToName x)
+                    , fromIntegral(rqPrPartitionNumber y)
+                    , rqPrMessageSet y ) 
+                    | x <- rqPrTopics req, y <- rqToPartitions x]
+\end{lstlisting}
+
 
 \subsubsection{HandleFetchRequest}
 \label{subsec:broker-api-fetchrequest}
+Analog to the produce request, handling a fetch request leads to
+\lstinline{readLog} call on the \lstinline{LogManager}.
 
+Fetching data for multiple topics or partitions is not yet supported.
 \subsubsection{HandleMetadataRequest}
+
+\subsection{Encoding Responses}
 
 \section{Error Handling}
 \label{sec:broker-error-handling}
@@ -482,6 +529,7 @@ Considerations Bounded Chans
 
 \newpage
 \section{Log Subsystem}
+\label{sec:impl-broker-log}
 
 The log subsystem is responsible for persistence of messages being
 produced and consumed. This component plays an decisive role while handling a
