@@ -280,11 +280,11 @@ A fundamental design decision of a message broker is whether consumers
     \centering
      \begin{sequencediagram}
         %\newthread{broker}{Broker}
-         \newinst[1]{producer}{Producer}
-         \newinst[1]{producerProx}{Producer API}
-         \newinst[1]{broker}{Broker}
-        \newinst[1]{consumerProx}{Consumer API}
-        \newinst[1]{consumer}{Consumer}
+        \newinst[0.5]{producer}{Producer}
+        \newinst[0.5]{producerProx}{Producer API}
+        \newinst[0.5]{broker}{Broker}
+        \newinst[0.5]{consumerProx}{Consumer API}
+        \newinst[0.5]{consumer}{Consumer}
         \begin{messcall}
             {producer}{(1) Send Data}{producerProx}{}
         \end{messcall}
@@ -317,12 +317,11 @@ loop where the consumer constantly needs to check the queue.
 \begin{figure}[H]
     \centering
      \begin{sequencediagram}
-        %\newthread{broker}{Broker}
-         \newinst[1]{producer}{Producer}
-         \newinst[1]{producerProx}{Producer API}
-         \newinst[1]{broker}{Broker}
-        \newinst[1]{consumerProx}{Consumer API}
-        \newinst[1]{consumer}{Consumer}
+        \newinst[0.5]{producer}{Producer}
+        \newinst[0.5]{producerProx}{Producer API}
+        \newinst[0.5]{broker}{Broker}
+        \newinst[0.5]{consumerProx}{Consumer API}
+        \newinst[0.5]{consumer}{Consumer}
         \begin{messcall}
             {producer}{(1) Send Data}{producerProx}{}
         \end{messcall}
