@@ -4,13 +4,14 @@
 This chapter provides details of the implementation of the Kafka protocol, which
 acts as a basis for all further functionality. The definition of the original
 protocol is given as a context free grammar for the request and response binary
-format \cite{kafka-protocol}. Therefore it seemed appropriate to a the rules of the grammar to our
-protocol implementation by mapping them to the Haskell type system. In a second
-step encoding and decoding functionality was implemented for getting messages
-from data structures to binary formats and backwards. In addition to the protocol,
-a client library will be provided to not isolate client implementations from
-protocol implementation but also allow to build simple Apache Kafka or HMB
-clients in Haskell without touching the protocol at all.
+format \cite{kafka-protocol}. Therefore it seemed appropriate to use the rules
+of the grammar to our protocol implementation by mapping them to the Haskell
+type system. In a second step encoding and decoding functionality was
+implemented for getting messages from data structures to binary formats and
+backwards. In addition to the protocol, a client library will be provided to
+isolate client implementations from protocol implementation but also allow to
+build simple Apache Kafka or HMB clients in Haskell without touching the
+protocol at all.
 
 The protocol implementation consists of the following modules: 
 \begin{itemize}
@@ -41,8 +42,7 @@ specifically using data types created for our needs using named fields - also
 known as \fnurl{record
 syntax}{http://en.wikibooks.org/wiki/Haskell/More_on_datatypes}. After this, a
 further step of abstraction is introduced by creating types for the binary
-representation (\ref{subsec:protocol-types-primitive}) of a protocol field, as
-described in.
+representation (\ref{subsec:protocol-types-primitive}) of a protocol field.
 
 \subsection{Naming Convention}
 
@@ -79,18 +79,12 @@ hidden for demonstration purposes.:
 convention}]
 -- more
 data Partition =
-    ----------------------
-    -- ProduceRequest (pr)
-    ----------------------
     RqPrPartition
     { rqPrPartitionNumber :: !PartitionNumber
     , rqPrMessageSetSize  :: !MessageSetSize
     , rqPrMessageSet      :: [MessageSet]
     }
     |
-    ----------------------
-    -- FetchRequest (ft)
-    ----------------------
     RqFtPartition
     { rqFtPartitionNumber :: !PartitionNumber
     , rqFtFetchOffset     :: !Offset
@@ -107,26 +101,26 @@ A significant characteristic of the Kafka protocol is the ability to optimize
 efficiency due to the batching of multiple messages in one single request. Both
 the API to send messages and the API to consume messages always work with a
 sequence of messages and not only a single message. It is also possible to batch
-messages across multiple topics and partitions. It is task of the client
+messages across multiple topics and partitions. It is the task of the client
 implementation to use this ability cleverly but it also can ignore it and sends everything
 one at a time. Batching leads to sequences of the same type in one request or response. Within
 the protocol format this is defined by an array type. In our protocol
 implementation the batching sequences are implemented with Haskell lists which
-contains N repetitions of another type. Sequences can also be nested. 
+contains N repetitions of a specific type. Sequences can also be nested. 
 
-For example, the following grammar rule of the original definition shows the
-support of batching in the protocol. A batching sequence of a structure A is
-shown as [A]:
-\begin{lstlisting}
+For example, the following grammar rule of the original protocol definition
+shows the support of batching in the protocol. A batching sequence of a
+structure A is shown as [A]: \cite{kafka-protocol}
+\begin{verbatim}
 ProduceRequest => 
     RequiredAcks Timeout [TopicName [Partition MessageSetSize MessageSet]]
-\end{lstlisting}
+\end{verbatim}
 
 \subsection{Primitive Types}
 \label{subsec:protocol-types-primitive}
 
 The actual type for the data fields in the protocol have to match an unsigned
-integer type of its length. This can easily be done using the
+integer type of its length. This can be done using the
 \fnurl{Data.Word}{http://hackage.haskell.org/package/base-4.7.0.2/docs/Data-Word.html}
 library. However, while repetitively writing \textit{WordX} (where X stands for
 8, 16, 32, or 64 bit) is rather intuitive, creating aliases using the
@@ -136,15 +130,16 @@ of the implemented protocol.
 %Sumarized, all protocol related types are size delimited and
 %are made up of the following primitive types: 
 \begin{table}[H]
-    \begin{tabular}{| p{3cm}| p{7cm} | p{5cm} |}
+    \centering
+    \begin{tabular}{| p{3cm}| p{7cm} | p{3.5cm} |}
 \hline
-\textbf{Type} & \textbf{Description} & \textbf{Used Haskell Library} \\ \hline
+\textbf{Primitive Type} & \textbf{Description} & \textbf{Mapping with Haskell library} \\ \hline
 Fixed Width Primitives     & Signed integers stored in big endian order.
 & Data.Word8, Word16, Word32, Word64 \\ \hline
 Variable Length Primitives & Consist of a signed integer giving a length N
 followed by N bytes of content. A length of -1 indicates null. String uses an
 int16 (Data.Word16) for its size, and bytes uses an int32 (Data.Word32).    &
-Data.ByteString(.Lazy) \\ \hline
+Data.ByteString \\ \hline
 Arrays                     & Repeated structures. Always to be encoded as an int32
 size containing the length N followed by N repetitions of the structure which
 can itself be made up of other, primitive types & Data.List                          \\ \hline
@@ -184,7 +179,7 @@ data ErrorCode =
 \end{lstlisting}
 
 \subsection{Types related to Request}
-A request message is the on-wire format of data which is getting from client to
+A request message is the on-wire format of data which is transmit from client to
 broker.
 
 Each request message has the same header fields no matter for which API they are used. 
@@ -200,7 +195,7 @@ used.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l p{8.5cm} }
 \hline
 RequestSize   & Data.Word32     & Gives the size of the subsequent request message in bytes. The client can read requests by first reading this 4 byte size as an integer N and then reading and parsing the subsequent N bytes of the request. \\ \hline
 ApiKey        & Data.Word16     & This is a numeric id for the API being invoked                                                                                                                                                              \\ \hline
@@ -231,9 +226,8 @@ protocol implementation (other API's are not implemented yet):
 
 Request Payload for Produce API. Sends MessageSet's (see 
 \ref{impl-protocol-types-data}) to the broker. For efficiency it allows sending
-message sets intended for many topic partitions in a single request (see
-\ref{impl-prot-batching}). MessageSets are not preceded by an int32 like other
-array elements in the protocol.
+MessageSet's intended for many topic partitions in a single request (see
+\ref{impl-prot-batching}).
 
 \begin{figure}[H]
     \centering
@@ -244,7 +238,7 @@ array elements in the protocol.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l  p{8.5cm} }
 \hline
 RequiredAcks  & Data.Word16 & This field indicates how many acknowledgements the broker should receive before responding to the request.                       \\ \hline
 Timeout       & Data.Word32 & This provides a maximum time in milliseconds the broker can await the receipt of the number of acknowledgements in RequiredAcks. \\ \hline
@@ -265,7 +259,7 @@ client being able to send messages for multiple different topics:
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l  p{8cm} }
 \hline
 StringLength      & Data.Word16     & Length in bytes of the string TopicName.              \\ \hline
 TopicName         & Data.ByteString & Name of the topic that data is being published to. \\ \hline
@@ -287,7 +281,7 @@ within a topic.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{11cm} }
+\begin{tabular}{ l  l  p{8cm} }
 \hline
 PartitionNumber & Data.Word32 & The partition Id that data is being published to.                                                                                                                                        \\ \hline
 MessageSetSize  & Data.Word32 & Sequences of MessageSet's are not preceded by an int32 like other array elements in the protocol. Instead, this field determines the total size, in bytes, of the following MessageSet's. \\ \hline
@@ -310,7 +304,7 @@ topic-partitions. Defines a starting offset at which to begin fetch.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{11cm} }
+\begin{tabular}{ l  l  p{8cm} }
 \hline
 ReplicaId      & Data.Word32 & Indicates the node id of the replica initiating this request. (Not yet used in broker implementation)                        \\ \hline
 MaxWaitTime    & Data.Word32 & Maximum amount of time in milliseconds to block, waiting if insufficient data is available at the time the request is issued. \\ \hline
@@ -329,7 +323,7 @@ ListLength     & Data.Word32 & Number of elements in the following list.        
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l  p{8cm} }
 \hline
 StringLength      & Data.Word16     & Length in bytes of the string TopicName.              \\ \hline
 TopicName         & Data.ByteString & Name of the topic the fetch is for . \\ \hline
@@ -347,7 +341,7 @@ ListLength        & Data.Word32     & Number of elements in the following list. 
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l  p{8cm} }
 \hline
 PartitionNumber & Data.Word32 & Id of the partition the fetch is for.                                          \\ \hline
 Offset          & Data.Word64 & Offset to begin the fetch from.                                                \\ \hline
@@ -371,7 +365,7 @@ information is requested.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l  p{8cm} }
 \hline
 ListLength    & Data.Word32 & Number of element in following list.                                                                                             \\ \hline
 StringLength      & Data.Word16     & Length in bytes of the string TopicName.              \\ \hline
@@ -398,7 +392,7 @@ sent in return to a ProduceRequest).
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l  p{8.5cm} }
 \hline
 CorrelationId  & Data.Word32 & Id that is supplied by request is passed back
 (for request-reply reference).              \\ \hline
@@ -422,7 +416,7 @@ in a particular failure.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l  p{8cm} }
 \hline
 StringLength      & Data.Word32     & Length in bytes of the string TopicName. \\ \hline
 TopicName         & Data.ByteString & Name of the topic this response entry corresponds to.\\ \hline
@@ -442,7 +436,7 @@ ListLength        & Data.Word32     & Number of element in following list.\\ \hl
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l  p{8cm} }
 \hline
 PartitionNumber & Data.Word32 & Number of the partition this response entry
 corresponds to.                                                \\ \hline
@@ -465,7 +459,7 @@ a sequence of MessageSet's (see \ref{impl-protocol-types-data}).
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l  p{8cm} }
 \hline
 StringLength      & Data.Word32     & Length in bytes of the string TopicName. \\ \hline
 TopicName         & Data.ByteString & Name of the topic this response entry corresponds to.\\ \hline
@@ -483,7 +477,7 @@ ListLength        & Data.Word32     & Number of elements in the following list.\
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l  p{8cm} }
 \hline
 PartitionNumber     & Data.Word32 & Number of the partition this response entry corresponds to.                                                                                               \\ \hline
 ErrorCode           & Data.Word16 & Topic-Partition-specific error code. Error code 0 determines that data has been published successfully.                                                \\ \hline
@@ -519,7 +513,7 @@ their replication status.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l  p{8cm} }
 \hline
 ListLength        & Data.Word32     & Number of element in following list.\\ \hline
 [RsMdPayloadBroker] & Data.List     & Sequence of RsMdPayloadBroker, contains
@@ -539,7 +533,7 @@ Also contains a sequence of RsMdPayloadMetadata, see below. \\ \hline
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l  p{8cm} }
 \hline
 PartitionErrorCode  & Data.Word16 & Partition specific error code.                                                          \\ \hline
 PartitionNumber     & Data.Word32 & Number of Partition this metadata is for.                                               \\ \hline
@@ -574,7 +568,7 @@ from it.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{11cm} }
+\begin{tabular}{ l  l  p{8.5cm} }
 \hline
 Offset      & Data.Word64 & Determines log offset number in log.  When the producer is sending messages it doesn't actually know the offset and can fill in any value here it likes. \\ \hline
 MessageSize & Data.Word32 & Determines size of Message in Bytes.               \\ \hline
@@ -596,7 +590,7 @@ combine them in another type, see Payload.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{11cm} }
+\begin{tabular}{ l  l  p{8.5cm} }
 \hline
 CRC     & Data.Word32 & The CRC is the CRC32 of the remainder of the message bytes. This is used, to check the integrity of the message on the broker and consumer. \\ \hline
 Payload &      & Payload format, see below.                                                                                                                  \\ \hline
@@ -615,7 +609,7 @@ This types defines the actual payload of a message along with its meta info.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{ l  l  p{10cm} }
+\begin{tabular}{ l  l  p{8cm} }
 \hline
 Magic       & Data.Word8      & This is a version id used to allow backwards compatible evolution of the message binary format. The current value is 0.                                         \\ \hline
 Attributes  & Data.Word8      & This byte holds metadata attributes about the message. The lowest 2 bits, contain the compression codec used for the message. The other bits, should be set to 0. \\ \hline
