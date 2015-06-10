@@ -1,7 +1,7 @@
 \chapter{Introduction to Messaging} 
 
 This chapter will at first provide a basic introduction to messaging and will
-uncover the fallacies of messaging, which will lead to the need for a
+uncover the fallacies of distributed systems, which will lead to the need for a
 Message-Oriented-Middleware. The primary focus is set on a detailed analysis of a
 message broker system, which is related to the broker pattern. During this
 chapter, other terms will be declared which will play an important role to
@@ -17,23 +17,15 @@ understand the capabilities of Apache Kafka.
 \section{What is Messaging?}
 
 A distributed system consists of a collection of multiple autonomous components,
-connected through a network, which enables to coordinate  their activities (e.g.\
-computers) and to share resources. To a user, these systems appear as a
-single, integrated computing facility. Unlike centralised systems,
-distributed systems have their advantages in economics, performance and
-scalability and reliability. In fact, this approach allows to build reliable
-applications, scaled using low cost computers, and thus can serve massive
-performance needs whether on demand or continuously.  Although distributed
-systems have many advantages, compared to local applications, they also bring
-many challenges, as explained in detail later on, which have to be considered by 
-developers.\cite{POSA1}\cite{TAN06}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.5\textwidth]{images/messaging-simple.png}
-    \caption{Basic principle of a message queue}
-    \label{fig:messaging-simple}
-\end{figure}
+connected through a network, which enables to coordinate  their activities and
+to share resources. To a user, these systems appear as a single, integrated
+computing facility. Unlike centralised systems, distributed systems have their
+advantages in economics, performance and scalability and reliability. In fact,
+this approach allows to build reliable applications, scaled using low cost
+computers, and thus can serve massive performance needs whether on demand or
+continuously.  Although distributed systems have many advantages, compared to
+local applications, they also bring many challenges, as explained in detail
+later on, which have to be considered by developers.\cite{POSA1}\cite{TAN06}
 
 Messaging integrates distributed applications to an overall system by providing
 message queues for communication between them (see figure
@@ -43,6 +35,13 @@ A message is just a simple and independent unit with a data structure
 which contains a meta header and the transmitted information. The messaging
 technology enables high-speed, asynchronous, program-to-program communication
 with reliable delivery.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/messaging-simple.png}
+    \caption{Basic principle of a message queue}
+    \label{fig:messaging-simple}
+\end{figure}
 
 \newpage
 Peter Deutsch originally defined fundamental fallacies of distributed computing
@@ -86,7 +85,7 @@ following:
         scenarios this will often affect the collaborating components in the
         distributed network too. Therefore distributed nodes should be decoupled
         as far as possible. Messaging tries to achieved this with the underlying
-        middleware.(\ref{intro-messaging-mom}) The sender and receiver do not need
+        middleware (\ref{intro-messaging-mom}). The sender and receiver do not need
         to know whether or not to communicate, nor do they need to know the other 
         side directly. They always communicate via the middleware software. In 
         case of significant changes, only the interface to the messaging system 
@@ -123,8 +122,6 @@ following:
 
 \end{enumerate} \cite{EIP03}\cite{fallacies}
 
-\newpage
-
 \section{Message Oriented Middleware}
 \label{intro-messaging-mom}
 
@@ -135,8 +132,9 @@ applications may be a very good choice as it would reduce the close coupling of
 communication styles such as sockets-based or RMI/RPC. This additional component
 is known as the messaging system or message-oriented middleware (MOM) and is
 all about passing messages in any format from one application to another where
-the parties do not need to knows each other directly. \cite{TAN06} The MOM
-provides a specific API for both the sender and the receiver:
+the parties do not need to knows each other directly. \cite{TAN06} 
+
+The MOM provides a specific API for both the sender and the receiver:
 
 \begin{table}[H]
 \centering
@@ -184,7 +182,7 @@ communicate with the changed target must be updated.
 In most scenarios there is also a need for transforming messages to a different
 format where these implementations have to be made on every node, which leads to
 duplicating code. In an architecture with many collaborating applications,
-point-to-point messaging can end up in a mesh, of connections which is hard to
+point-to-point messaging can end up in a mesh of connections which is hard to
 maintain.  For more complex integration solutions, a centralised solution
 whereas the MOM runs on a location-independent platform is required. This is
 where the central hub (broker) comes into game. \cite{MSDNIntegration}
@@ -269,7 +267,7 @@ which we can adapt for a message based environment by using the common terms.
         functionality from the rest of the client code. Based on incoming
         messages it calls services within the consumer component.}
 \end{description}
-\newpage
+
 \subsection{Consumption Model}
 A fundamental design decision of a message broker is whether consumers
     should pull data from brokers or brokers should push data to consumers. This
@@ -309,14 +307,13 @@ A fundamental design decision of a message broker is whether consumers
             {consumerProx}{(7) Forward Data}{consumer}{}
         \end{messcall}
     \end{sequencediagram}
-    \caption{Basic flow of a Broker event based consumption}
+    \caption{Basic flow of a Broker with event based consumption}
     \label{fig:MB-SSD-1}
 \end{figure}
 \newpage 
 On the other hand, in a pull-based environment a consumer never knows whether a
 message is ready for consumption or not. In the worst case this ends up with a read
-loop where the consumer constantly needs to check the queue. \todo{more details}
-
+loop where the consumer constantly needs to check the queue.
 \begin{figure}[H]
     \centering
      \begin{sequencediagram}
@@ -361,21 +358,6 @@ loop where the consumer constantly needs to check the queue. \todo{more details}
     \label{fig:MB-SSD-1}
 \end{figure}
 
-%We saw that a \textit{Broker} acts like a mediator between to collaborating
-%applications which do not need to know each other. The same does a message
-%broker, of course in a message-oriented distributed system whereas the broker
-%handles incoming messages from a source to a target and backwards.
-
-%In such an environment it is essential that existing and new applications can be
-%integrated into a single, coharent system at runtime. Often these applications
-%are not speaking the same language and it need kind of a gateway for
-%transforming messages into a format that can be unterstood by the receiver.
-%\cite{TAN06}
-
-%\subsection{Routing and Communicating}
-
-%\subsection{Transformation}
-%\subsection{Publish-Subscribe}
 \subsection{Topic and Subscription Model}
 \label{intro-messaging-publishsubscribe}
 Message Broker systems are persisting incoming messages in an enhanced type of a
@@ -388,13 +370,12 @@ application-based level to act as a gateway for topic-related messages. Based on
 the informations provided within the messages, the broker is able to
 provide the messages to the client acting as a subscriber. In fact,
 this publish/subscribe queue delivers a copy of the topic related messages to
-the output channel. This also means that there can be more than one client that
+each output queue. This also means that there can be more than one client that
 consumes the topic-specific
 messages and thus there can be more than one subscriber. Especially this feature
 of having multiple consumers of a message channel, is decisive for using a
 message broker in an environment where a distributed system processes the same stream of
-data in multiple ways. \todo{ref to chapter}
-\cite{EIP03} \cite{TAN06}
+data in multiple ways (see chapter \ref{chap:event-streaming}).\cite{EIP03} \cite{TAN06}
 
 \begin{figure}[H]
     \centering
@@ -414,9 +395,9 @@ data in multiple ways. \todo{ref to chapter}
     which use the \textit{In Order} semantic deliver messages to the consumer in
     the strict same order in which they are sent from the producer to the broker. 
 
-\section{Challenges of a Messaging System}
-\todo[inline]{more details of cut off}
+\section{Characteristics of a Messaging System}
 \label{intro-messaging-characteristics}
+
 As described, a messaging system has its strengths in interoperability and loose
 coupling of distributed computers. 
 %Messaging löst also gewisse Schwierigkeiten von Distributed System bring aber
@@ -426,13 +407,17 @@ characteristics. The ones most related to our work are:
 
 \begin{description}
     \item [Independence] \hfill \\
-    {   The more independent a
-        message broker is, the better it can be integrated in a existing
-        environment. The use of standards and effective standardized interfaces
-        promotes independence.}
-        
+    {   The more independent to any technology a message broker is, the better
+        it can be integrated in a existing environment. The use of standards and
+        effective standardized interfaces promotes independence.}
     \item [Scalability] \hfill \\
-    {    Ability to dynamically increase performance depending on work load. }
+    {   Ability to dynamically increase performance depending on work load.
+        Instead of scaling vertically which means to add resources to a single
+        broker in the system, scaling horizontally is much more sustainable. The
+        latter means to add more broker nodes to the system and evenly spread the
+        load to all provided nodes. Because of synchronization, it is much
+        harder to provided a broker system which can be scaled out horizontally
+        but also much more efficient. }
     \item [Latency]\hfill \\
     {    Time it takes to process a single message for consumption.  }
     \item [Fault Tolerance] \hfill \\
