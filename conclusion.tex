@@ -121,22 +121,23 @@ by running the equivalent tests on same hardware.
 
 \subsection{Test Setup}
 
-The following tests and benchmarks are performed with one the following hardware
-setup:
+All of the tests and benchmarks in this chapter are performed with following setup.
 
 Broker Server:
 \begin{verbatim}
+Ubuntu Server 14.04.2 LTS (64 bit)
 Intel(R) Xeon(R) CPU E3-1245 v3 @ 3.40GHz
 One 7200 RPM SATA drive
 16GB of RAM
-1Gb Ethernet 
+1Gb Ethernet
 \end{verbatim}
 
-Client Hardware:
+Client:
 \begin{verbatim}
+Ubuntu 14.04.2 LTS (64 bit)
 Intel(R) Core(TM) i7-2720QM CPU @ 2.20GHz
 One SSD SATA drive
-16GB of RAM 
+16GB of RAM
 1Gb Ethernet
 \end{verbatim}
 
@@ -219,7 +220,7 @@ Start single threaded producing benchmark:
 %\subsubsection{Iptraf-ng}
 
 \newpage
-\subsection{Early stress tests}
+\subsection{Early Stress Tests}
 
 An early version of the broker provided a console client which produced messages
 per console input. This setup demonstrated that encoding/decoding of a request
@@ -260,7 +261,7 @@ TODO
 -- Setup?
 -- Results 
 
-\subsection{Benchmark "Effect of Message Batch size"}
+\subsection{Benchmark "Effect of Message Batch Size"}
 \label{sec:conc-benchmark-1}
 
 The goal of this benchmark is to analyze the network throughput between producer
@@ -425,7 +426,7 @@ Batch Size [Byte]        & Scenario 1       & Scenario 2       & Scenario 3   & 
 56769 ($\sim$450 Msgs)   & 98               & 48               & 16           & 17           \\ \hline
 \end{tabular}
 \end{table}
-\captionof{table}{Results of benchmark "Effect of Producer Batch size"}
+\captionof{table}{Results of benchmark "Effect of Producer Batch Size"}
 
 The result of this benchmark demonstrates the positive effect to the throughput
 by increasing the producing batch size. The original Kafka setup (scenario 1),

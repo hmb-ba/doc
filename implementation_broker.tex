@@ -52,7 +52,7 @@ This section shows the basic operations and describes the used libraries in the
 network layer. For further details about the threading concept see section
 \ref{sec:impl-broker-threading} 
 
-\subsection{Socket connection establishment}
+\subsection{Socket Connection Establishment}
 \label{sec:impl-broker-socket-connection}
 %The following figure (\ref{fig:broker-activity}) shows the abstract view of how
 %the socket connection between a client and the broker establishes so that a
@@ -102,7 +102,7 @@ also the default value in the Java SocketServer implementation. \textit{Note,
 that the focus remains on the amount of data being processed rather than the
 number of clients being served.}
 
-\subsection{Receive data}
+\subsection{Receive Data}
 \label{sec:impl-broker-socket-receive}
 To receive data from socket buffer we use the function recv from
 \fnurl{Network.Socket.ByteString.Lazy}{https://hackage.haskell.org/package/network-2.3.0.1/docs/Network-Socket-ByteString-Lazy.html}
@@ -152,7 +152,7 @@ recvExactly sock size = BL.concat . reverse <$> loop [] 0
               else loop (chunk:chunks) $! bytesRead + BL.length chunk 
 \end{lstlisting}
 
-\subsection{Send data}
+\subsection{Send Data}
 \label{sec:impl-broker-socket-send}
 For every processed request an appropriate response is sent back to the client.
 The actual message is already provided as binary data from the API layer. The
@@ -288,7 +288,7 @@ concept and cases where errors may occur. This will also involve part of the
 concept behind the error handling of Apache Kafka -- which is partly integrated
 in the Apache Kafka Protocol and thus adapted in this implementation.
 
-\subsection{Message flow}
+\subsection{Message Flow}
 
 The figure (\ref{fig:broker-error-activity}) provides insight in the process an
 incoming request message goes through. As for simplicity, one may think of one
@@ -756,7 +756,7 @@ BaseOffset            & Int                          & 8 Byte offset as Int     
 %then tells on what position the message resides within the log.
 
 
-\subsection{In-memory storage}
+\subsection{In-memory Storage}
 \label{subsec:broker-log-inmemory}
 
 As it turned out that working with disk alone -- in stateless fashion so to
@@ -819,7 +819,7 @@ type Indices = Map.Map (L.TopicStr, L.PartitionNr) [OffsetPosition]
 newtype IndexState = IndexState (MVar Indices)
 \end{lstlisting}
 
-\subsection{Common used functions}
+\subsection{Common used Functions}
 
 There are small amount of commonly used functions in the log as well as in the
 index. The \textit{LogConfig} seems to be the right location to place those
