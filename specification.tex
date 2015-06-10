@@ -1,14 +1,17 @@
 \chapter{Specification}
 \section{Purpose}
-The prestudy of this thesis gives an insight into the fundamentals of messaging, especially
-the purpose of message brokers for big data event streaming. We also compare
-the most relevant broker implementations and provide detailed information about Apache
-Kafka. The second part of this work is focusing on the implementation of a message
-broker in the functional programming language \fnurl{Haskell}{https://www.haskell.org/}. 
-The goal is to make use of the advantages of the functional paradigm regarding the resulting
-throughput performance. By using the example of Apache Kafka, the main purpose
-lies on building a server application which implements the main functionality of
-Apache Kafka. 
+The technical research of this thesis gives an insight into the fundamentals of
+messaging, especially the purpose of message brokers for big data event
+streaming. Also detailed information about Apache Kafka are provided. The second part of this work is
+focusing on the implementation of a message broker in the functional programming
+language \fnurl{Haskell}{https://www.haskell.org/}. The goal is to make use of
+the advantages of the functional paradigm regarding the resulting throughput
+performance. By using the example of Apache Kafka, the main purpose
+lies on building a server application which implements basic functionality of
+producing and consuming messages.
+
+The implemented broker application is named as Haskell Message Broker whereas we
+will use the short form HMB by now.
 
 \section{Components}
 
@@ -50,7 +53,7 @@ exposes the appropriate functions and types as a library. This component fully
 separates the clients from the broker. 
 
 To support interoperability, the implementation of a client should be simplified
-as much as possible. Therefore we provide a client library which provides functionalities to
+as much as possible. Therefore we provide a client library which exposes functionalities to
 easily implement a Haskell client for a Kafka-based broker. The goal of this, is to be able to
 set up a client without knowing too many details about the Apache Kafka protocol
 itself.
@@ -58,7 +61,7 @@ itself.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.55\textwidth]{images/architecture-components.png}
-    \caption{Separation of code}
+    \caption{Seperation to four components}
     \label{fig:architecture-components.png}
 \end{figure}
 
@@ -86,21 +89,21 @@ persisting the message on the broker.
     \item [(1)] 
         {Packing Produce Request: Transforming input data into protocol-conforming data structure.}
     \item [(2)] 
-        {Serializing and sending Produce Request: Encoding data structure to an
-            binary  string and transmit over a tcp socket to the broker.}
+        {Serializing and sending produce request: Encoding data structure to a
+            binary data and transmit over network to the broker.}
     \item [(3)] 
-        {Parsing and Handling Produce Request: Broker receives the binary string
+        {Parsing and handling produce request: Broker receives the binary string
             and parses it back to the appropriate data structure. The request
             handler of the  broker checks the API Key of the request. If it is a
             produce request, the containing message will be written to the
             appropriate topic log.}
     \item [(4)] 
-        {Send Produce Response: A response is packed, serialized and transmitted
-            back to the client. The response contains an error code which has
-            the value 0 if everything worked well, otherwise another value for a
-            specific problem. }
+        {Send produce response: A response is packed, serialized and transmitted
+            back to the client. The response contains an error code which
+            determines if everything worked well or a specific problem occurred.
+        }
     \item [(5)] 
-        {Parse Produce Response: Producer client receives a binary string and
+        {Parse produce response: Producer client receives a binary string and
             parses it to a valid response data structure }
 \end{description}
 
@@ -126,13 +129,12 @@ are read from the log and are delivered from the broker to the client.
             and parses it back to the appropriate data structure. The request
             handler of the broker checks the API Key of the request. If it is a
             fetch request, the broker reads messages of the requested topic and
-            packs them to a fetch response. The message will be written to the
-            appropriate topic log.}
+            packs them to a fetch response.}
     \item [(3)] 
         {Send fetch response: The fetch request which contains the requested
         messages is sent back to the consumer client.}
     \item [(4)] 
-        {Parse Response: Consumer client receives a binary string and parses it
+        {Parse response: Consumer client receives a binary string and parses it
         to a valid response data structure. }
 \end{description}
 
