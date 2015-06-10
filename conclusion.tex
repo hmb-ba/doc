@@ -260,7 +260,7 @@ TODO
 -- Setup?
 -- Results 
 
-\subsection{Producer Benchmark "Effect of Message Batch size"}
+\subsection{Benchmark "Effect of Message Batch size"}
 \label{sec:conc-benchmark-1}
 
 The goal of this benchmark is to analyze the network throughput between producer
@@ -270,9 +270,10 @@ batch size determines the amount of bytes for which messages will be packed
 together and sent to broker as single request for efficiency.  Increasing the
 batch size requires more memory. The size of a single message is fixed to 100
 bytes, because it is the more interesting case for a messaging system
-(generally). It is easy to get good throughput in MB/sec if the messages are
-large, but much harder to get good throughput when the messages are small, as
-the overhead of processing each message dominates.
+(generally). It is much easier to get good throughput in MB/sec if the messages are
+large (as shown in second benchmark, see \ref{conc-benchmark-2}), but
+harder to get good throughput when the messages are small, as the overhead of
+processing each message dominates.
 
 Calculation batch size in bytes:
 \begin{verbatim}
@@ -283,7 +284,7 @@ Calculation batch size in bytes:
 \begin{table}[H]
 \begin{tabular}{|l| p{12cm}|} \hline
 {\bf Message Size}   & 100 Bytes \\ \hline
-{\bf Batch Size [B]} & 195 | 1387 | 8192 | 16384 (Kafka default) | 56769 \\ \hline
+{\bf Batch Size [B]} & 195 | 1387 | 8192 | 16384 (Kafka default) | 56769 Bytes \\ \hline
 {\bf Tested Clients} &
     \begin{itemize}
         \item Kafka PerformanceProducer 2.10-0.8.2.0, single threaded
@@ -295,7 +296,7 @@ Calculation batch size in bytes:
         \item HMB Broker, no replication, one partition
     \end{itemize}\\ \hline
 {\bf Measurement} & Resulting TCP throughput over a period of 10 seconds, analyzed with
-    Wireshark. \\ \hline
+    Wireshark. Throughput includes message + request overhead\\ \hline
 {\bf Scenarios} & Producing as much messages as possible from client (left) to broker (right).
     The size of messages batched together varies in defined steps.
     \begin{enumerate}
@@ -452,7 +453,7 @@ result is much better! ref). Because the provided HMB producer is quite simple
 optimized producer client which would definitely lead to better results. 
 
 \newpage
-\subsection{Producer Benchmark "Effect of Message size"}
+\subsection{Benchmark "Effect of Message size"}
 \label{sec:conc-benchmark-2}
 The goal of this benchmark is to analyze the network throughput between
 producer client and broker system. The focus lies on the effect of changing the
@@ -463,8 +464,8 @@ this benchmark.
 \subsubsection{Conditions}
 \begin{table}[H]
 \begin{tabular}{|l| p{12cm}|} \hline
-{\bf Message Size}   & 10 | 100 | 1000 | 10000 | 100000 | Bytes \\ \hline
-{\bf Batch Size}     & 12800 \\ \hline
+{\bf Message Size}   & 10 | 100 | 1000 | 10000 | 100000 Bytes \\ \hline
+{\bf Batch Size}     & 12800 Bytes \\ \hline
 {\bf Tested Clients} &
     \begin{itemize}
         \item Kafka PerformanceProducer 2.10-0.8.2.0, single threaded
@@ -476,7 +477,7 @@ this benchmark.
         \item HMB Broker, no replication, one partition
     \end{itemize}\\ \hline
 {\bf Measurement} & Resulting TCP throughput over a period of 10 seconds, analyzed with
-    Wireshark. \\ \hline
+    Wireshark. Throughput includes message + request overhead.\\ \hline
 {\bf Scenarios} & Producing as much messages as possible from client (left) to broker (right).
     The size of a messages varies in defined steps. The batch size thereby is a fixed value. 
   \begin{enumerate}
@@ -489,22 +490,145 @@ this benchmark.
 \end{table}
 \captionof{table}{Benchmark conditions "Effect of Message size"}
 
+\newpage
 \subsubsection{Results}
+Scenario 1, Kafka $\rightarrow$ Kafka:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|} \hline
+10 Bytes & 100 Byte & 1000 Byte (1 KB)\\ \hline
+\includegraphics[width=0.28\textwidth]{images/benchmark-2/benchmark-2-s1-ms10.png}
+&
+\includegraphics[width=0.25\textwidth]{images/benchmark-2/benchmark-2-s1-ms100.png}
+&
+\includegraphics[width=0.2\textwidth]{images/benchmark-2/benchmark-2-s1-ms1000.png} \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|} \hline
+10000 Byte (10 KB) & 100000 Byte (100 KB)\\ \hline
+\includegraphics[width=0.25\textwidth]{images/benchmark-2/benchmark-2-s1-ms10000.png}
+&
+\includegraphics[width=0.25\textwidth]{images/benchmark-2/benchmark-2-s1-ms100000.png} \\ \hline
+\end{tabular}
+\end{table}
+
+Scenario 2, Kafka $\rightarrow$ HMB:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|} \hline
+10 Bytes & 100 Byte & 1000 Byte (1 KB)\\ \hline
+\includegraphics[width=0.25\textwidth]{images/benchmark-2/benchmark-2-s2-ms10.png}
+&
+\includegraphics[width=0.25\textwidth]{images/benchmark-2/benchmark-2-s2-ms100.png}
+&
+\includegraphics[width=0.25\textwidth]{images/benchmark-2/benchmark-2-s2-ms1000.png} \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|} \hline
+10000 Byte (10 KB) & 100000 Byte (100 KB)\\ \hline
+\includegraphics[width=0.2\textwidth]{images/benchmark-2/benchmark-2-s2-ms10000.png}
+&
+\includegraphics[width=0.25\textwidth]{images/benchmark-2/benchmark-2-s2-ms100000.png} \\ \hline
+\end{tabular}
+\end{table}
+
+\newpage
+Scenario 3, HMB $\rightarrow$ Kafka:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|} \hline
+10 Bytes & 100 Byte & 1000 Byte (1 KB)\\ \hline
+\includegraphics[width=0.2\textwidth]{images/benchmark-2/benchmark-2-s3-ms10.png}
+&
+\includegraphics[width=0.25\textwidth]{images/benchmark-2/benchmark-2-s3-ms100.png}
+&
+\includegraphics[width=0.25\textwidth]{images/benchmark-2/benchmark-2-s3-ms1000.png} \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|} \hline
+10000 Byte (10 KB) & 100000 Byte (100 KB)\\ \hline
+\includegraphics[width=0.2\textwidth]{images/benchmark-2/benchmark-2-s3-ms10000.png}
+&
+\includegraphics[width=0.2\textwidth]{images/benchmark-2/benchmark-2-s3-ms100000.png} \\ \hline
+\end{tabular}
+\end{table}
+
+Scenario 4, HMB $\rightarrow$ HMB:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|} \hline
+10 Bytes & 100 Byte & 1000 Byte (1 KB)\\ \hline
+\includegraphics[width=0.25\textwidth]{images/benchmark-2/benchmark-2-s4-ms10.png}
+&
+\includegraphics[width=0.25\textwidth]{images/benchmark-2/benchmark-2-s4-ms100.png}
+&
+\includegraphics[width=0.2\textwidth]{images/benchmark-2/benchmark-2-s4-ms1000.png} \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|} \hline
+10000 Byte (10 KB) & 100000 Byte (100 KB)\\ \hline
+\includegraphics[width=0.2\textwidth]{images/benchmark-2/benchmark-2-s4-ms10000.png}
+&
+\includegraphics[width=0.2\textwidth]{images/benchmark-2/benchmark-2-s4-ms100000.png} \\ \hline
+\end{tabular}
+\end{table}
+
+\newpage
+\subsubsection{Conclusion}
 \begin{table}[H]
 \centering
 \begin{tabular}{|l|l|l|l|l|}
 \hline
 {\bf Benchmark Variable} & \multicolumn{4}{c|}{{\bf Avg. Throughput {[}MB/s{]}}} \\ \hline
 Message Size             & Scenario 1       & Scenario 2       & Scenario 3     & Scenario 4 \\ \hline
-10 B                     &                  &                  & 0              &           \\ \hline
-100 B                    & 0                & 0                & 0              &            \\ \hline
-1000 B (1 KB)            & 0                & 0                & 0              &            \\ \hline
-10000 B (10 KB)          & 0                & 0                & 0              &            \\ \hline
-100000 B (100 KB)        & 0                & 0                & 0              &             \\ \hline
-1000000 (1 MB)           & 0                & 0                & 0              &             \\ \hline
+10 B                     & 85               & 50               & 48             & 48         \\ \hline
+100 B                    & 70               & 35               & 15             & 15         \\ \hline
+1000 B (1 KB)            & 80               & 75               & 50             & 55         \\ \hline
+10000 B (10 KB)          & 95               & 75               & 100            & 100         \\ \hline
+100000 B (100 KB)        & 105              & 100              & 105            & 100         \\ \hline
 \end{tabular}
 \end{table}
 \captionof{table}{Results of benchmark "Effect of Message size"}
+
+Obviously the throughput is increasing as the message size gets bigger. First of
+all, why are tests with 10 bytes message significant faster than those one with
+100 bytes? It need to be considered that the tcp throughput measurement takes
+bytes of the messages as well the message and request overhead which is
+produced for transmitting the request. Each message has overhead of 28 bytes
+which is 280 per cent of the actual message size in this case. Therefore the
+tests with 10 bytes are not really meaningful at the moment. As the message
+size gets larger the overhead can be disregarded.
+
+The benchmark shows, that the HMB broker and producer can deal with large
+message sizes quite good! The resulting throughput with 10 and 100 KB messages
+is nearly the same as with the Kafka setup. As already detected in first benchmark
+(see \ref{sec:conc-benchmark-1}) the HMB producer has its troubles with messages
+around 100 bytes.
+
+\subsubsection{Consequences}
+This benchmark has uncovered the responder thread as bottleneck with larger
+message size because the socket buffer gets an overflow. The test result are
+made without sending responses from the broker. At this point an optimization
+in the network layer so that the socket buffers never gets to large is needed.
+
+Furthermore the consequences defined in first benchmark are are also apply in
+this case.
 
 %\subsection{Benchmark "Encode/Decode"}
 
@@ -554,7 +678,7 @@ Message Size             & Scenario 1       & Scenario 2       & Scenario 3     
 %\end{tabular}
 %\end{table}
 
-
+\newpage
 \section{Outlook}
 
 What are the next steps? As described in section \ref{sec:conc-results}, the
