@@ -177,7 +177,7 @@ sendResponse (socket, addr) responsemessage =
 \label{sec:broker-api}
 This part of the broker is a quite thin layer which basically handles incoming
 requests, initiate actions needed and prepare appropriate responses. It fulfills
-essential part of the error handling which is detailed described in section. 
+essential part of the error handling which is described in section 
 \ref{sec:broker-error-handling}. 
 
 \subsection{Decode Request}
@@ -191,13 +191,13 @@ protocol implementation (see chapter \ref{sec-protocol}).
 The main focus of the API layer lies on handling the
 requests properly. Depending on the API key field of type
 \lstinline{RequestMessage}, the
-request handler determines an appropriate action. In case of an valid API key,
-a encoded ResponseMessage is passed back to the Network Layer via
+request handler determines an appropriate action. In case of a valid API key,
+the encoded response message is passed back to the Network Layer via
 \lstinline{ResponseChan}.
 
 For nearly all provided API's, the broker needs access to the functions provided
 by the log subsystem described in section \ref{sec:impl-broker-log}. Therefore the
-API layer initializes the LogManager of passes it to the handling function
+API layer initializes the LogManager and passes it to the handling function
 below:
 \begin{lstlisting}[caption={Handling requests depending on ApiKey}]
 handleRequest :: RequestMessage -> LogManager.State 
@@ -219,10 +219,10 @@ handleRequest rm = do
 \subsubsection{HandleProduceRequest}
 \label{subsec:broker-api-producerequest}
 Handling a produce request implies that the API layer passes the containing
-messages to the append function provided by the \lstinline{LogManager}. Because
-a request can contain messages for multiple topics or partitions and each combination
-refers to another log file the job of the API layer is to unnest the request so
-single calls to the \lstinline{LogManager}.
+messages to the append function provided by the \lstinline{LogManager}. A
+request may contains messages for multiple topics or partitions and each
+combination refers to another log file. Therefore the job of the API layer is to unnest
+the request to single calls to the \lstinline{LogManager}.
 \begin{verbatim}
 Simplified structure of nested sequences in request:
 [Topic [Partition [M]]]
@@ -235,21 +235,13 @@ Unnested to three tuples which can be feed to LogManager each as single call:
 
 \end{verbatim}
 
-Thanks to Haskell's list comprehension the unnesting of the request can be made quite elegant: 
-\begin{lstlisting}[caption={Handling produce request}]
-handleProduceRequest :: RequestMessage -> LogManager.State 
-                        -> IO (Either HandleError BL.ByteString)
-handleProduceRequest rm s = do
-  let req = rqRequest rm
-  w <- tryIOError(mapM LogManager.append (unnestReq req))
-
-  -- further code 
-
-  where
-    unnestReq req = [(s, BC.unpack(rqToName x)
-                    , fromIntegral(rqPrPartitionNumber y)
-                    , rqPrMessageSet y ) 
-                    | x <- rqPrTopics req, y <- rqToPartitions x]
+Thanks to Haskell's list comprehension the unnesting of the request can be made
+quite elegant: \begin{lstlisting}[caption={Handling produce request}]
+[(s, BC.unpack(rqToName x)
+  , fromIntegral(rqPrPartitionNumber y)
+  , rqPrMessageSet y ) 
+  | x <- rqPrTopics req, y <- rqToPartitions x
+]
 \end{lstlisting}
 
 \subsubsection{HandleFetchRequest}

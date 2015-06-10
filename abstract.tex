@@ -1,30 +1,44 @@
-\begin{abstract}
+\chapter{Abstract}
 
-  Nowadays one can speak of an ongoing revolution in web systems which turns
-  previous demands upside down. Internet companies created a need for activity
-  data in an extremely high volume which has never existed before. And
-  the trend holds on -- not only companies with its core business in the cloud
-  also more and more companies with a traditionally
-  fashioned core business are tending to create huge amount of data. This will
-  sooner or later surpass the yet so overwhelming data volume of the internet
-  big five (Apple, Microsoft, Google, Amazon, Facebook). The data those
-  companies generate capture user and server activity. It is at the heart
-  of many internet systems in the domains of advertising, relevance, search,
-  recommendation systems, and security, as well as continuing to fulfil its
-  traditional role in analytics and reporting. Processing of the so called
-  activity data has changed too. The days are gone of nightly batch processing
-  as the only way to produce valuable information -- real-time processing
-  dominates the field now, where information is available as soon as data is
-  generated. Being able to serve data to batch- and real-time processing systems
-  requires a central hub that can handle data-load as well as latency. There are
-  many alternative products on the market which are able to provide the
-  necessary capabilities up to a certain point, but among some others (big five)
-  LinkedIn found himself in the unsatisfied position where any existing system
-  was able to process their data load and was scalable at the same time.  Thus,
-  they created Kafka, which was soon open sourced under the Apache license,
-  known as Apache Kafka.
+\section{Introduction}
 
+This thesis aims to adapt the concept of Apache Kafka and build a messaging
+system, namely Haskell Message Broker (HMB), in the functional programming
+language Haskell. Thereby the focus lies on the implementation of a stable
+(related to networking) server application system as well as on the building a
+log subsystem, which in Apache Kafka is considered to be the most important
+feature. As Kafka comes with its own wire-protocol a part of this thesis will
+focus on a fully compatible implementation of the Apache Kafka Protocol in
+Haskell, including a client library allowing Haskell applications to take use of
+the protocol implementation and communicate with Apache Kafka or HMB.
 
-  .... now that is what our thesis is about
+\section{Approach}
 
-\end{abstract}
+Becoming familiar with the state of the art in messaging, especially event
+streaming, was inevitably necessary to eventually create a messaging system by
+ourselves. As essential part of this prestudy we analysed the approach and
+functionality of Apache Kafka. In this first third of the thesis we also learned
+the functional paradigm together with the programming language Haskell,
+intensively. After the prestudy phase, an architecture prototype to demonstrate
+some very basic functionality of a message broker was elaborated. With this in
+our hands, we then continued by working out the details for the protocol
+implementation and the server application. A code review byexpert Simon Meier
+helped us to tweak our code and improve efficiency. Finally, we tested our
+system under high load to optimize performance of our application.
+
+\section{Results}
+
+The first result of this thesis is the prestudy documentation, which resumes
+gathered knowledge in the familiarization phase of this work. It gives an
+insight in messaging fundamentals and  takes a closer look to Apache Kafka and
+related topics. It can be offered for using as academic amendment for existing
+lectures. Another result is the implementation of the Kafka protocol in Haskell.
+The design decision of separating protocol related code from the broker
+implementation leads to a isolated product which can be used as library for
+different projects. The open sourced code has already been praised by the
+Haskell community and found its contributors who helped uncovering minor issues.
+Finally, the resulting broker application provides a server with basic
+functionality in networking and persisting messages. It adapts some features of
+Apache Kafka and provides the ability to produce and consume data. It supports
+Kafka clients as it is based on the protocol implementation mentioned above.
+Simple console clients are provided to demonstrate the functionality.

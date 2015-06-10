@@ -799,16 +799,21 @@ data Head = Head
   }
 \end{lstlisting}
 
-The following example shows the definition of a produce call to publish batched messages
-for multiple topics and partitions. 
+Example construct of nested produce request with multiple topics and partitions:
+\begin{verbatim}
+Produce 
+    Head 0 0 clientId
+    [ToTopic topicA [ToPart 0 [ms], ToPart 1 [ms]],
+     ToTopic topicB [ToPart 0 [ms]]]
 
-\begin{lstlisting}[caption={Example of using types from client API}]
-  let head = Head 0 0 clientId
-  let ms = [randBytes | x <- [1..10]]
-  let req = Produce 
-        head 
-        [ToTopic topicA [ToPart 0 ms, ToPart 1 ms], ToTopic topicB [ToPart 0 ms]]
-\end{lstlisting}
+\end{verbatim}
+%The following example shows the definition of a produce call to publish batched messages
+%for multiple topics and partitions. 
+
+%\begin{lstlisting}[caption={Example of using types from client API}]
+%  let head = Head 0 0 clientId
+%  let ms = [randBytes | x <- [1..10]]
+%  let req = %\end{lstlisting}
 
 \subsection{Send Request}
 Before sending an API call to the broker, the defined types above need to be
@@ -853,44 +858,53 @@ decodeMdResponse b = runGet metadataResponseMessageParser b
 \end{lstlisting}
 
 Instead of exposing the decode functions for response, it is conceivable to
-provide unpack functionality which decodes the request and extracts relevant
+provide unpack functionality which decodes the request and extracts only relevant
 fields to a simplified type structure (analog to sendRequest function above).
+This is not implemented yet.
 
 \subsection{Client Examples}
-This example shows a very basic console client which either can act as producer
+This example shows a very rudimentary console client which either can act as producer
 by sending a producer request or as a consumer by sending a fetch request. After
-sending the client wait for a corresponding response from the broker.
+sending a request the client waits for a corresponding response from the broker.
+It need to be considered that the following code still misses a lot of functionality to
+act as reasonable client. It only demonstrates and proves the use of the client library quite
+simplified.
 
-Firts initialize stream socket an open connection to a given host address and port (broker
-is running). If connection succeeded, retrieve clientId via console, request header can be build:
-\begin{lstlisting}[caption={Initialize client}]
+First, the client initializes a stream socket an open connection to a given host
+address and port (broker is running). After the broker accepted the connection
+the client is ready so send requests:
+\begin{lstlisting}[caption={Initialize client by connceting to broker}]
 import qualified Kafka.Client as C 
+import qualified Data.IP as IP
+import Network.Socket
 
 main = do 
  sock <- socket AF_INET Stream defaultProtocol 
  setSocketOption sock ReuseAddr 1
- putStrLn "Give IP"
- ipInput <- getLine 
- let ip = toHostAddress (read ipInput :: IPv4)
- putStrLn "Give Port"
- port <- getLine
- connect sock (SockAddrInet port ip)
+ let ip = IP.toHostAddress (read "127.0.0.1" :: IP.IPv4)
+ connect sock (SockAddrInet 4343 ip)
+\end{lstlisting}
 
- putStrLn "Give Client Id"
+Second step is to request metadata from the broker.
+Therefore the client builds a metadata request, send it to the broker an receives the
+corresponding response:
+\begin{lstlisting}[caption={Retrieve metadata from broker}]
  clientId <- getLine
  let requestHeader = C.Head 0 0 (C.stringToClientId client)
+
+ let mdReq = Metadata requestHeader [] -- get metadata for all provided topics
+ sendRequest sock $ (pack mdReq)
+ mdInput <- SBL.recv sock 4096
+ let mdRes = decodeMdResponse mdInput
 \end{lstlisting}
 
 \subsubsection{Producer Client}
-Retrieve requested topic name and partition from console. After, each given
-console input is send to the broker as single request. Therefore the types
-and function \lstinline{sendRequest} from client library is used. After sending
-a request the clients receives and decodes the response. 
+The following example of a producer client first retrieves topic name
+and partition the messages are publibshed to from console. After, each given
+console input is send to the broker as single request. After sending
+a request the clients receives and decodes the response.
 \begin{lstlisting}[caption={Producer client example}]
- putStrLn "Give Topic Name"
- topicName <- getLine
- let t = stringToTopic topicName
- putStrLn "Give Partition Number"
+ t <- getLine
  partition <- getLine
  let p = read partition :: Int
 
@@ -899,26 +913,41 @@ a request the clients receives and decodes the response.
     input <- getLine
     let prReq = C.Produce 
                     requestHeader
-                    [ C.ToTopic t [ C.ToPart p [(C.stringToData input)]]]
+                    [ C.ToTopic (C.stringToTopic t) [ C.ToPart p
+                    [(C.stringToData input)]]]
     C.sendRequest sock $ prReq
 
     input <- SBL.recv sock 4096
-    let response = C.decodePrResponse input
-    print response 
+    let res = C.decodePrResponse input
+    print res
 \end{lstlisting}
 
 \subsubsection{Consumer Client}
-Consumer: Send a fetch request with given offset to the broker. Analog to the producer request 
-the api function packFtRqMessage packs the input into a protocol conform fetch request and sendRequest passes it via socket to the broker. 
-\todo{code not final yet}
+Send a fetch request with given offset, topic and partition constantly every one
+second to the broker. Paralell it receives and decodes incoming responses.
+\begin{lstlisting}[caption={Consumer client example}]
+putStrLn "Give Topic Name"
+  topicName <- getLine
+  partition <- getLine
+  let p = read partition :: Int
+  fetchOffset <- getLine
+  let o = read fetchOffset :: Int
 
+  let ftReq = Fetch requestHeader [ FromTopic C.stringToTopic t [ FromPart p o ]]
+  forever $ do
+    sendRequest sock ftReq
+    forkIO $ do
+      response <- SBL.recv sock 4096
+      let res = decodeFtResponse response
+    threadDelay 1000000
+\end{lstlisting}
 
 \newpage
 \section{Testing}
 For Haskell there are multiple frameworks for automated testing provided. To
 test the functionality of the protocol implementation, \fnurl{hspec}
 {https://hackage.haskell.org/package/hspec} is used. It provides good
-integration within a cabal project (after setup run tests by simply call \lstinline{cabal test})
+integration within a cabal project
 and generates useful tests logs to \lstinline{/dist/test/}. It also supports
 interoperability to other frameworks like
 \fnurl{HUnit}{https://hackage.haskell.org/package/HUnit}.
@@ -934,7 +963,9 @@ single tests, type fixtures are implemented. The fixtures helps to assemble
 types together from different fixtures whereas their fields are already filled
 with some sample values. 
 
-The following code shows an extract of the protocol tests:
+As for now considering, that not the whole protocol implementation is
+covered by test. The implemented tests still give a boilerplate for further
+implementation. The following code shows an extract of the existing protocol tests:
 \begin{lstlisting}[caption={Extract from protocol tests with hspec}]
 import Test.Hspec
 import SpecFixtures
