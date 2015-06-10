@@ -856,6 +856,63 @@ Instead of exposing the decode functions for response, it is conceivable to
 provide unpack functionality which decodes the request and extracts relevant
 fields to a simplified type structure (analog to sendRequest function above).
 
+\subsection{Client Examples}
+This example shows a very basic console client which either can act as producer
+by sending a producer request or as a consumer by sending a fetch request. After
+sending the client wait for a corresponding response from the broker.
+
+Firts initialize stream socket an open connection to a given host address and port (broker
+is running). If connection succeeded, retrieve clientId via console, request header can be build:
+\begin{lstlisting}[caption={Initialize client}]
+import qualified Kafka.Client as C 
+
+main = do 
+ sock <- socket AF_INET Stream defaultProtocol 
+ setSocketOption sock ReuseAddr 1
+ putStrLn "Give IP"
+ ipInput <- getLine 
+ let ip = toHostAddress (read ipInput :: IPv4)
+ putStrLn "Give Port"
+ port <- getLine
+ connect sock (SockAddrInet port ip)
+
+ putStrLn "Give Client Id"
+ clientId <- getLine
+ let requestHeader = C.Head 0 0 (C.stringToClientId client)
+\end{lstlisting}
+
+\subsubsection{Producer Client}
+Retrieve requested topic name and partition from console. After, each given
+console input is send to the broker as single request. Therefore the types
+and function \lstinline{sendRequest} from client library is used. After sending
+a request the clients receives and decodes the response. 
+\begin{lstlisting}[caption={Producer client example}]
+ putStrLn "Give Topic Name"
+ topicName <- getLine
+ let t = stringToTopic topicName
+ putStrLn "Give Partition Number"
+ partition <- getLine
+ let p = read partition :: Int
+
+  forever $ do 
+    putStrLn "Nachricht eingeben"
+    input <- getLine
+    let prReq = C.Produce 
+                    requestHeader
+                    [ C.ToTopic t [ C.ToPart p [(C.stringToData input)]]]
+    C.sendRequest sock $ prReq
+
+    input <- SBL.recv sock 4096
+    let response = C.decodePrResponse input
+    print response 
+\end{lstlisting}
+
+\subsubsection{Consumer Client}
+Consumer: Send a fetch request with given offset to the broker. Analog to the producer request 
+the api function packFtRqMessage packs the input into a protocol conform fetch request and sendRequest passes it via socket to the broker. 
+\todo{code not final yet}
+
+
 \newpage
 \section{Testing}
 For Haskell there are multiple frameworks for automated testing provided. To
@@ -901,3 +958,4 @@ testMs :: MessageSet -> Expectation
 testMs m = (runGet messageSetParser $ runPut $ buildMessageSet m) `shouldBe` m
 
 \end{lstlisting}
+
