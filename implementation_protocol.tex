@@ -944,26 +944,26 @@ putStrLn "Give Topic Name"
 
 \newpage
 \section{Testing}
-For Haskell there are multiple frameworks for automated testing provided. To
+The Haskell community offers multiple frameworks for automated testing. To
 test the functionality of the protocol implementation, \fnurl{hspec}
 {https://hackage.haskell.org/package/hspec} is used. It provides good
-integration within a cabal project
+integration within a \fnurl{cabal}{https://www.haskell.org/cabal} project
 and generates useful tests logs to \lstinline{/dist/test/}. It also supports
-interoperability to other frameworks like
+interoperability for other frameworks like
 \fnurl{HUnit}{https://hackage.haskell.org/package/HUnit}.
 
-Major approach in the implemented tests is to determine if the encode and decode
+The main purpose within the implemented tests is to determine if the encode and decode
 functions are corresponding. Therefore a given type (e.g. ProduceRequest) is
-encoded to bytestring and afterwards decoded back to the type. Is the resulting
-type equals to the original, than the process was successful. This helps to
-determine wrong or missing instruction in encoding/decoding when protocol
-changed. The goal is also to easily test abnormal input or varying
-for example the size of lists from zero to N elements. To simplify code of
+encoded to bytestring and afterwards decoded back to the type. If the resulting
+type is equals to the original, it means the process was successful. This helps to
+expose wrong or missing instruction in encoding/decoding when protocol
+changed. Another goal is to test abnormal input or, for example, varying 
+of the size of lists from zero to N elements. To simplify the code of
 single tests, type fixtures are implemented. The fixtures helps to assemble
-types together from different fixtures whereas their fields are already filled
+types together from different fixtures when their fields are already filled
 with some sample values. 
 
-As for now considering, that not the whole protocol implementation is
+As for now, not the whole protocol implementation is
 covered by test. The implemented tests still give a boilerplate for further
 implementation. The following code shows an extract of the existing protocol tests:
 \begin{lstlisting}[caption={Extract from protocol tests with hspec}]
@@ -975,18 +975,24 @@ spec = do
   describe "Kafka.Protocol" $ do
     context "MessageSet" $ do
       it "Test1: Default Value" $ do
-        let ms = getMessageSetFixture $ getMessageFixture $ getPayloadFixture "Test"
+        let ms = getMessageSetFixture $ 
+                    getMessageFixture $ 
+                    getPayloadFixture "Test"
         testMs ms
       it "Test2: No Value" $ do
-        let ms = getMessageSetFixture $ getMessageFixture $ getPayloadFixture ""
+        let ms = getMessageSetFixture $ 
+                    getMessageFixture $ 
+                    getPayloadFixture ""
         testMs ms
       it "Test3: JSON like Value" $ do
-        let ms = getMessageSetFixture $ getMessageFixture $ getPayloadFixture
+        let ms = getMessageSetFixture $ 
+                    getMessageFixture getPayloadFixture
            "[ obj : { value : 123 }]"
         testMs ms
 
 testMs :: MessageSet -> Expectation
-testMs m = (runGet messageSetParser $ runPut $ buildMessageSet m) `shouldBe` m
+testMs m = (runGet messageSetParser $ runPut $ buildMessageSet m)
+               `shouldBe` m
 
 \end{lstlisting}
 
