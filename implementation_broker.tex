@@ -2,32 +2,32 @@
 \label{chap:broker}
 
 The broker implementation is a stand-alone server application based on the
-Apache Kafka protocol implementation (see \ref{sec-protocol}). To clarify the
-program flow from receiving data from the network, handling the requests, and
-accessing the message log, the broker is split into three layers, each with its
+Apache Kafka protocol implementation (see chapter \ref{sec-protocol}). To clarify the
+program flow from receiving data to the network, to handling the requests, and
+to accessing the file system, the broker is split into three layers, each with its
 own module.
 
 \begin{description}
     \item [Network Layer] \hfill \\
         This module encapsulates action on the network. It initiates
-        connections and receives bytes from client. It chunks the received bytes
-        into single requests and provides it to the API Layer. 
+        connections and receives bytes from client. After the received bytes are
+        chunked into single requests and provide it to the API Layer.
     \item [API Layer] \hfill \\
         This module handles incoming requests. It first parses the
-        received bytes as RequestMessage and then proceeds to an appropriate action,
+        received bytes and then proceeds to an appropriate action,
         depending on the delivered API key. After performing the action, an
-        according ResponseMessage is generated and provided to the Network Layer
+        appropriate response is generated and provided to the Network Layer
         to send back to the client. 
     \item [Log Layer] \hfill \\
         This module encapsulates actions to the log on the filesystem.
-        Fundamental functions are appending MessageSet's to Log or reading from
-        it. 
+        Fundamental functions are appending messages to the log or reading from
+        it.
 \end{description}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.45\textwidth]{images/impl-brok-layers.png}
-    \caption{Three subsystems of broker server application}
+    \caption{Three layer of broker server application}
     \label{fig:impl-brok-layers}
 \end{figure}
 
@@ -1075,7 +1075,7 @@ will be closed on exit from \lstinline{withFile}.
 \begin{lstlisting}[caption={Write message to file with AppendMode}]
 write :: (L.TopicStr, Int, Log) -> IO ()
 write (t, p, ms) = do
-  bo <- getBaseOffset (t, p) Nothing -- todo: directory state
+  bo <- getBaseOffset (t, p) Nothing
   let logPath = L.getPath (L.logFolder t p) (L.logFile bo)
   withFile logPath AppendMode $ \hdl -> BL.hPut hdl $ encode ms
 \end{lstlisting}
