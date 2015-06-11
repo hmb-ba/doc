@@ -25,37 +25,37 @@ about the broker and provided topics. The following list gives an overview of
 which part of the protocol is implemented and what remains open:
 
 \begin{itemize}
-    \item Metadata API
-    \begin{itemize}
-        \tick Topic Metadata Request
-        \tick Metadata Response
-    \end{itemize}
-    \item Produce API
-    \begin{itemize}
-        \tick Produce Request
-        \tick Produce Response
-    \end{itemize}
-    \item Fetch API
-    \begin{itemize}
-        \tick Fetch Request
-        \tick Fetch Response
-    \end{itemize}
-    \item Offset API
-    \begin{itemize}
-        \fail Offset Request
-        \fail Offset Response
-    \end{itemize}
-    \item Offset Commit/Fetch API
-    \begin{itemize}
-        \fail Consumer Metadata Request
-        \fail Consumer Metadata Response
-        \fail Offset Commit Request
-        \fail Offset Commit Response
-        \fail Offset Fetch Request
-        \fail Offset Fetch Response
-    \end{itemize}
+    \tick Metadata API
+    %\begin{itemize}
+    %    \tick Topic Metadata Request
+    %    \tick Metadata Response
+    %\end{itemize}
+    \tick Produce API
+    %\begin{itemize}
+    %    \tick Produce Request
+    %    \tick Produce Response
+    %\end{itemize}
+    \tick Fetch API
+    %\begin{itemize}
+    %    \tick Fetch Request
+    %    \tick Fetch Response
+    %\end{itemize}
+    \fail Offset API
+    %\begin{itemize}
+    %    \fail Offset Request
+    %    \fail Offset Response
+    %\end{itemize}
+    \fail Offset Commit/Fetch API
+    %\begin{itemize}
+    %    \fail Consumer Metadata Request
+    %    \fail Consumer Metadata %Response
+    %        \fail Offset Commit Request
+    %    \fail Offset Commit Response
+    %    \fail Offset Fetch Request
+    %    \fail Offset Fetch Response
+    %\end{itemize}
 \end{itemize}
-
+\newpage
 \subsection{Haskell Message Broker}
 
 The main approach of this work is the implementation of a message broker in
@@ -123,22 +123,22 @@ by running equivalent tests on the same hardware.
 
 All of the tests and benchmarks in this chapter are performed with following setup:
 
-Broker Server:
 \begin{verbatim}
-Ubuntu Server 14.04.2 LTS (64 bit)
-Intel(R) Xeon(R) CPU E3-1245 v3 @ 3.40GHz
-One 7200 RPM SATA drive
-16GB of RAM
-1Gb Ethernet
+Broker Server: 
+  Ubuntu Server 14.04.2 LTS (64 bit)
+  Intel(R) Xeon(R) CPU E3-1245 v3 @ 3.40GHz
+  One 7200 RPM SATA drive
+  16GB of RAM
+  1Gb Ethernet
 \end{verbatim}
 
-Client:
 \begin{verbatim}
-Ubuntu 14.04.2 LTS (64 bit)
-Intel(R) Core(TM) i7-2720QM CPU @ 2.20GHz
-One SSD SATA drive
-16GB of RAM
-1Gb Ethernet
+Client:
+  Ubuntu 14.04.2 LTS (64 bit)
+  Intel(R) Core(TM) i7-2720QM CPU @ 2.20GHz
+  One SSD SATA drive
+  16GB of RAM
+  1Gb Ethernet
 \end{verbatim}
 
 \subsection{HMB Performance Producer}

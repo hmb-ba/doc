@@ -528,7 +528,7 @@ handleHandlerError (s, a) e = do
     putStrLn $ show e
     S.sendAll s $ C.pack $ show e
     sClose s
-    putStrLn $ "***Host " ++ (show a) ++ "disconnected ***"
+    putStrLn "***Host " ++ (show a) ++ "disconnected ***"
 \end{lstlisting}
 
 \newpage
@@ -540,10 +540,11 @@ produced and consumed. This component plays a decisive role while handling a
 \textit{fetchRequest} (\ref{subsec:broker-api-fetchrequest}) as well as a
 \textit{produceRequest} (\ref{subsec:broker-api-producerequest}). Thus, it is
 used extensively in the API layer (\ref{sec:broker-api}). In this section the
-applied concepts--which are adapted from Apache Kafka--will be explained before
-a proper introduction to the components of the log subsystem is given.
-Afterwards follows a code explanation for the most important functionalities,
-where information about design decisions and potential threats are given.
+applied concepts--which are adapted from Apache Kafka
+(\ref{intro-kafka-log})--will be explained before a proper introduction to the
+components of the log subsystem is given. Afterwards follows a code explanation
+for the most important functionalities, where information about design
+decisions and potential threats are given.
 
 \subsection{Components}
 
@@ -567,8 +568,8 @@ to use exposed functionalities of the hidden modules \textit{Log} and
 As for now, the functionalities \textit{LogManager} provides creates a new log
 and appends or reads messages to/from an existing log. Further functionalities
 are provided but are still managed by the \textit{Log} or \textit{Index} module
-itself. Also exposed is the \lstinline{State} type which is the representation
-of the current Log and Index, as discussed later in this section.
+itself. Also exposed is the \lstinline{State} type which is the in-memory representation
+of the available Logs, as discussed later in this section.
 
 \begin{lstlisting}
 module HMB.Internal.LogManager
@@ -579,7 +580,7 @@ module HMB.Internal.LogManager
 ) where
 \end{lstlisting}
 
-The modules  hold functionalities with direct
+The modules \textit{Log} and \textit{Index} contain functionalities with direct
 access on the filesystem. The separation leads back to the two provided files types
 log and index (see \ref{log-broker-storage}).
 
@@ -651,8 +652,8 @@ log
    |--00000000000000000000.log
 \end{verbatim}
 
-\section{Storage Format}
-\subsection{Log File}
+\subsection{Storage Format}
+\subsubsection{Log File}
 
 The log file contains a sequence of messages, whereas the on-disk format of an
 entry is part of the reason why the Apache Kafka becomes valuable. In fact, the
@@ -662,7 +663,7 @@ on-disk format is exactly the same as the format of the \lstinline{MessageSet}
 data does not have to be modified in any way and can directly be extracted and
 written to the file system.
 
-\subsection{Index File}
+\subsubsection{Index File}
 
 Every segment of a log has its corresponding index represented as another file with
 the suffix \textit{.index}. Whereas the log file contains the actual messages
@@ -685,7 +686,7 @@ structure:
 
 The first field of an index entry, the relative offset, refers to a specific
 message in the corresponding log file. On the other hand, the second field
-represents the physical position of the refered message within the log file.
+represents the physical position of the referred message within the log file.
 Instead of storing the whole eight bytes of the message offset, the index entry
 only holds a relative offset to the base offset. This obviously reduces the size
 of the index. In addition, there is to note that not every message within the
@@ -906,7 +907,7 @@ nextSmaller [x] _ = x
 nextSmaller xs x = last $ filter (<x) $ sort xs
 \end{lstlisting}
 
-\subsection{Append to Log}
+\subsection{Append to a Log}
 \label{subsec:broker-log-append}
 
 Writing data of type \lstinline{MessageSet} to a log is the fundamental process behind the
@@ -916,8 +917,6 @@ file system, several steps come in between. These steps contribute significantly
 concept of Apache Kafka's Log system which are adapted in this implementation.
 This section describes the implementation details of the mentioned steps in the
 order of occurrence.
-
-\subsubsection{LogManager}
 
 \begin{figure}[H]
     \centering
@@ -949,20 +948,22 @@ order of occurrence.
     \label{fig:broker-log-append}
 \end{figure}
 
-The log manager is responsible to append entries to the log, therefore exposing
+\subsubsection{LogManager}
+
+The \textit{LogManager} is responsible to append entries to a log, therefore exposing
 the function \lstinline{append} which takes the tuple of both states as well as
 the topic and partition combination and the set of messages to append.  As
-illustrated in figure \ref{fig:broker-log-append}, not only is the log involved
-in this process but also the index.
+illustrated in figure \ref{fig:broker-log-append}, not only is the module \textit{Log} involved
+in this process but also the module \textit{Index}.
 
-The concept behind the \lstinline{append} function is that the log manger takes
-the value of the MVar, computes log and index specific functions in a pure
-fashion, and puts the value back in the MVar and after the append process is
-completed. During this process -- between \lstinline{takeMVar} and
-\lstinline{putMVar} -- the resource is locked. As for now, concurrent appending
-is not supported but may become possible in the future with this concept. The
-following listing describes the computations happening in between the mentioned
-unwrapping of MVar:
+The concept behind the \lstinline{append} function is that the
+\textit{LogManager} takes the value of the MVar, computes log and index file
+specific functions in a pure fashion, and puts the value back in the MVar and
+after the append process is completed. During this process -- between
+\lstinline{takeMVar} and \lstinline{putMVar} -- the resource is locked. As for
+now, concurrent appending is not supported but may become possible in the
+future with this concept. The following listing describes the computations
+happening in between the mentioned unwrapping of MVar:
 
 \begin{lstlisting}[caption={Append function exposed by LogManager}]
 append :: (State, L.TopicStr, L.PartitionNr, Log) -> IO ()
@@ -974,7 +975,7 @@ append ((Log.LogState ls, Index.IndexState is), t, p, ms) = do
   let newLog = log ++ recvLog -- (3)
 
   indices <- takeMVar is
-  let index = Index.lastOrNull $ Index.find (t, p) indices -- (4)
+  let index = Index.lastOrNull (Index.find (t, p) indices) -- (4)
   bo <- L.getBaseOffset (t, p) Nothing
   let lastIndexedOffset = fromIntegral (fst index) + (fromIntegral bo)
   if Index.isInterval (Log.sizeRange (Just lastIndexedOffset) Nothing newLog) -- (5)
@@ -1002,41 +1003,42 @@ append ((Log.LogState ls, Index.IndexState is), t, p, ms) = do
   \item[(2)]
 
     Having the very last entry in a log allows to further increment the offset
-    over the set of received messages.
-
+    over the set of messages which need to be appended.
   \item[(3)]
 
-    The new list of message sets is now appended to the old log.
+    The received messages are append to the existing log.
 
   \item[(4)]
 
-    At this point, it may now be possible that the new log reached the size of
-    the log interval. The first step in order to determine this is to get the
-    offset of the last index entry. Keep in mind that the index only holds the
-    relative offset; the base offset has to be added.
+    At this point, it may now be possible that the updated log
+    reached the size of the defined interval for indexing a new log entry. The
+    first step in order to determine this is to get the offset of the last
+    index entry. Keep in mind that the index only holds the relative offset;
+    the base offset has to be added.
 
   \item[(5)]
 
-    The log provides the function \lstinline{sizeRange} that takes a start and
-    end offset and calculates the size in bytes of this range of messages. If
-    this size reaches the index interval (4096 bytes), an index entry will be
-    created.
+    The module \textit{Log} provides the function \lstinline{sizeRange} that
+    takes a start and end offset and calculates the size in bytes of this
+    range of messages. If this size reaches the index interval (4096 bytes),
+    an index entry will be created.
 
   \item[(6)]
 
-    Finally, the log entry can be written to the data structure and eventually
+    Finally, the updated loh can be written to the in-memory state and eventually
     to disk. Writing to disk is hidden in the \lstinline{append} function of the
-    log as it batches messages and only writes if the total log size of 500
+    module \textit{Log} as it batches messages and only writes if the total in-memory size of 500
     messages is reached.
 
 \end{description}
 
-\subsubsection{Log}
+\subsubsection{Log Module}
 
-Initiated by the log manager, the \lstinline{append} function of the log takes
-not only the map of the specific log but the entire collection of logs. As topic
-and partition are required anyways in this function, working with the entire
-collection is easier to handle on the log manager side.
+Initiated by the \textit{LogManager}, the \lstinline{append} function of the
+\textit{Log} module takes not only the in-memory map of the specific log but
+also the updated log. As topic and partition are required anyways in this
+function, working with the entire collection is easier to handle on the
+\textit{LogManager} side.
 
 \begin{lstlisting}[caption={Append messages to log}]
 append :: (L.TopicStr, L.PartitionNr) -> Logs -> IO Logs
@@ -1050,7 +1052,7 @@ append (t, p) logs = do
       else return logs
 \end{lstlisting}
 
-The flush interval describes the length of the log and returns true if the
+The flush interval describes the length of a given log and returns true if the
 amount of messages reached the limit of 500, which is the default value of
 Apache Kafka.
 
@@ -1060,8 +1062,7 @@ isFlushInterval log = 500 <= length log
 \end{lstlisting}
 
 If the flush interval is not reached yet, the entire collection is returned.
-Note that at this point, the new log entries given by the request are already
-appended. This is the step what makes writing to disk fast since messages are
+This is the step what makes writing to disk fast since messages are
 not written to disk for each request but instead are batched until this limit is
 reached.
 
@@ -1080,18 +1081,17 @@ write (t, p, ms) = do
   withFile logPath AppendMode $ \hdl -> BL.hPut hdl $ encode ms
 \end{lstlisting}
 
-
-\subsubsection{Index}
+\subsubsection{Index Module}
 
 Appending an index entry requires the relative offset of the last message from
-the set of messages given by the log manager. Therefore, the base offset will be
+the set of messages given by the \textit{LogManager}. Therefore, the base offset will be
 subtracted from the offset of the last message. The second value of the tuple is
 the physical offset. The physical offset basically represents the current size
 of the log file, including the size of the upcoming log entries persisted later
 during this request cycle. Thus, after the messages are persisted, adding both
 sizes will result in the correct physical offset.
 
-\begin{lstlisting}[caption={Appending entry to index}]
+\begin{lstlisting}[caption={Appending new entry to index}]
 append :: Indices -> (L.TopicStr, L.PartitionNr) -> Log -> Int64 -> IO Indices
 append idx (t, p) ms logSize = do
   let old = find (t, p) idx
@@ -1116,8 +1116,7 @@ file also has to be determined. Since everything is single-threaded, this
 becomes even worse. More details and approaches to solve this can be found in
 section \ref{subsec:broker-log-performance-issues}.}
 
-
-\subsection{Read from Log}
+\subsection{Read from a Log}
 \label{subsec:broker-log-read}
 
 Reading from a log means that consumers have subscribed to a topic (including
@@ -1125,8 +1124,6 @@ partition) and will send \textit{fetchRequests} to consume data from the broker.
 This data was originally generated by producer clients and, as described in
 \label{subsec:broker-log-append}, is processed by the broker and persisted on
 disk storage.
-
-\subsubsection{LogManager}
 
 \begin{figure}[H]
     \centering
@@ -1149,11 +1146,14 @@ disk storage.
     \label{fig:broker-log-read}
 \end{figure}
 
-Same as for appending, the log manager provides the interface to read from a
+\subsubsection{LogManager}
+Analog to appending, the log manager provides the interface to read from a
 log. The function \lstinline{readLog} takes the tuple of topic and partition as
-well as the offset of the message to fetch. Regarding the pull-model
-(\ref{subsec:kafka-consumer}), this means that for each message consumed, a
-separate \lstinline{fetchRequest} is sent. \\
+well as the offset from with to start to fetch. Therefore a consumer expects to
+get the message which has the fetched offset and also all newer ones. If there
+is no message set with given offset or higher, the consumer gets a empty
+list. The ability to allow the consumer to limit the requested size of messages
+in bytes is not implemented yet. \\
 
 \begin{lstlisting}
 readLog :: (Index.IndexState, L.TopicStr, L.PartitionNr) -> Offset -> IO Log
@@ -1193,7 +1193,7 @@ steps:
 
 \end{description}
 
-\subsubsection{Index}
+\subsubsection{Index Module}
 
 Given the highest offset for a specific topic name and partition (base offset),
 the next step determines the offset entry which is the closest to the
@@ -1208,7 +1208,7 @@ lookup index bo o = do
 \end{lstlisting}
 
 
-\subsubsection{Log}
+\subsubsection{Log Module}
 
 In order to increase I/O performance, the index file will be mapped into memory
 first using \fnurl{mmap}{http://man7.org/linux/man-pages/man2/mmap.2.html}. The
