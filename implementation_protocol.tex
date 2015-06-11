@@ -136,13 +136,13 @@ of the implemented protocol.
 \textbf{Primitive Type} & \textbf{Description} & \textbf{Mapping with Haskell library} \\ \hline
 Fixed Width Primitives     & Signed integers stored in big endian order.
 & Data.Word8, Word16, Word32, Word64 \\ \hline
-Variable Length Primitives & Consist of a signed integer giving a length N
-followed by N bytes of content. A length of -1 indicates null. String uses an
-int16 (Data.Word16) for its size, and bytes uses an int32 (Data.Word32).    &
+Variable Length Primitives & Consist of a signed integer with a given length N
+followed by N bytes of content. A length of -1 indicates null. String fields uses an
+int16 (Data.Word16) for its size, and byte-value fields uses an int32 (Data.Word32).    &
 Data.ByteString \\ \hline
-Arrays                     & Repeated structures. Always to be encoded as an int32
+Arrays                     & Repeated structures are encoded as an int32
 size containing the length N followed by N repetitions of the structure which
-can itself be made up of other, primitive types & Data.List                          \\ \hline
+again can contain primitive types & Data.List                          \\ \hline
 \end{tabular}
  \caption{Primitive types of protocol implementation}
 \end{table}
@@ -182,9 +182,9 @@ data ErrorCode =
 A request message is the on-wire format of data which is transmit from client to
 broker.
 
-Each request message has the same header fields no matter for which API they are used. 
-The real payload of the request is individual to the particular API which is
-used.
+Each request message has the same header fields no matter for which API they are
+used.  The real payload of the request is individual to the particular API which
+is used.
 
 \begin{figure}[H]
     \centering
@@ -208,8 +208,9 @@ Request       &                 & API specific Request type (either ProduceReque
 \end{table}
 
 Regarding to the ApiKey the following numeric codes are already provided by the
-protocol implementation (other API's are not implemented yet): 
-\begin{table}[h]
+current protocol implementation (other API's are not implemented yet):
+
+\begin{table}[H]
     \centering
     \begin{tabular}{ll}
         {\bf API Name}  & {\bf ApiKey Value} \\
@@ -224,15 +225,15 @@ protocol implementation (other API's are not implemented yet):
 \subsubsection{ProduceRequest}
 \label{subsec:protocol-types-producerequest}
 
-Request Payload for Produce API. Sends MessageSet's (see 
+Request Payload for Produce API. Sends MessageSet's (see
 \ref{impl-protocol-types-data}) to the broker. For efficiency it allows sending
-MessageSet's intended for many topic partitions in a single request (see
-\ref{impl-prot-batching}).
+MessageSet's intended to batch multiple topic partitions in a single request
+(see \ref{impl-prot-batching}).
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-produceRequest.png}
-    \caption{Format of type ProduceRequest; * = N repetitions }
+    \caption{Format of type ProduceRequest;}
     \label{fig:impl-prot-types-produceRequest}
 \end{figure}
 
@@ -253,7 +254,7 @@ client being able to send messages for multiple different topics:
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-prTopic.png}
-    \caption{Format of type RqPrTopic; * = N repetitions }
+    \caption{Format of type RqPrTopic;}
     \label{fig:impl-prot-types-produceRequest}
 \end{figure}
 
@@ -268,14 +269,14 @@ ListLength        & Data.Word32     & Number of elements in the following list. 
 \end{tabular}
 \end{table}
 
-The RqPrTopic includes N repetitions of the RqPrPartition types
+The RqPrTopic includes N repetitions of the type RqPrPartition so that
 the producer client being able to send message for multiple partitions
 within a topic.  
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-prPartition.png}
-    \caption{Format of type RqPrTopic; * = N repetitions }
+    \caption{Format of type RqPrTopic}
     \label{fig:impl-prot-types-produceRequest}
 \end{figure}
 
@@ -283,9 +284,10 @@ within a topic.
 \centering
 \begin{tabular}{ l  l  p{8cm} }
 \hline
-PartitionNumber & Data.Word32 & The partition Id that data is being published to.                                                                                                                                        \\ \hline
+PartitionNumber & Data.Word32 & The identifier of  partition where data is being published to.                                                                                                                                        \\ \hline
 MessageSetSize  & Data.Word32 & Sequences of MessageSet's are not preceded by an int32 like other array elements in the protocol. Instead, this field determines the total size, in bytes, of the following MessageSet's. \\ \hline
-[MessageSet]      & Data.List      & Finally the RqPrPartition type also holds the actual messages (as defined in \ref{impl-protocol-types-data}.                                                                                \\ \hline
+[MessageSet]      & Data.List      & Finally the RqPrPartition type also holds
+the actual messages (as defined in \ref{impl-protocol-types-data}).                                                                                \\ \hline
 \end{tabular}
 \end{table}
 
@@ -298,7 +300,7 @@ topic-partitions. Defines a starting offset at which to begin fetch.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-fetchRequest.png}
-    \caption{Format of type FetchRequest; * = N repetitions }
+    \caption{Format of type FetchRequest}
     \label{fig:impl-prot-types-fetchRequest}
 \end{figure}
 
@@ -307,17 +309,20 @@ topic-partitions. Defines a starting offset at which to begin fetch.
 \begin{tabular}{ l  l  p{8cm} }
 \hline
 ReplicaId      & Data.Word32 & Indicates the node id of the replica initiating this request. (Not yet used in broker implementation)                        \\ \hline
-MaxWaitTime    & Data.Word32 & Maximum amount of time in milliseconds to block, waiting if insufficient data is available at the time the request is issued. \\ \hline
-MinBytes       & Data.Word32 & Minimum number of bytes of messages that must be available to give a response.                                               \\ \hline
-ListLength     & Data.Word32 & Number of elements in the following list.                                                                                        \\ \hline
-{[}RqFtTopics{]} & Data.List   & Sequence of FtTopics, see below                                                                                              \\ \hline
+MaxWaitTime    & Data.Word32 & Maximum amount of time in milliseconds to block
+in order to wait if insufficient data is available at the time the request is issued. \\ \hline
+MinBytes       & Data.Word32 & Minimum number of bytes of messages that must be
+available to provide a response.                                               \\ \hline
+ListLength     & Data.Word32 & Number of elements in the list of
+topics.                                                                                        \\ \hline
+{[}RqFtTopics{]} & Data.List   & Sequence of FtTopics (see below).                                                                                              \\ \hline
 \end{tabular}
 \end{table}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-ftTopic.png}
-    \caption{Format of type RqFtTopic; * = N repetitions }
+    \caption{Format of type RqFtTopic}
     \label{fig:impl-prot-types-ftTopic}
 \end{figure}
 
@@ -326,7 +331,7 @@ ListLength     & Data.Word32 & Number of elements in the following list.        
 \begin{tabular}{ l  l  p{8cm} }
 \hline
 StringLength      & Data.Word16     & Length in bytes of the string TopicName.              \\ \hline
-TopicName         & Data.ByteString & Name of the topic the fetch is for . \\ \hline
+TopicName         & Data.ByteString & Name of the topic to be fetched. \\ \hline
 ListLength        & Data.Word32     & Number of elements in the following list.                \\ \hline
 [RqFtPartition]     & Data.List       & Sequence of FtPartitions, see below.                \\ \hline
 \end{tabular}
@@ -343,23 +348,24 @@ ListLength        & Data.Word32     & Number of elements in the following list. 
 \centering
 \begin{tabular}{ l  l  p{8cm} }
 \hline
-PartitionNumber & Data.Word32 & Id of the partition the fetch is for.                                          \\ \hline
+PartitionNumber & Data.Word32 & Id of the partition to be fetched.                                          \\ \hline
 Offset          & Data.Word64 & Offset to begin the fetch from.                                                \\ \hline
-MaxBytes        & Data.Word32 & Minimum number of bytes of messages that must be available to give a response. \\ \hline
+MaxBytes        & Data.Word32 & Minimum number of bytes of messages that must be
+available to provide a response. \\ \hline
 \end{tabular}
 \end{table}
 
 \subsubsection{Metadata Request}
-The request format for the metadata is fairly simple. Actually the
-RequestMessage header with the appropriate APIkey suffices to initiate the
+The request format for the metadata is fairly simple. The
+RequestMessage header, containing the appropriate API key, leads to initiate the
 broker to reponse meta information about existing topics, partitions and
-brokers. The request contains an optional list of topics, for which explicit
-information is requested.
+brokers. The request can contain an optional list of topics, for which explicit
+information is fetched.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-metadataRequest.png}
-    \caption{Format of type MetadataRequest, * = N repetitions}
+    \caption{Format of type MetadataRequest}
     \label{fig:impl-prot-types-ftPartition}
 \end{figure}
 
@@ -367,15 +373,16 @@ information is requested.
 \centering
 \begin{tabular}{ l  l  p{8cm} }
 \hline
-ListLength    & Data.Word32 & Number of element in following list.                                                                                             \\ \hline
+ListLength    & Data.Word32 & Number of elements in the list of StringLength and
+TopicName.                                                                                             \\ \hline
 StringLength      & Data.Word16     & Length in bytes of the string TopicName.              \\ \hline
-TopicName         & Data.ByteString & . The topic to produce metadata for. If
+TopicName         & Data.ByteString & The topic to produce metadata for. If
 empty the request will yield metadata for all topics  \\ \hline
 \end{tabular}
 \end{table}
 
 \subsection{Types related to Response}
-A response message is the on-wire format of data which is getting from broker to
+A response message is the on-wire format of data which is being sent from broker to
 client.
 
 Each request message has the same header fields for which API they are used. 
@@ -386,7 +393,7 @@ sent in return to a ProduceRequest).
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-responseMessage.png}
-    \caption{Format of type ResponseMessage; * = N repetitions}
+    \caption{Format of type ResponseMessage}
     \label{fig:impl-prot-types-responseMessage}
 \end{figure}
 
@@ -405,12 +412,12 @@ ProduceResponse, FetchResponse or others). \\ \hline
 \subsubsection{ProduceResponse}
 Response Payload for Produce API. Sends an ErrorCode which determines whether a
 produce request for a specific topic-partition succeeded (ErrorCode 0 ) or ended
-in a particular failure. 
+in a particular failure, specified by the error code.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-produceResponse.png}
-    \caption{Format of type ProduceResponse; * = N repetitions}
+    \caption{Format of type ProduceResponse}
     \label{fig:impl-prot-types-produceResponse}
 \end{figure}
 
@@ -419,8 +426,9 @@ in a particular failure.
 \begin{tabular}{ l  l  p{8cm} }
 \hline
 StringLength      & Data.Word32     & Length in bytes of the string TopicName. \\ \hline
-TopicName         & Data.ByteString & Name of the topic this response entry corresponds to.\\ \hline
-ListLength        & Data.Word32     & Number of element in following list.\\ \hline
+TopicName         & Data.ByteString & Name of the topic the response entry corresponds to.\\ \hline
+ListLength        & Data.Word32     & Number of element in the list of payload
+sequences.\\ \hline
 {[}RsPrPayload{]} & Data.List       & Sequence of RsPrPayload, see below.
 \\ \hline
 \end{tabular}
@@ -429,7 +437,7 @@ ListLength        & Data.Word32     & Number of element in following list.\\ \hl
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-prPayload.png}
-    \caption{Format of type RsPrPayload, * = N repetitions}
+    \caption{Format of type RsPrPayload}
     \label{fig:impl-prot-types-prPayload}
 \end{figure}
 
@@ -442,14 +450,15 @@ PartitionNumber & Data.Word32 & Number of the partition this response entry
 corresponds to.                                                \\ \hline
 ErrorCode       & Data.Word16 & Topic-Partition-specific error code. Error code
 0 determines that data has been published successfully. \\ \hline
-Offset          & Data.Word64 & Number of the element in the following list.
+Offset          & Data.Word64 & See protocol definition.
 \\ \hline
 \end{tabular}
 \end{table}
 
 \subsubsection{FetchResponse}
-Response Payload for Fetch API. Sends requested chunk of one ore more logs as
-a sequence of MessageSet's (see \ref{impl-protocol-types-data}). 
+
+Response Payload for Fetch API. Sends requested chunk of one or more
+MessageSet's (see \ref{impl-protocol-types-data}).
 
 \begin{figure}[H]
     \centering
@@ -462,8 +471,9 @@ a sequence of MessageSet's (see \ref{impl-protocol-types-data}).
 \begin{tabular}{ l  l  p{8cm} }
 \hline
 StringLength      & Data.Word32     & Length in bytes of the string TopicName. \\ \hline
-TopicName         & Data.ByteString & Name of the topic this response entry corresponds to.\\ \hline
-ListLength        & Data.Word32     & Number of elements in the following list.\\ \hline
+TopicName         & Data.ByteString & Name of the topic the response entry corresponds to.\\ \hline
+ListLength        & Data.Word32     & Number of elements in the list of payload
+entires.\\ \hline
 {[}RsFtPayload{]} & Data.List       & Sequence of RsPrPayload, see below.
 \\ \hline
 \end{tabular}
@@ -479,11 +489,15 @@ ListLength        & Data.Word32     & Number of elements in the following list.\
 \centering
 \begin{tabular}{ l  l  p{8cm} }
 \hline
-PartitionNumber     & Data.Word32 & Number of the partition this response entry corresponds to.                                                                                               \\ \hline
-ErrorCode           & Data.Word16 & Topic-Partition-specific error code. Error code 0 determines that data has been published successfully.                                                \\ \hline
-HighwaterMarkOffset & Data.Word64 & The offset at the end of the log for this partition. This can be used by, the client to determine how many messages behind the end of the log. \\ \hline
-MessageSetSize      & Data.Word32 & The size in bytes of the message set for this topic-partition.                                                                                         \\ \hline
-{[}MessageSet{]}    & Data.List   & The message data fetched from this partition, in the format described below.                                                                           \\ \hline
+PartitionNumber     & Data.Word32 & Number of the partition the response entry corresponds to.                                                                                               \\ \hline
+ErrorCode           & Data.Word16 & Topic-Partition-specific error code. (Error
+code 0 determines that data has been published successfully).                                                \\ \hline
+HighwaterMarkOffset & Data.Word64 & The offset at the end of the log for this
+partition. This can be used to determine how many messages the client is behind the end of the log. \\ \hline
+MessageSetSize      & Data.Word32 & The size in bytes of the message set for
+this topic and partition.                                                                                         \\ \hline
+{[}MessageSet{]}    & Data.List   & The message data fetched from this
+partition (format described below).                                                                           \\ \hline
 \end{tabular}
 \end{table}
 
@@ -495,7 +509,7 @@ their replication status.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-metadataResponse.png}
-    \caption{Format of type MetadataResponse, * = N repetitions}
+    \caption{Format of type MetadataResponse}
 \end{figure}
 
 \begin{figure}[H]
@@ -507,7 +521,7 @@ their replication status.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-mdPayloadTopic.png}
-    \caption{Format of type RsMdPayloadTopic, * N repetitions} 
+    \caption{Format of type RsMdPayloadTopic}
 \end{figure}
 
 
@@ -515,13 +529,15 @@ their replication status.
 \centering
 \begin{tabular}{ l  l  p{8cm} }
 \hline
-ListLength        & Data.Word32     & Number of element in following list.\\ \hline
+ListLength        & Data.Word32     & Number of elements in the following list of broker
+informations.\\ \hline
 [RsMdPayloadBroker] & Data.List     & Sequence of RsMdPayloadBroker, contains
 node Id, hostname and port information of broker.  \\ \hline
-ListLength        & Data.Word32     & Number of element in following list.\\ \hline
+ListLength        & Data.Word32     & Number of element in following list of
+topic informations.\\ \hline
 [RsMdPayloadTopic] & Data.List     & Sequence of RsMdPayloadTopic, contains all,
 or the requested topic names with approriate error code which determines status.
-Also contains a sequence of RsMdPayloadMetadata, see below. \\ \hline
+Also contains a sequence of RsMdPayloadMetadata (see below). \\ \hline
 \end{tabular}
 \end{table}
 
@@ -536,16 +552,18 @@ Also contains a sequence of RsMdPayloadMetadata, see below. \\ \hline
 \begin{tabular}{ l  l  p{8cm} }
 \hline
 PartitionErrorCode  & Data.Word16 & Partition specific error code.                                                          \\ \hline
-PartitionNumber     & Data.Word32 & Number of Partition this metadata is for.                                               \\ \hline
+PartitionNumber     & Data.Word32 & Number of Partition the metadata is for.                                               \\ \hline
 Leader              & Data.Word32 & The node id for the broker currently acting as leader for this partition.
-                       If no leader exists because when beeinh in the middle of
-                       a leader election this id will be -1.                                                                \\ \hline
-ListLength        & Data.Word32     & Number of element in following list.                                                  \\ \hline
+If no leader exists (because when beeinh in the middle of
+a leader election) this id will be -1.                                                                \\ \hline
+ListLength        & Data.Word32     & Number of element in following list of
+replicas.                                                  \\ \hline
 [Replicas]         & Data.List & The set of alive nodes that currently acts as
                        slaves for the leader for this partition, given as
                        Data.Word32.                                                                                        \\ \hline
-ListLength        & Data.Word32     & Number of element in following list.                                                  \\ \hline
-[Isr]   & Data.List   & The set subset of the replicas that are "caught up" to
+ListLength        & Data.Word32     & Number of element in following list of
+                       in-sync-replicas.                                                  \\ \hline
+[Isr]   & Data.List   & The set of the replicas that are "caught up" to
                        the leader, given as Data.Word32.        \\ \hline
 \end{tabular}
 \end{table}
@@ -553,9 +571,10 @@ ListLength        & Data.Word32     & Number of element in following list.      
 
 \subsection{Types related to Data}
 \label{impl-protocol-types-data}
-The actual transported data has a common structure,
+
+The transported data holds a common structure,
 called a MessageSet. This format happens to be used both for the on-disk storage on the
-broker and the on-the-wire format. Therefore the broker do not need to perform
+broker as well as the on-the-wire format. Therefore the broker do not need to perform
 any transformations to the actual message when persisting to the log or reading
 from it. 
 
@@ -579,7 +598,7 @@ Message     &     & Message format, see below.                                  
 \subsubsection{Message}
 Message is part of the MessageSet and contains a checksum to check integrity of
 the actual payload of the message. To abstract the fields which are checked we
-combine them in another type, see Payload.
+combine them in another type (see Payload).
 
 %\begin{figure}[H]
 %    \centering
@@ -592,13 +611,14 @@ combine them in another type, see Payload.
 \centering
 \begin{tabular}{ l  l  p{8.5cm} }
 \hline
-CRC     & Data.Word32 & The CRC is the CRC32 of the remainder of the message bytes. This is used, to check the integrity of the message on the broker and consumer. \\ \hline
-Payload &      & Payload format, see below.                                                                                                                  \\ \hline
+CRC     & Data.Word32 & The CRC is the CRC32 checksum. This is used, to check the integrity of the message on the broker and consumer. \\ \hline
+Payload &      & Payload format (see below).                                                                                                                  \\ \hline
 \end{tabular}
 \end{table}
 
 \subsubsection{Payload}
-This types defines the actual payload of a message along with its meta info.
+This types defines the actual payload of a message along with its meta
+information.
 
 %\begin{figure}[H]
 %    \centering
@@ -612,11 +632,13 @@ This types defines the actual payload of a message along with its meta info.
 \begin{tabular}{ l  l  p{8cm} }
 \hline
 Magic       & Data.Word8      & This is a version id used to allow backwards compatible evolution of the message binary format. The current value is 0.                                         \\ \hline
-Attributes  & Data.Word8      & This byte holds metadata attributes about the message. The lowest 2 bits, contain the compression codec used for the message. The other bits, should be set to 0. \\ \hline
+Attributes  & Data.Word8      & This byte holds metadata attributes about the
+message. The lowest 2 bits, contain the compression codec used for the message.
+The other bits, should be set to 0 (not defined yet). \\ \hline
 KeyLen      & Data.Word32     & Determines length of Key field in bytes.                                                                                                                         \\ \hline
 Key         & Data.ByteString & The key is an optional message key that is used for partition assignment. The key can be null.                                                                  \\ \hline
 ValueLength & Data.Word32     & Determines length of Value field in bytes.                                                                                                                      \\ \hline
-Value       & Data.ByteString & The actual message contents as an byte array. The message can be null. Kafka also supports recursive messages in which case 
+Value       & Data.ByteString & The actual message contents as a byte array. The message can be null. Kafka also supports recursive messages in which case 
                                 the value may itself contain a message set. This
                                 functionality is not implemented yet.                                                                                                                            \\ \hline
 \end{tabular}
@@ -625,7 +647,7 @@ Value       & Data.ByteString & The actual message contents as an byte array. Th
 \section{Encode / Decode}
 
 There are libraries in Haskell to encode or decode data to or from binary
-formats given as ByteString. As for binary serialization, the
+formats. As for binary serialization, the
 \fnurl{Data.Binary}{https://hackage.haskell.org/package/binary-0.4.1/docs/Data-Binary.html}
 library is being used as it works with lazy bytestrings. As an alternative to
 Data.Binary, the \textit{cereal} library
@@ -642,7 +664,7 @@ Parsing libraries such as
 \fnurl{Parsec}{https://hackage.haskell.org/package/parsec} where considered but
 proved to not be suitable for performance-critical applications. In fact, there
 is no need for parsing functionality -- such as syntactic analysis -- regarding
-the tasks the broker has to be capable of. 
+the tasks the broker has to be capable of.
 
 \subsection{Decode Request/Response}
 
@@ -651,14 +673,16 @@ fields. Functions are provided to either parse a request or response and
 remind of the original definition of the Kafka protocol as grammar. To identify
 the actual type of request, the protocol describes an API Key field which holds
 a numeric code which explicitly defines the type of request. Depending on the
-API key, further parse functions will be called. 
+API key, the appropriate parse function will be called. 
 
 The Get Monad (Data.Binary.Get) allows to comfortably parse ByteString in
-its big endian network order and decode it to appropriate types.
+its big endian network order and allows to decode to appropriate types.
 
-The following code shows the function for parsing an arbitrary request:
+The following code shows the function for parsing an arbitrary request. The
+parse function for the appropriate request is called by pattern matching the api
+key.
 
-\begin{lstlisting}[caption={Decode of RequestMessage, depending on ApiKey}]
+\begin{lstlisting}[caption={Decode of RequestMessage, based on ApiKey}]
 import Data.Binary.Get
 
 requestMessageParser :: Get RequestMessage 
@@ -691,10 +715,11 @@ parseList i p = do
             return (x:xs)
 \end{lstlisting}
 
-A batched sequence of MessageSets is a special case where the protocol does not provide a
-field which determines the number of elements. There is just a field which contains
-the size in bytes of all message sets. Therefore we implemented an according
+A batched sequence of MessageSets is a special case where the protocol does not
+provide a field which determines the number of elements. There is just a field
+which contains the size in bytes of all message sets. Therefore we implemented a
 list decoder for sequences of MessageSets:
+
 \begin{lstlisting}[caption={Decode list of MessageSet's}]
 parseMessageSets :: Int -> Get [MessageSet]
 parseMessageSets i = do
@@ -770,8 +795,8 @@ enodePrRqMessage r = runPut buildPrRqMessage r
 \label{sec:impl-prot-client}
 As part of the protocol implementation, the client library provides an
 API for clients to interact with the protocol. The goal is to isolate the
-producer or consumer clients from implementations details of the types and
-encode/decode functions. 
+producer and consumer clients from implementation details such the types and
+encode/decode functions.
 
 \subsection{Types}
 The types provided by the client library give a simplified abstraction for
@@ -779,11 +804,13 @@ the types of the protocol implementation. All values which need to be
 provided by a client are covered. Every type which is irrelevant to the client
 is hidden.
 
-Depending on the API a client wants to access, either a Produce, Fetch of
-Metadata type needs to be defined. Each of them consists of a Head, which
-contains the header information every request needs to include. Furthermore, the
-libary types allow the client to define nested sequences of topics and
-partitions to fully support the batching approach of the Kafka protocol. 
+Depending on the API a client wants to access, either a \lstinline{Produce},
+\lstinline{Fetch} of \{Metadata} type needs to be defined. Each of them consists
+of a \lstinline{Head}, which contains the header information every request needs
+to include. Furthermore, the library types allow the client to define nested
+sequences of topics and partitions to fully support the batching approach of the
+Kafka protocol. 
+
 \begin{lstlisting}[caption={Simplified types for client API}]
 data Req = Produce Head [ToTopic] | Fetch Head [FromTopic] | Metadata Head [OfTopic]
 data Head = Head
@@ -810,19 +837,8 @@ Produce
 %  let req = %\end{lstlisting}
 
 \subsection{Send Request}
-Before sending an API call to the broker, the defined types above need to be
-packed into the actual types of the Kafka protocol implementation (with all the
-additional information which are hidden from the client). Therefore the client
-library exposes a \lstinline{sendRequest} function. It packs the provided
-\lstinline{Req} to the protocol-conform \lstinline{RequestMessage} and encodes it
-to ByteString. Finally, the binary data is sent to the given socket.
 
-\begin{lstlisting}[caption={Pack and send function of client API}]
-sendRequest :: Socket -> RequestMessage -> IO ()
-sendRequest socket requestMessage = do
-    SBL.sendAll socket msg
-    where msg = runPut $ buildRqMessage $ pack requestMessage
-
+\begin{lstlisting}
 class Packable a where
   pack :: a -> RequestMessage
 
@@ -830,17 +846,31 @@ instance Packable Req where
   pack (Produce head ts)  = packPrRqMessage head ts
   pack (Fetch head ts)    = packFtRqMessage head ts
   pack (Metadata head ts) = packMdRqMessage head ts
+\end{lstlisting}
 
+Before sending an API call to the broker, the defined types above need to be
+packed (see listing above) into the actual types of the Kafka protocol
+implementation (with all the additional information which are hidden from the
+client). Therefore the client library exposes a \lstinline{sendRequest}
+function. It packs the provided \lstinline{Req} to the protocol-conform
+\lstinline{RequestMessage} and encodes it to ByteString. Finally, the binary
+data is sent to the given socket.
+
+\begin{lstlisting}[caption={Pack and send function of client API}]
+sendRequest :: Socket -> RequestMessage -> IO ()
+sendRequest socket requestMessage = do
+    SBL.sendAll socket msg
+    where msg = runPut $ buildRqMessage $ pack requestMessage
 \end{lstlisting}
 
 \subsection{Decode Response}
+
 For parsing received responses sent by the broker, the client library exposes
-functions for decoding the binary data. 
+functions for decoding the binary data.  To expose functionality for the client
+to decode responses sent from broker, the client library provides specific
+decode functions: 
 
 \begin{lstlisting}[caption={Exposed decode functions of client API}]
-To expose functionality for the client to decode responses sent from broker, the
-client library provides specific decode functions: 
-
 decodePrResponse :: BL.ByteString -> ResponseMessage
 decodePrResponse a = runGet produceResponseMessageParser a
 
@@ -903,7 +933,7 @@ a request the clients receives and decodes the response.
  let p = read partition :: Int
 
   forever $ do 
-    putStrLn "Nachricht eingeben"
+    putStrLn "Insert message"
     input <- getLine
     let prReq = C.Produce 
                     requestHeader
@@ -938,13 +968,13 @@ putStrLn "Give Topic Name"
 
 \newpage
 \section{Testing}
-The Haskell community offers multiple frameworks for automated testing. To
-test the functionality of the protocol implementation, \fnurl{hspec}
-{https://hackage.haskell.org/package/hspec} is used. It provides good
-integration within a \fnurl{cabal}{https://www.haskell.org/cabal} project
-and generates useful tests logs to \lstinline{/dist/test/}. It also supports
-interoperability for other frameworks like
-\fnurl{HUnit}{https://hackage.haskell.org/package/HUnit}.
+
+The Haskell community offers multiple frameworks for automated testing. To test
+the functionality of the protocol implementation, \fnurl{hspec}
+{https://hackage.haskell.org/package/hspec} is used. It provides sustainable
+integration possibilities and generates useful tests logs to
+\lstinline{/dist/test/}. It also supports interoperability for other frameworks
+like \fnurl{HUnit}{https://hackage.haskell.org/package/HUnit}.
 
 The main purpose within the implemented tests is to determine if the encode and decode
 functions are corresponding. Therefore a given type (e.g. ProduceRequest) is
