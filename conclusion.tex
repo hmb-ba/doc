@@ -1,4 +1,6 @@
 \chapter{Conclusion}
+\label{chap:conclusion}
+
 \section{Results}
 \label{sec:conc-results}
 \subsection{Technology Research}
@@ -218,14 +220,15 @@ Start producing benchmark:
 %\subsubsection{Iptraf-ng}
 
 \newpage
-\subsection{Early Stress Tests}
+\subsection{Exposed Issues}
 
 An early version of the broker provided a console client which produced messages
 per console input. This setup demonstrated that encoding/decoding of a request
-worked. Also, the different broker layers have done their job well.  Later in the
-construction phase of the broker, tests were introduced that repeatedly sent a large amount of
-requests in a short period of time. This kind of stress test is
-very useful to uncover network related bugs and performance lacks. 
+worked. Also, the different broker layers have done their job well.  Later in
+the construction phase of the broker, tests were introduced that repeatedly sent
+a large amount of requests in a short period of time. This kind of stress test
+is very useful to uncover network related bugs and performance lacks. We kept
+doing so until the end of the implementation phase.
 
 When dealing with thousands of requests per second, a function with high complexity
 can cause terrible bottlenecks. Another method to analyze Haskell code for
@@ -234,22 +237,32 @@ potentially slow functions is time and allocation profiling provided by GHC.
 The following table lists some of the major issues that were exposed:
 
 \begin{table}[H]
-\begin{tabular}{|p{4cm}|p{4.5cm}|p{5cm}|}
+\begin{tabular}{|p{3cm}|p{4.5cm}|p{6cm}|}
 \hline
 {\bf Exposed Issue}                                                                                  & {\bf Cause}                                                                                                                                                                                                                 & {\bf Solution}                                                                                                                                                                                                                                                                                    \\ \hline
-Dramatically slowdown after short period of time                                                       & TCP Zero Window - Socket receive buffer of broker full                                                                                                                                                                      & Broker application was slow in receiving, parsing, and handling incoming requests. Threading concept needs to be optimized (see \ref{sec:impl-broker-threading}). The process of parsing an incoming request needs to be swapped out to another thread, so that the network receive thread can reduce the socket buffer fast enough. \\ \hline
+Dramatically slowdown after short period of time. \textbf{[Solved]}                                                        & TCP Zero Window - Socket receive buffer of broker full                                                                                                                                                                      & Broker application was slow in receiving, parsing, and handling incoming requests. Threading concept needs to be optimized (see \ref{sec:impl-broker-threading}). The process of parsing an incoming request needs to be swapped out to another thread, so that the network receive thread can reduce the socket buffer fast enough. \\ \hline
 Parsing from socket error "not enough bytes" when testing over network
-interface instead of loopback. & The \lstinline{len} argument to the
+interface instead of loopback. \textbf{[Solved]} & The \lstinline{len} argument to the
 \lstinline{recv} system call is merely the upper bound on the received length
 (e.g. the size of the target buffer); the call may produce less data than asked
 for. & Introduced function which checks if the exact amount of bytes is really
 read. If not, the \lstinline{recv} call is repeated until all requested bytes are present (see details in \ref{sec:impl-broker-socket-receive}).                                                                                                                                              \\ \hline
-Throughput drop when producing a larger request with nested list
+Throughput drop when producing a larger request with nested list. \textbf{[Solved]}
 & Issue in encoding a request called \lstinline{runPut} on each sub element and
 appended to a whole.
 & No appending of parsed sub elements. Restructure encode module by running
 \lstinline{runPut} at latest point in time. This resulted in factor 2 of performance in building requests (see \ref{sec:impl-prot-encoding}).                                                                                                                                      \\ \hline
-Very slow performance in persisting messages to the log (file system).                                 & No state and batching at broker side. Each incoming message ended in multiple file accesses which slowed down the whole process.                                                                                                                                & Messages need to be summed up to larger chunks of bytes. After a defined period of time or amount of bytes, multiple messages need to be flushed to disk at once (see details of different approaches in \ref{sec:impl-broker-log}).                                                                                                                                      \\ \hline
+Slow performance in persisting messages to the log (file system). \textbf{[Solved]}                                & No state and batching at broker side. Each incoming message ended in multiple file accesses which slowed down the whole process.                                                                                                                                & Messages need to be summed up to larger chunks of bytes. After a defined period of time or amount of bytes, multiple messages need to be flushed to disk at once (see details of different approaches in \ref{sec:impl-broker-log}).                                                                                                                                      \\ \hline
+Slow index search. \textbf{[Open]} & Base offset has to be determined for each lookup. As for now
+this causes disk I/O which is obviously an overhead. & The directory and
+its content should be read from disk just once and from then on work with states
+(MVar) only. The state has to be passed forth and back between the API and Log
+layer for each request but omits I/O by having the base offset in memory all the time. \\ \hline
+Slow index insertion causes slowdown of the broker application. \textbf{[Open]} & As for now, the
+file size of the log which needs to be stored within an index entry causes I/O.
+& A more intuitive and significantly faster solution would be to maintain the log file
+size within the \lstinline{LogState} (in-memory). Thus, the file size would have to be
+increased by hand when appending a new log entry. \\ \hline
 \end{tabular}
 \end{table}
 \captionof{table}{Uncovered issues in early stress tests}

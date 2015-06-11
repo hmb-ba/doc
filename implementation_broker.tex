@@ -1106,7 +1106,7 @@ append idx (t, p) ms logSize = do
 
 At the moment, only in-memory persistence is supported for the log. On-disk
 persistence is fundamentally important to recover the index if the broker
-restarts accidentally or not.
+restarts accidentally or not. \\
 
 \textit{As for now, index append remains as a major performance issue. Each time
   an index entry is being created, \lstinline{L.getBaseOffset} results in an
@@ -1114,7 +1114,7 @@ restarts accidentally or not.
   as string transformation is proceeded. Besides this, the file size of the log
 file also has to be determined. Since everything is single-threaded, this
 becomes even worse. More details and approaches to solve this can be found in
-section.}
+chapter \ref{chap:conclusion}.}
 
 \subsection{Read from a Log}
 \label{subsec:broker-log-read}
