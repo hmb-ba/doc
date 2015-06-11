@@ -1075,7 +1075,7 @@ will be closed on exit from \lstinline{withFile}.
 \begin{lstlisting}[caption={Write message to file with AppendMode}]
 write :: (L.TopicStr, Int, Log) -> IO ()
 write (t, p, ms) = do
-  bo <- getBaseOffset (t, p) Nothing -- todo: directory state
+  bo <- getBaseOffset (t, p) Nothing
   let logPath = L.getPath (L.logFolder t p) (L.logFile bo)
   withFile logPath AppendMode $ \hdl -> BL.hPut hdl $ encode ms
 \end{lstlisting}
