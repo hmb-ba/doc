@@ -234,7 +234,7 @@ potentially slow functions is time and allocation profiling provided by GHC.
 The following table lists some of the major issues that were exposed:
 
 \begin{table}[H]
-\begin{tabular}{|p{4cm}|p{5cm}|p{6cm}|}
+\begin{tabular}{|p{4cm}|p{4.5cm}|p{5cm}|}
 \hline
 {\bf Exposed Issue}                                                                                  & {\bf Cause}                                                                                                                                                                                                                 & {\bf Solution}                                                                                                                                                                                                                                                                                    \\ \hline
 Dramatically slowdown after short period of time                                                       & TCP Zero Window - Socket receive buffer of broker full                                                                                                                                                                      & Broker application was slow in receiving, parsing, and handling incoming requests. Threading concept needs to be optimized (see \ref{sec:impl-broker-threading}). The process of parsing an incoming request needs to be swapped out to another thread, so that the network receive thread can reduce the socket buffer fast enough. \\ \hline
@@ -254,6 +254,7 @@ Very slow performance in persisting messages to the log (file system).          
 \end{table}
 \captionof{table}{Uncovered issues in early stress tests}
 
+\newpage
 \subsection{Benchmark: Effect of Message Batch Size}
 \label{sec:conc-benchmark-1}
 
@@ -264,18 +265,18 @@ batch size determines the amount of bytes in which messages are packed
 together and sent to the broker as a single request for efficiency. Increasing the
 batch size requires more memory. The size of a single message is fixed to 100
 bytes because it is generally the more interesting case for a messaging system. It is much easier to get good throughput in MB/sec if the messages are
-large (as shown in second benchmark, see \ref{conc-benchmark-2}) but
+large (as shown in second benchmark, see \ref{sec:conc-benchmark-2}) but
 harder to get good throughput when the messages are small, as the overhead of
 processing each message dominates.
 
 Calculation batch size in bytes:
 \begin{verbatim}
-    Messages Batched * (Message Size + Message Overhead) + Request Overhead 
+Messages Batched * (Message Size + Message Overhead) + Request Overhead 
 \end{verbatim}
 
 \subsubsection{Conditions}
 \begin{table}[H]
-\begin{tabular}{|l| p{12cm}|} \hline
+\begin{tabular}{|l| p{11.5cm}|} \hline
 {\bf Message Size}   & 100 Bytes \\ \hline
 {\bf Batch Size [B]} & 195 | 1387 | 8192 | 16384 (Kafka default) | 56769 Bytes \\ \hline
 {\bf Tested Clients} &
@@ -437,13 +438,12 @@ multi-threading, most of the load weighs on a single thread for HMB. This is why
 there is only one API handler thread running at the time, which is definitely
 a point to optimize in the future.
 
-TODO: Figure of CPU workload
-
 Another point in demand with optimization is the producer which manifests a
 bottleneck in messages of 100 bytes (when the message size gets bigger, the
-result is much better! ref). Because the provided HMB producer is quite simple
-(actually just built to test), another task for the future is to work off details for
-optimized producer clients which would definitely lead to better results. 
+result is much better, see \ref{sec:conc-benchmark-1}). Because the provided
+HMB producer is quite simple (actually just built to test), another task for
+the future is to work off details for optimized producer clients which would
+definitely lead to better results. 
 
 \newpage
 \subsection{Benchmark: Effect of Message size}
@@ -456,7 +456,7 @@ this benchmark.
 
 \subsubsection{Conditions}
 \begin{table}[H]
-\begin{tabular}{|l| p{12cm}|} \hline
+\begin{tabular}{|l| p{11.5cm}|} \hline
 {\bf Message Size}   & 10 | 100 | 1000 | 10000 | 100000 Bytes \\ \hline
 {\bf Batch Size}     & 12800 Bytes \\ \hline
 {\bf Tested Clients} &
@@ -597,6 +597,7 @@ Message Size             & Scenario 1       & Scenario 2       & Scenario 3     
 100000 B (100 KB)        & 105              & 100              & 105            & 100         \\ \hline
 \end{tabular}
 \end{table}
+
 \captionof{table}{Results of benchmark "Effect of Message size"}
 
 The throughput increases as the message size gets bigger. First of
