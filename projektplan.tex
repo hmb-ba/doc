@@ -51,12 +51,11 @@ Specific issues are tracked and managed via GitHub Repository.
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{images/workschedule.png}
-    \caption{Time schedule, GANTT style}
     \label{fig:workschedule}
 \end{figure}
 
 \subsection*{Milestones}
-\begin{tabular}[H]{|p{4cm}|l|p{4.5cm}|p{4.5cm}|}\hline
+\begin{tabular}[H]{|p{3cm}|l|p{4cm}|p{4cm}|}\hline
     \textbf{Milestone} & \textbf{Deadline} & \textbf{Objectives} & \textbf{Deliverables} \\ \hline
     M0 Start of work & 16.02.2015 & - & -\\ \hline
     M1 Completion of research  & 22.03.2015 & 
@@ -75,9 +74,6 @@ Specific issues are tracked and managed via GitHub Repository.
         &
         Stable broker and protocol implementation. Benchmarks results. Technical
         report.\\ \hline
-  %\begin{itemize}
-  %  \item \ldot
-  %\end{itemize} \\ \hline
 \end{tabular}
 \captionof{table}{Milestones and their objectives}
 \label{tab:MeilensteineZiele}
@@ -88,7 +84,7 @@ Specific issues are tracked and managed via GitHub Repository.
 \subsubsection*{Inception}
 
 
-\begin{tabular}[H]{|p{6cm}|p{10cm}|}\hline
+\begin{tabular}[H]{|p{6cm}|p{7.5cm}|}\hline
     \textbf{Task} & \textbf{Subtasks} \\ \hline
     Technology Research Kafka & 
         \begin{itemize}
@@ -108,7 +104,7 @@ Specific issues are tracked and managed via GitHub Repository.
 \captionof{table}{Tasks of inception phase}
 
 \subsubsection*{Elaboration}
-\begin{tabular}[H]{|p{6cm}|p{10cm}|}\hline
+\begin{tabular}[H]{|p{6cm}|p{7.5cm}|}\hline
    \textbf{Task} & \textbf{Subtasks} \\ \hline
     Architecture Prototype &
         \begin{itemize}
@@ -123,7 +119,7 @@ Specific issues are tracked and managed via GitHub Repository.
 \captionof{table}{Tasks of elaboration phase}
 
 \subsubsection*{Construction}
-\begin{tabular}[H]{|p{6cm}|p{10cm}|}\hline
+\begin{tabular}[H]{|p{6cm}|p{7.5cm}|}\hline
    \textbf{Task} & \textbf{Subtasks} \\ \hline
     Protocol Implementation &
         \begin{itemize}
@@ -157,28 +153,30 @@ Last week of the schedule is reserved for completion work and documentation.
 
 In the table \ref{tab:Risiken} are the risk which could influence our thesis: 
 
-\begin{tabular}[t]{|p{3cm}|p{3cm}|r|r|r|p{3cm}|p{3cm}|}\hline
+\begin{tabular}[t]{|p{3cm}|p{3cm}|r|p{3cm}|p{3cm}|}\hline
 \textbf{Risk} &
     \textbf{Impact} &
   \begin{sideways} \textbf{Probability } \end{sideways} &
-  \begin{sideways}\textbf{Loss} \end{sideways} &
-  \begin{sideways}\textbf{Risk} \end{sideways} &
+  %\begin{sideways}\textbf{Loss} \end{sideways} &
+  %\begin{sideways}\textbf{Risk} \end{sideways} &
   \textbf{Prevention} & \textbf{Consequences} \\ \hline
     Missing know-how in new technology & 
     Slow progress, inefficiency & 
     0.9 & 
-    0.1 & 
-    0.3 & 
     Ask experts before spending to much time & 
     It is part of this thesis to learn new technologies, we expect decelerated
     progress from time to time but we can deal with it. \\ \hline
   Technical impossibility & 
     No resulting product, change to other technology, loss in time. & 
     0.1 & 
-    0.9 & 
-    0.1 & 
     Analyse possibilities before spending to much time . &
-    Inform supervisor or expert.
+    Inform supervisor or expert. \\\hline
+    Provided technical sources of Kafka are not sufficient enough to get
+    detailed insight to internals. & Impossible to adapt concepts of Kafka due to the lack of
+    detailed information. &
+    0.4 
+    & Check provided documentation of Kafka in detail. &
+    Changing benchmark system to an alternative. 
     \\ \hline
 \end{tabular}
 \captionof{table}{Risks}
@@ -237,7 +235,7 @@ definitely achieved the goals of milestone two in time.
 Milestone three was reached at 07.06.2015 by ending the
 development on broker and protocol implementation. With a duration of seven
 weeks, this milestone covers the longest period of time. Because it was our
-first time developing with Haskell we had many unforseen difficulties and it was
+first time developing with Haskell we had many unforeseen difficulties and it was
 hard to estimate the cost of the tasks in this phase. In the end we spent the
 most time for building a reasonable server application and to complete the
 provided API's for producing and consuming messages with underlying Kafka
@@ -248,10 +246,29 @@ not in the scope of this thesis.
 
 \section*{Time evaluation}
 
-\subsection*{Projektstunden pro Woche}
+\subsection*{Working hours per week}
+\begin{itemize}
+    \item Week 1 to 15 ($\sim$ 20\% workload): average of 24.5 hours per student
+    \item Week 16 to 17 ($\sim$ 100\% workload): average of 48 hours per student
+\end{itemize}
 
-\subsection*{Projektstunden aufsummiert}
+\subsection*{Working hours total}
+\begin{itemize}
+    \item Scope of thesis: 720 hours (360 hours per student)
+    \item Actual working hours: $\sim$ \textbf{940 hours}
+\end{itemize}
 
-\subsection*{Projektstunden pro Projektmitglied}
+\subsection*{Working hours per student}
+\begin{itemize}
+    \item Marc Juchli: $\sim$ 509 hours 
+    \item Lorenz Wolf: $\sim$ 431 hours
+\end{itemize}
 
-\subsection*{Stunden pro Tätigkeitsbereich}
+\subsection*{Working hour per task}
+\begin{itemize}
+    \item Technology Research (with documentation): $\sim$  260 hours
+    \item Architecture Prototype: $\sim$ 165 hours
+    \item Documentation Technical Report $\sim$ 195 hours 
+    \item Implementation Protocol Broker: $\sim$ 320 hours 
+\end{itemize}
+

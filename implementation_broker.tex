@@ -1114,7 +1114,7 @@ restarts accidentally or not.
   as string transformation is proceeded. Besides this, the file size of the log
 file also has to be determined. Since everything is single-threaded, this
 becomes even worse. More details and approaches to solve this can be found in
-section \ref{subsec:broker-log-performance-issues}.}
+section.}
 
 \subsection{Read from a Log}
 \label{subsec:broker-log-read}
@@ -1149,9 +1149,9 @@ disk storage.
 \subsubsection{LogManager}
 Analog to appending, the log manager provides the interface to read from a
 log. The function \lstinline{readLog} takes the tuple of topic and partition as
-well as the offset from with to start to fetch. Therefore a consumer expects to
-get the message which has the fetched offset and also all newer ones. If there
-is no message set with given offset or higher, the consumer gets a empty
+well as the offset from with to start to fetch. A consumer expects to
+get the message which has a offset equal or larger than the fetched offset. If there
+is no message in the log with given offset or higher, the consumer gets a empty
 list. The ability to allow the consumer to limit the requested size of messages
 in bytes is not implemented yet. \\
 
@@ -1226,6 +1226,12 @@ system call under POSIX. Fortunately, the mmap wrapper function
 the range of the file to be mapped.  The range is defined by the offset, which
 is the beginning byte of the file region and its size tells the mapping length.
 
+After getting the bytestring from the range of the physical position given by
+the index to the end of the log it can be encoded to a list of messages.
+Because the index entry could refer to a message behind the actual demanded
+offset the encoded list finally needs to filter out messages with a offset
+smaller than the requested.
+
 \begin{lstlisting}
 lookup :: (L.TopicStr, Int) -> L.BaseOffset -> L.OffsetPosition -> Offset -> IO Log
 lookup (t, p) bo (_, phy) o = do
@@ -1236,14 +1242,3 @@ lookup (t, p) bo (_, phy) o = do
   let log = runGet decodeLog bs
   return $ filterByOffset o log
 \end{lstlisting}
-
-\subsection{Performance Issues}
-\label{subsec:broker-log-performance-issues}
-
-- file size -> logstate
-
-- base offset -> directory state
-
-- concurrency
-\todo{todo}
-
