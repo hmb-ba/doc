@@ -273,6 +273,7 @@ The RqPrTopic includes N repetitions of the type RqPrPartition so that
 the producer client being able to send message for multiple partitions
 within a topic.  
 
+\newpage
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-prPartition.png}
@@ -479,6 +480,7 @@ entires.\\ \hline
 \end{tabular}
 \end{table}
 
+\newpage
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{images/impl-prot-types-ftPayload.png}
@@ -616,6 +618,7 @@ Payload &      & Payload format (see below).                                    
 \end{tabular}
 \end{table}
 
+\newpage
 \subsubsection{Payload}
 This types defines the actual payload of a message along with its meta
 information.
@@ -897,6 +900,7 @@ simplified.
 First, the client initializes a stream socket an open connection to a given host
 address and port (broker is running). After the broker accepted the connection
 the client is ready so send requests:
+\newpage
 \begin{lstlisting}[caption={Initialize client by connceting to broker}]
 import qualified Kafka.Client as C 
 import qualified Data.IP as IP
