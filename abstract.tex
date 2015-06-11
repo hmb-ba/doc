@@ -1,36 +1,34 @@
 \chapter{Abstract}
 
-The aim of this thesis is to provide a summary of the current state of
-message oriented-middleware and eventually build a message broker in
-Haskell, adapted from the concepts of Apache Kafka which was originally
-built by LinkedIn. The implementation shall provide basic
-functionalities such as producing and consuming messages, with the aim
-of reaching equal performance as Apache in a non-clustered setup. The
-Apache Kafka Protocol is being used as the underlying wire-protocol and
-is implemented in a standalone library on top of which a separate client
-library is provided. Thus, the Haskell Message Broker (HMB) as well as
-its producer and consumer clients have been successfully proofed as
-compatible with Apache Kafka.
+The aim of this thesis is to provide a summary of the current state of message
+oriented-middleware and eventually build a message broker in Haskell, adapted
+from the concepts of Apache Kafka which was originally built at LinkedIn. The
+implementation shall provide basic functionalities such as producing and
+consuming messages, with the aim of reaching equal performance as Apache Kafka
+in a non-clustered setup. The Apache Kafka Protocol is being used as the
+underlying wire-protocol and is implemented in a standalone library. On top of
+the procotol library, a separate client library is provided. Thus, the Haskell
+Message Broker (HMB) as well as its producer and consumer clients have been
+successfully proofed as compatible with Apache Kafka.
 
 This thesis first examines the fundamental concepts behind messaging and
 discloses the needs for message brokers.  In a second stage of this
 pre-study, the purpose of event-streaming is described containing a
-comparison of batch and stream processing which shall explain the
+comparison of batch and stream processing which explains the
 differences in their nature. Finally the concept and features of Apache
-Kafka is presented.  Insights into the implementation is provided in the
+Kafka is presented.  Insights into the HMB implementation is provided in the
 technical report and is split into two stages.  At first, the protocol
 and client library is introduced. Subsequently the broker implementation
 is explained including its capabilities as well as the provided
-feature-set. After all, the broker is applied to a benchmark against
-Apache Kafka. 
+set of features. After all, HMB is applied to a benchmark against
+Apache Kafka.
 
-The results of this proof of concept show that Haskell is well suited to
-build messaging applications as well as implementing protocols based on
-context free grammars. The performance which is provided by the Haskell
-Message Broker was able to hit the performance of Apache Kafka for some
-tests during the benchmark. For the most tested scenarios the
-performance suffers as HMB is not sufficiently optimized yet. However,
-the Haskell Message Broker is a well established basis of a
-state-of-the-art message broker implementation. The authors recommend to
-apply further optimization techniques as well as extending the
-feature-set before any other use.
+The results of this proof of concept show that Haskell is well suited to build
+messaging applications as well as implementing protocols based on context free
+grammars. The from HMB provided performance hit the one of Apache Kafka for
+transmission of larger message sizes during the benchmark. For the most tested
+scenarios the performance suffers as HMB is not sufficiently optimized yet.
+However, the Haskell Message Broker is a well established basis of a
+state-of-the-art message broker implementation. The authors recommend to apply
+further optimization techniques as well as extending the feature-set before any
+other use.
