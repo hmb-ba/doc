@@ -31,6 +31,88 @@ own module.
     \label{fig:impl-brok-layers}
 \end{figure}
 
+\section{Server Architecture}
+\label{sec:impl-broker-threading}
+The server architecture concept of the broker application includes the
+following components working as own thread instances: 
+
+\begin{description}
+\item [Main Thread (single instance)] \hfill \\
+    The main function of the broker bootstraps the whole server application. It first
+    initializes the network layer and then forks the \textit{Acceptor}, \textit{Responder} and \textit{API Handler}
+    threads. Started threads are managed with the \lstinline{withAsync} function of
+    the \fnurl{Control.Concurrent.Async}
+    {https://hackage.haskell.org/package/async-2.0.0.0/docs/Control-Concurrent-Async.html}
+    library. It adds a thin layer over the basic concurrency operations provided
+    by \fnurl{Control.Concurrent}
+    {https://hackage.haskell.org/package/base-4.5.0.0/docs/Control-Concurrent.html}
+    and gives the ability to wait for the return value of a thread. This
+    provides additional safety and control if a thread crashes. 
+
+\item[Acceptor Thread (single instance), Network Layer] \hfill \\
+    This thread accepts new client connections (see
+    \ref{sec:impl-broker-socket-connection}) in a running loop. To support
+    multiple connections from different clients, it forks a new thread for
+    processing incoming data whenever a new connection is established. 
+
+\item[Connection Processor Thread (instance per connection), Network Layer] \hfill \\
+    The incoming data needs to be processed as fast as possible. If the
+    limit of the socket buffer is reached, the throughput on the network drops
+    dramatically. The processor thread constantly receives requests from a
+    given connection (see \ref{sec:impl-broker-socket-receive}) and provides it
+    to the API handler thread. If the connection is closed, the thread will
+    return. 
+\item[Responder Thread (single instance), Network Layer] \hfill \\
+    This thread works off the provided responses and sends them back to the original
+    client (see \ref{sec:impl-broker-socket-send}). As for now, there is only
+    one instance of this thread. Further one instance per connection should be
+    forked. The challenge then would be to stop a responder threads properly after
+    a connection to a client is closed.  
+\item [API Handler Thread (one instances)] \hfill   \\
+    The API handler is a worker thread which works off the received request. It
+    also builds appropriate responses and provides it to the responder thread
+    (see \ref{sec:impl-broker-api-handle}). It is conceivable to run more than
+    a single instance of the API handler. Due to advanced synchronisation, this
+    is not realized yet.
+\end{description}
+
+Original Apache Kafka has a fix and configurable amount of threads handling
+network requests by working with thread pools. Thanks to the optimizations of
+the GHC IO manager, the communication with the Haskell threads and the OS is
+very efficient due to thread multiplexing. Thread pooling has no further
+advantages than one socket processor thread instance per connection. 
+
+For transfer of data between the layers, channels are implemented. The
+\fnurl{Control.Concurrent.Chan}
+{http://hackage.haskell.org/package/base-4.8.0.0/docs/Control-Concurrent-Chan.html}
+package provides a one-way FIFO communication channel. This concept is used to
+separate the three layers from each other. The fact that \textit{chan} is
+unbounded brings a risk. While \textit{writeChan}--which is being used to write
+to a channel--succeeds immediately, there is a chance that the consuming thread
+is not able to read the same amount of data in a given time and thus the channel
+will grow in an unchecked manner.  \cite{o2008real}
+
+To isolate the network layer from any build or parse process, the transfered
+data is of type \lstinline{Data.ByteString}. Because the response to a
+particular request needs to be sent back over the same connection, the data
+passed to a channel is defined as tuple of the received bytes and the
+corresponding socket connection information:
+
+\begin{lstlisting}[caption={Initialize channels for threading}]
+import qualified Data.ByteString.Lazy as B
+
+type ChanMessage = ((Socket, SockAddr), B.ByteString)
+type RequestChan = Chan ChanMessage
+type ResponseChan = Chan ChanMessage
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{images/impl-brok-threading.png}
+    \caption{Internals of broker server application}
+    \label{fig:impl-brok-threading}
+\end{figure}
+
 \newpage
 \section{Network Layer}
 \label{sec:broker-network}
@@ -46,25 +128,15 @@ connection. That being said, it is important to provide a reliable socket server
 implementation which will serve correctly under a heavy load. Haskell provides
 full control over sockets using the
 \fnurl{Network.Socket}{https://hackage.haskell.org/package/network-2.3.0.7/docs/Network-Socket.html}
-module which exposes the \fnurl{C socket
+library which exposes the \fnurl{C socket
 API}{http://pubs.opengroup.org/onlinepubs/7908799/xns/syssocket.h.html}.
 
 This section shows the basic operations and describes the used libraries in the
 network layer. For further details about the threading concept, see section
-\ref{sec:impl-broker-threading} 
+\ref{sec:impl-broker-threading}. 
 
 \subsection{Socket Connection Establishment}
 \label{sec:impl-broker-socket-connection}
-%The following figure (\ref{fig:broker-activity}) shows the abstract view of how
-%the socket connection between a client and the broker establishes so that a
-%communication between those two counterparts can proceed.
-
-%\begin{figure}[H]
-%    \centering
-%    \includegraphics[width=0.7\textwidth]{images/broker-activity.png}
-%    \caption{Broker request handling concept}
-%    \label{fig:broker-activity}
-%\end{figure}
 
 \subsubsection{Initialize Socket}
 
@@ -76,8 +148,6 @@ First of all, the initialization process of a socket happens on the server by pr
     \item {\bf Protocol Number:} \textit{0}, which indicates that the caller does not want to specify the protocol, leaving it up to the service provider.
 \end{itemize}
 
-\todo{Socketoption (Send, Recv Buffer, ReuseAddr, etc.)}
-
 \subsubsection{Bind Socket}
 
 After the configuration is set, the socket has to be associated with an address
@@ -86,11 +156,9 @@ structure which is a constellation of an IP Address and a Port. The constructor
 two arguments:
 
 \begin{itemize}
-    \item {\bf Port Number} 4343
+    \item {\bf Port Number} 4343 (As for now static, but could be done with configuration)
     \item {\bf Host Address} iNADDR\_ANY, which binds the socket to all interfaces.
 \end{itemize}
-
-\todo{static but could be done with dynamic configuration}
 
 \subsubsection{Listen}
 
@@ -105,21 +173,22 @@ number of clients being served.}
 
 \subsection{Receive Data}
 \label{sec:impl-broker-socket-receive}
-To receive data from the socket buffer, we used the function recv from
-\fnurl{Network.Socket.ByteString.Lazy}{https://hackage.haskell.org/package/network-2.3.0.1/docs/Network-Socket-ByteString-Lazy.html}
-library which provides access to the Unix socket interface. Because we work
-with a binary protocol and need to parse the data from binary data directly,
-this module is more efficient than the string based network functions. We
-took the lazy variant of the library because the input gets directly parsed by
-our lazy based encoder \todo{ref}.
+To receive data from the socket buffer, the function \lstinline{recv} from\\
+\fnurl{Network.Socket.ByteString.Lazy}
+{https://hackage.haskell.org/package/network-2.3.0.1/docs/Network-Socket-ByteString-Lazy.html}
+library which provides access to the Unix socket interface is used. Because the underlying 
+protocol is in binary format, and the incoming data later need to be parsed
+directly from type \lstinline{ByteString} this module is more efficient than
+the string based network functions. We took the lazy variant of the library
+because the input gets directly parsed by our lazy based encoder.
 
-Because we wanted to handle each request individually, we read
-the exact amount of bytes needed to get one particular request from
-the socket buffer. To get the size of a whole request, we read the first four
-bytes, which determines the request size according to the protocol, and parsed it
-to an numeral value.
+Because each incoming request needs to be handled individually, the exact
+amount of bytes to get one particular request from the socket buffer first need
+to be determined. Therefore the first four bytes---which defined the request
+size according to---the protocol, need to be received and parsed to an numeral
+value.
 
-\begin{lstlisting}[caption={Receiving data from socket}]
+\begin{lstlisting}[caption={Receiving a request from socket}]
 import qualified Network.Socket.ByteString.Lazy as S 
 import qualified Data.ByteString.Lazy as BL
 
@@ -132,14 +201,15 @@ recvFromSock (sock, sockaddr) =  do
         getLength = runGet $ fromIntegral <$> getWord32be
 \end{lstlisting}
 
-After getting the size of a particular request, this determined amount of bytes
+After getting the size of a particular request, the evaluated amount of bytes
 is received from the socket. Because of the blocking semantics of Unix sockets
-and TCP packet fragmentation, it is not guaranteed that the len argument for the
-recv system call gets exactly the number of bytes of the whole request. The call
-may produce less data than specified. Therefore, we implemented the following
-function to get the data in chunks until the entire request is read. 
+and TCP packet fragmentation, it is not guaranteed that the \lstinline{len} argument for the
+\lstinline{recv} system call gets exactly the number of bytes requested. The call
+may produce less data than specified. Therefore the following
+function is implemented to get the data in chunks until the entire request is
+read.
 
-\begin{lstlisting}[caption={Receive exactly amount of bytes}]
+\begin{lstlisting}[caption={Receive exactly amount of bytes from socket}]
 recvExactly :: Socket -> Int64 -> IO BL.ByteString 
 recvExactly sock size = BL.concat . reverse <$> loop [] 0 
   where
@@ -152,20 +222,22 @@ recvExactly sock size = BL.concat . reverse <$> loop [] 0
               else loop (chunk:chunks) $! bytesRead + BL.length chunk 
 \end{lstlisting}
 
+\newpage
 \subsection{Send Data}
 \label{sec:impl-broker-socket-send}
 
-For every processed request, an appropriate response is sent back to the client.
-The actual message is already provided as binary data from the API layer. The
-network layer simply needs to send the bytes over the existing connection back
-to the client. For sending data over the socket, function sendAll from
+For every processed request, an appropriate response is sent back to the
+client. The network layer does not need to generate responses, actually they
+are provided as binary data from the API layer. The network layer
+simply needs to send the bytes over the existing connection back
+to the client. For sending data over the socket, function \lstinline{sendAll} from
 \fnurl{Network.Socket.ByteString.Lazy}
 {https://hackage.haskell.org/package/network-2.3.0.1/docs/Network-Socket-ByteString-Lazy.html}
 is used. This function continues to send data until either all data has been
 sent or an error occurs. For further details about Error Handling, see section
-\ref{}
+\ref{sec:broker-error-handling}.
 
-\begin{lstlisting}[caption={Send data via socket}]
+\begin{lstlisting}[caption={Send response back to client via socket}]
 import qualified Data.ByteString.Lazy as B
 import qualified Network.Socket.ByteString.Lazy as S
 
@@ -178,7 +250,7 @@ sendResponse (socket, addr) responsemessage =
 \section{API Layer}
 \label{sec:broker-api}
 
-This part of the broker is a quite thin layer which basically handles incoming
+This part of the broker handles incoming
 requests, initiates any actions needed, and prepares appropriate responses. It
 fulfills the essential part in error handling which is described in section
 \ref{sec:broker-error-handling}. 
@@ -186,8 +258,7 @@ fulfills the essential part in error handling which is described in section
 \subsection{Decode Request}
 \label{sec:impl-broker-api-handle}
 
-After getting the next bytestring from \lstinline{RequestChan} (see threading
-concept in section \ref{sec:impl-broker-threading}), the incoming request first
+After getting the next bytestring from network layer, the incoming request first
 gets decoded. For this part, the API layer simply uses functions provided by the
 protocol implementation (see chapter \ref{sec-protocol}).
 
@@ -195,9 +266,8 @@ protocol implementation (see chapter \ref{sec-protocol}).
 
 The main focus of the API layer lies on handling the requests properly.
 Depending on the API key field of type \lstinline{RequestMessage}, the request
-handler determines an appropriate action. In case of a valid API key, the
-encoded response message is passed back to the Network Layer via
-\lstinline{ResponseChan}.
+handler determines an appropriate action. In case of a valid API key, an action
+is performed and a encoded response message is passed back to the Network Layer.
 
 For nearly all provided APIs, the broker needs access to the functions provided
 by the log subsystem as described in section \ref{sec:impl-broker-log}.
@@ -228,29 +298,25 @@ Handling a produce request implies that the API layer passes the containing
 messages to the append function provided by the \lstinline{LogManager}. A
 request may contain messages for multiple topics or partitions, and each
 combination refers to another log file. Therefore, the job of the API layer is
-unnesting the request into single calls to the \lstinline{LogManager}.
+to unnest the request into single calls to the \lstinline{LogManager}.
 
 \begin{verbatim}
-Simplified structure of nested sequences in request:
-[Topic [Partition [M]]]
+Simplified structure of nested sequences in a produce request:
+[Topic [Partition [MessageSet]]]
 
 Example:
 [TopicA [Part0 [M], Part1 [M]], Topic B [Part0 [M]]]
 
-Unnested to three tuples which can be feed to LogManager as a single call each:
+Unnested to three tuples which can be feed to LogManager as a single call:
 [(TopicA, Part0, [M]), (TopicA, Part1, [M]), (TopicB, Part0, [M])]
 
 \end{verbatim}
 
-Thanks to Haskell's list comprehension, the unnesting of the request can be made
-elegant:
+Thanks to Haskell's \textit{list comprehension}, the unnesting of the request
+can be made quite elegant:
 
-\begin{lstlisting}[caption={Handling produce request}]
-[(s, BC.unpack(rqToName x)
-  , fromIntegral(rqPrPartitionNumber y)
-  , rqPrMessageSet y ) 
-  | x <- rqPrTopics req, y <- rqToPartitions x
-]
+\begin{lstlisting}[caption={List comprehension for unnesting produce request}]
+[ (rqToName x, rqPrPartitionNumber y, rqPrMessageSet y ) | x <- rqPrTopics req, y <- rqToPartitions x ]
 \end{lstlisting}
 
 \subsubsection{HandleFetchRequest}
@@ -275,7 +341,7 @@ file structure and gives the available topics.
 Information regarding the broker host includes local IP. Therefore, the library
 \fnurl{Network.Info}{https://hackage.haskell.org/package/network-info} is used:
 
-\begin{lstlisting}[caption={Get broker's host adress}]
+\begin{lstlisting}[caption={Example of getting the brokers host adress}]
 import qualified Network.Info as N
 getHost :: IO N.NetworkInterface
 getHost = do
@@ -284,7 +350,6 @@ getHost = do
         filter ((N.NetworkInterface name ipv4 ipv6 mac) -> name == "eth0") ns
 \end{lstlisting}
 
-\newpage
 \section{Error Handling}
 \label{sec:broker-error-handling}
 
@@ -301,16 +366,17 @@ implementation.
 
 \subsection{Message Flow}
 
-Figure (\ref{fig:broker-error-activity}) provides insight into the process that
-an incoming request message goes through. For simplicity, one may think of a
-message proceeding through all steps successively. But in fact, multiple
-requests are handled at the same time. Assuming the connection to the broker is
-established and the client is ready to send requests to the broker, there are
-principally two types of errors that may occur for each, which there is a
-separate handler to handle errors appropriately.
+The following figure (\ref{fig:broker-error-activity}) provides insight into
+the process that an incoming request message goes through. For simplicity, one
+may think of a message proceeding through all steps successively. But in fact,
+multiple requests are handled at the same time. Assuming the connection to the
+broker is established and the client is ready to send requests to the broker,
+there are principally two types of errors---SocketError and RequestError---that
+may occur for each, which there is a separate handler to handle errors
+appropriately.
 
-\begin{figure}[H]
-  \centering
+\begin{figure}[H] 
+  \centering 
   \resizebox {0.7\linewidth} {!} {
     \input{broker_activiy.tex}
   }
@@ -324,19 +390,20 @@ During the process of listening to an open connection and reading an incoming
 byte-stream, as described in \ref{sec:broker-network}, there is a chance of
 unexpected errors occuring. In this case, the underlying C socket implementation
 will return a result of \textit{-1} which will then result in
-an\fnurl{IOError}{https://hackage.haskell.org/package/base-4.4.1.0/docs/System-IO-Error.html}. 
+an \fnurl{IOError}{https://hackage.haskell.org/package/base-4.4.1.0/docs/System-IO-Error.html}. 
 
 Errors at this stage will be handled using the \textit{Socket Error Handler} and
 do not result in any response to the client who initiated the request that
 resulted in an error, as the socket connection may be broken. Instead, the error
-is simply caught and reported using a separate logging framework such as
+is simply caught and reported as console output. Alternatives would be using a
+separate logging framework such as 
 \fnurl{hslogger}{https://hackage.haskell.org/package/hslogger}. At worst, the
 socket connection is closed.
 
 \subsubsection{Request Error}
 
-One step further in the API-Stage, (\ref{sec:broker-api}) past where socket
-errors may occur, the heavy part of error handling begins. For each step, the
+One step further in the API-Stage (\ref{sec:broker-api}), past where socket
+errors may occur, the heavy part of error handling begins. Each step the
 request passes may result in an error. To name a few, this can be the case
 starting by parsing the request,  writing data to the disk executed by the log
 subsystem, or at last producing the response message. All of the mentioned cases
@@ -351,13 +418,13 @@ The previously introduced concept of the two error handlers, each responsible
 for a certain layer of the application, can be built in Haskell conveniently by
 using the \fnurl{Either
 Monad}{https://hackage.haskell.org/package/category-extras-0.52.0/docs/Control-Monad-Either.html}
-and pattern matching of custom defined error types. This will allow taking
+and \textit{pattern matching} of custom defined error types. This will allow taking
 actions based on the given error type.
 
 Error types related to the networking layer are simply distinguished between an
 error occurring either in the receiving or responding process.
 
-\begin{lstlisting}[caption={SocketError type}]
+\begin{lstlisting}[caption={SocketError types}]
 data SocketError =
       SocketRecvError String
       | SocketSendError String
@@ -371,10 +438,10 @@ described in the first argument of the \lstinline{SocketError}, namely a
 To handle errors during the process of request handling, the data type
 \lstinline{HandleError} contains specific types for each edge case in any part
 of the application. Those types can be considered as an interface for errors
-between the request handler and the underlying subsystems. They are not known to
-any subsystem at all but are known to the request handler.
+between the request handler and the underlying subsystems. This types are only
+defined for the API layer where the handling of requests occurs.
 
-\begin{lstlisting}[caption={Handle Error type}]
+\begin{lstlisting}[caption={Handle Error types}] 
 data HandleError =
         PrWriteLogError Int String
       | PrPackError String
@@ -405,13 +472,13 @@ data type containing its arguments that is sent to the error handler.
 
 Assume during the process of an incoming \lstinline{ProduceRequest}, the log
 subsystem fails to write data to the disk and returns a log specific error. This
-error will not be handled directly. Instead, it is caught by the request handler
-(API layer) who is now in charge to map this error to one of the defined
-\lstinline{HandleError}. In this specific example, the request handler takes the
-error response from the log system, maps it to a \lstinline{String} (if it is
-not already mapped) as well as the offset of the failing message, and assigns
-this information to the type \lstinline{PrWriteLogError} as the first and second
-argument. \\
+error will not be handled directly. Instead, it is caught by the API layer
+which is now in charge to map this error to one of the defined
+\lstinline{HandleError}. In this specific example, the request handler of the
+API layer takes the error response from the log system, maps it to a
+\lstinline{String} (if it is not already mapped) as well as the offset of the
+failing message, and assigns this information to the type
+\lstinline{PrWriteLogError} as the first and second argument. \\
 
 The following part of this section will describe the functionalites of the
 \textit{Socket Error Handler} as well as the \textit{Request Error Handler}
@@ -425,7 +492,7 @@ that the connection may be broken or the client will not receive any more data
 using the current connection. Given this, the current implementation only
 prints the occurred error on console:
 
-\begin{lstlisting}[caption={Catching error of type SocketError}]
+\begin{lstlisting}[caption={Handling error of type SocketError}]
 handleSocketError :: (Socket, SockAddr) -> SocketError -> IO()
 handleSocketError (sock, sockaddr) (SocketRecvError e) = do
   putStrLn $ "[Socket Receive Error] " ++ e
@@ -449,11 +516,10 @@ response message containing the appropriate error code. However, the current
 implementation does not suppport a response message caused by an error. Instead,
 it prints a notification on the broker side as shown in the code below:
 
-\begin{lstlisting}[caption={Catching error of type HandleError}]
+\begin{lstlisting}[caption={Handling error of type HandleError}]
 handleHandlerError :: (Socket, SockAddr) -> HandleError -> IO()
 handleHandlerError (s, a) (ParseRequestError e) = do
     putStrLn $ (show "[ParseError]: ") ++ e
-    putStrLn $ "***Host " ++ (show a) ++ " disconnected ***"
 handleHandlerError (s, a) (PrWriteLogError o e) = do
     putStrLn $ show "[WriteLogError on offset " ++ show o ++ "]: " ++ show e
 handleHandlerError (s, a) UnknownRqError = do
@@ -465,95 +531,12 @@ handleHandlerError (s, a) e = do
     putStrLn $ "***Host " ++ (show a) ++ "disconnected ***"
 \end{lstlisting}
 
-
-\section{Threading}
-\label{sec:impl-broker-threading}
-The threading concept of the broker server application include the following
-instances: 
-
-\begin{description}
-\item[Acceptor Thread (one instance)] \hfill \\
-    This thread accepts new socket connections (see
-    \ref{sec:impl-broker-socket-connection}). To support multiple connections from
-    different clients, it forks a new thread for processing incoming data
-    whenever a new connection is established. 
-
-\item[Connection Processor Thread (one instance per connection)] \hfill \\
-    The incoming socket data needs to be processed as fast as possible. If the
-    limit of the socket buffer is reached, the throughput on the network drops
-    dramatically. The processor thread constantly receives request
-    from a specific connection (see \ref{sec:impl-broker-socket-receive}) and
-    provides it to the API handler thread. If the connection is closed, the
-    thread will return. 
-
-\item[Responder Thread (one instance per connection)] \hfill \\
-    This thread works off the provided responses and sends them back to the original
-    client (see \ref{sec:impl-broker-socket-send}). \todo{actually only one
-    instance at the moment} \item [API Handler Thread (one to N instances)] \hfill
-    \\
-    The API handler is a worker thread which works off the received request. It
-    also builds appropriate responses and provides it to the responder thread
-    (see \ref{sec:impl-broker-api-handle}). It is conceivable to run more than
-    a single instance of the API handler. Due to advanced synchronisation, this is
-    not realized yet.
-\item [Main Thread (one instance)] \hfill \\
-    The main function of the broker bootstraps the whole server application. It first
-    initializes the network socket and forks the acceptor and API
-    handler threads. Threads are managed with the \textit{withAsync} function of
-    the \fnurl{Control.Concurrent.Async}
-    {https://hackage.haskell.org/package/async-2.0.0.0/docs/Control-Concurrent-Async.html}
-    library. It adds a thin layer over the basic concurrency operations provided
-    by \fnurl{Control.Concurrent}
-    {https://hackage.haskell.org/package/base-4.5.0.0/docs/Control-Concurrent.html}
-    and gives the ability to wait for the return value of a thread. This
-    provides additional safety and control if a thread crashes. 
-\end{description}
-
-Original Apache Kafka has a fix and configurable amount of threads handling
-network requests by working with thread pools. Thanks to the optimizations of
-the GHC IO manager, the communication with the Haskell threads and the OS is
-very efficient due to thread multiplexing. Thread pooling has no further
-advantages than one socket processor thread instance per connection. 
-
-For transfer of data between the threads, channels are implemented. The
-\fnurl{Control.Concurrent.Chan}
-{http://hackage.haskell.org/package/base-4.8.0.0/docs/Control-Concurrent-Chan.html}
-package provides a one-way FIFO communication channel. This concept is used to
-separate the three layers from each other. The fact that \textit{chan} is
-unbounded brings a risk. While \textit{writeChan}--which is being used to write
-to a channel--succeeds immediately, there is a chance that the consuming thread
-is not able to read the same amount of data in a given time and thus the channel
-will grow in an unchecked manner.  \cite{o2008real}
-
-To isolate the network layer from any build or parse process, the transfered
-data is type ByteString. Because the response to a particular request needs to
-be sent back over the right connection, every chunk of ByteString holds its
-corresponding socket connection information in a tuple:
-
-\begin{lstlisting}[caption={Initialize channels for threading}]
-import qualified Data.ByteString.Lazy as B
-
-type ChanMessage = ((Socket, SockAddr), B.ByteString)
-type RequestChan = Chan ChanMessage
-type ResponseChan = Chan ChanMessage
-\end{lstlisting}
-
-TODO: sanctions? do we have to block the producer for a short time? ->
-Considerations Bounded Chans
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.85\textwidth]{images/impl-brok-threading.png}
-    \caption{Threading concept which channeling}
-    \label{fig:impl-brok-threading}
-\end{figure}
-
 \newpage
-\section{Log Subsystem}
+\section{Log Layer Subsystem}
 \label{sec:impl-broker-log}
 
-The log subsystem is responsible for the persistence of messages produced and
-consumed. This component plays a decisive role while handling a
+The subsystem of the log layer is responsible for the persistence of messages
+produced and consumed. This component plays a decisive role while handling a
 \textit{fetchRequest} (\ref{subsec:broker-api-fetchrequest}) as well as a
 \textit{produceRequest} (\ref{subsec:broker-api-producerequest}). Thus, it is
 used extensively in the API layer (\ref{sec:broker-api}). In this section the
@@ -570,7 +553,7 @@ library.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\textwidth]{images/broker-log-overview.png}
+    \includegraphics[width=0.55\textwidth]{images/broker-log-overview.png}
     \caption{Architecture of Log Subsystem}
     \label{fig:broker-log-overview}
 \end{figure}
@@ -581,6 +564,12 @@ which in this case will be the API layer. The \textit{LogManager} is then able
 to use exposed functionalities of the hidden modules \textit{Log} and
 \textit{Index} (displayed as dashed). 
 
+As for now, the functionalities \textit{LogManager} provides creates a new log
+and appends or reads messages to/from an existing log. Further functionalities
+are provided but are still managed by the \textit{Log} or \textit{Index} module
+itself. Also exposed is the \lstinline{State} type which is the representation
+of the current Log and Index, as discussed later in this section.
+
 \begin{lstlisting}
 module HMB.Internal.LogManager
 ( new
@@ -590,17 +579,19 @@ module HMB.Internal.LogManager
 ) where
 \end{lstlisting}
 
-As for now, the functionalities \textit{LogManager} provides creates a new log
-and appends or reads messages to/from an existing log. Further functionalities
-are provided but are still managed by the \textit{Log} or \textit{Index} module
-itself. Also exposed is the \lstinline{State} type which is the representation
-of the current Log and Index, as discussed later in this section.
+The modules  hold functionalities with direct
+access on the filesystem. The separation leads back to the two provided files types
+log and index (see \ref{log-broker-storage}).
 
-\newpage
-\subsection{Storage Layout}
+There are small amounts of commonly used functions in the \textit{Log} as well
+in the \textit{Index} module. The \textit{LogConfig} seems to be the right
+location to place those intended to be imported with a qualified name such as
+simply \lstinline{L}, standing for Log.
+
+\subsection{Storage Structure}
 \label{log-broker-storage}
 
-The storage layout is exactly the same as the one defined for Apache Kafka (see
+The storage structure is exactly the same as the one defined for Apache Kafka (see
 \ref{intro-kafka-log}).  As for now, the root location of the log is not
 configurable and set to the folder named \textbf{./log} within the installation
 directory of the broker. Each folder represents a partition of a specific topic,
@@ -608,23 +599,24 @@ whereas the name of the folder is a combination of the topic name and the
 partition number.
 
 There are two types of files that reside within the folder specifying the
-topic and partition (see folder structure):
+topic and partition:
 \begin{itemize}
-    \item {\bf .log}: Containing a sequence of log entries as binary data
+    \item {\bf .log}: Containing a sequence of messages as binary data
     \item{\bf .index}: Containing a sequence of index entries as binary data
 \end{itemize}
 
 Instead of holding only one storage file per topic-partition combination, the
 log can be segmented into multiple files due to reasons of lookup optimization.
-Apache Kafka starts segmenting a log after it reaches a configurable size of one
-gigabyte. Because of this, both file types hold the same name which stays for
-the base offset and can be considered as an unique identifier representing a 64
-bit integer as a 20 character file name. As it was defined for Apache Kafka, the
-\textbf{base offset} is the offset of the first log entry stored in a file.  For
-example if a log holds messages in where the first message has the offset,
-\textit{5 :: Int64} the file name of this log will be
-\textit{00000000000000000005.log} and the related index file
-\textit{00000000000000000005.index}.
+Apache Kafka starts segmenting a log after it reaches a configurable size
+whereas the default is one gigabyte. Therefore a topic-partition specific
+directory can contain multiple pairs of both file types. Each pair of
+file types hold the same name which stays for the base offset and can be
+considered as an unique identifier representing a 64 bit integer as a 20
+character file name. As it was defined for Apache Kafka, the \textbf{base
+offset} is the offset of the first log entry stored in a file.  For example if
+a log holds messages in where the first message has the offset, \textit{5 ::
+Int64} the file name of this log will be \textit{00000000000000000005.log} and
+the related index file \textit{00000000000000000005.index}.
 
 Using this naming convention and by viewing multiple log files, one can extract
 information about what range of messages reside in which log. This is a very
@@ -659,28 +651,29 @@ log
    |--00000000000000000000.log
 \end{verbatim}
 
-\newpage
-\subsection{Log}
+\section{Storage Format}
+\subsection{Log File}
 
-The log contains a sequence of log entries, whereas the on-disk format of a log
+The log file contains a sequence of messages, whereas the on-disk format of an
 entry is part of the reason why the Apache Kafka becomes valuable. In fact, the
-on-disk format is exactly the same as the format of the MessageSet (see
-\ref{impl-protocol-types-data}) transmitted with a ProduceRequest
-(\ref{subsec:protocol-types-producerequest}). Thus, data does not have to be
-modified in any way and can directly be extracted and written to the file
-system.
+on-disk format is exactly the same as the format of the \lstinline{MessageSet}
+(see \ref{impl-protocol-types-data}) transmitted with a
+\lstinline{ProduceRequest} (\ref{subsec:protocol-types-producerequest}). Thus,
+data does not have to be modified in any way and can directly be extracted and
+written to the file system.
 
-\subsection{Index}
+\subsection{Index File}
 
-Every segment of a log has its corresponding index represented as a file with
+Every segment of a log has its corresponding index represented as another file with
 the suffix \textit{.index}. Whereas the log file contains the actual messages
 structured in a message format (see \ref{impl-protocol-types-data}) and for each
 message within this file, the first 64 bits describe the incremented offset.
 Looking up this file for messages with a specific offset becomes very expensive
 since log files may grow in the range of gigabytes. And to be able to produce
 messages, the broker actually has to do such kind of lookups to determine the
-latest offset and be able to further increment incoming messages correctly. This
-is why there is an index.
+latest offset and be able to further increment incoming messages correctly.
+Also the fetch requests can use the index for finding the needed messages by
+given offset as fast as possible. This is why there is an index.
 
 Basically, the index file contains simple entries with the following
 structure:
@@ -698,8 +691,6 @@ only holds a relative offset to the base offset. This obviously reduces the size
 of the index. In addition, there is to note that not every message within the
 log is going to be indexed. By default, an index entry is created only after
 \textit{4096 Bytes} of log data.
-
-\subsubsection{Usage and advantages}
 
 As per protocol specification, the request to fetch messages (see
 \ref{subsubsec:protocol-fetchrequest}) holds the offset of the wanted message.
@@ -724,11 +715,9 @@ interval of index creation is fixed at a certain amount of bytes, a lookup of
 the actual log message, given the position of the closest indexed message, will
 result in time complexity of O(1).
 
-\newpage
 \subsection{Types}
 
-In the following part of this section, important parts of the code base will be
-explained. To make the code more readable and easier to manage, separate types
+To make the code more readable and easier to manage, separate types
 are defined. These are only used in the log subsystem and are defined within the
 module \textit{LogConfig}. The following table gives an overview of these types:
 
@@ -739,8 +728,8 @@ module \textit{LogConfig}. The following table gives an overview of these types:
 \textbf{Type synonym} & \textbf{Parameter}           & \textbf{Description}                     \\ \hline
 TopicStr              & String                       & Parsed topic name as String              \\ \hline
 PartitionNr           & Int                          & Parsed partition number as Int           \\ \hline
-RelativeOffset        & Word32                       & 4 Byte offset relative to the BaseOffset \\ \hline
-FileOffset            & Word32                       & 4 Byte physical offset of a Log file     \\ \hline
+RelativeOffset        & Data.Word32                       & 4 Byte offset relative to the BaseOffset \\ \hline
+FileOffset            & Data.Word32                       & 4 Byte physical offset of a Log file     \\ \hline
 OffsetPosition        & (RelativeOffset, FileOffset) & Tuple of relative and physical offset    \\ \hline
 BaseOffset            & Int                          & 8 Byte offset as Int                     \\ \hline
 \end{tabular}
@@ -771,12 +760,11 @@ BaseOffset            & Int                          & 8 Byte offset as Int     
 
 Working with disk alone--in stateless fashion so to speak--is not only very
 difficult to manage (especially regarding multi- threading) but also extremely
-slow when dealing with thousands of requests in a short period of time (see
-\todo{separate section of stateless approach}). A more convenient and powerful
-approach needs to be introduced to handle a huge amount of data on a running
-broker system. Therefore, an intermediate storage between file system and broker
-to optimize file accesses is demanded. An efficient implementation of a
-key-value data structure, namely
+slow when dealing with thousands of requests in a short period of time (see). A
+more convenient and powerful approach needs to be introduced to handle a huge
+amount of data on a running broker system. Therefore, an intermediate storage
+in memory to optimize file accesses is demanded. An
+efficient implementation of a key-value data structure, namely
 \fnurl{Data.Map}{https://hackage.haskell.org/package/containers-0.4.0.0/docs/Data-Map.html},
 seems to be suitable for both the log and index. Data.Map provides functionality
 that will come after all the needs of this subsystem, a time complexity for
@@ -806,7 +794,7 @@ The \lstinline{LogState} represents an MVar holding a map which uses a tuple of
  combination--as key. The corresponding value is the actual log which is a list
 of \lstinline{MessageSet}.
 
-\begin{lstlisting}[caption={Definition of log state (MVar)}]
+\begin{lstlisting}[caption={Definition of the log state (MVar)}]
 import qualified HMB.Internal.LogConfig as L
 type Logs = Map.Map (L.TopicStr, L.PartitionNr) Log
 newtype LogState = LogState (MVar Logs)
@@ -820,70 +808,41 @@ list of \lstinline{OffsetPosition}, whose name is adapted form Apache Kafka.
 \lstinline{OffsetPosition} represents a single index entry and therefore holds a
 tuple of the \lstinline{RelativeIndex} and \lstinline{PhysicalPosition}. 
 
-\begin{lstlisting}[caption={Definition of index state (MVar)}]
+\begin{lstlisting}[caption={Definition of the index state (MVar)}]
 import qualified HMB.Internal.LogConfig as L
 type Indices = Map.Map (L.TopicStr, L.PartitionNr) [OffsetPosition]
 newtype IndexState = IndexState (MVar Indices)
 \end{lstlisting}
 
-\subsection{Common used Functions}
 
-There are small amounts of commonly used functions in the log as well as in the
-index. The \textit{LogConfig} seems to be the right location to place those
-intended to be imported with a qualified name such as simply \lstinline{L},
-standing for Log.
-
-\subsubsection{Determine Base Offset}
+\subsection{Determine Base Offset}
 \label{subsubsec:broker-log-general-baseoffset}
+This section gives an example of a common used function within the log
+subsystem, by explaining the function which determines the base offset.
 
 An incoming request--which at this point already parsed--contains the topic as
 well as the partition number for the given set of messages. Thus, enough
 information is provided to identify the location--in this case the path--of the
-related log or index file. Because each log is separated into multiple files,
+related log or index file. Because each log can be separated into multiple files,
 the thing that is still missing now is either in which file the messages should
 be appended (in case of a produce request) or from which file the messages
 should be read from (in case of a fetch request).
 
-In case of producing messages, the log segment wanted is the one named after the
-highest offset. To be able to determine existing files, follow string
-transformations to identify the file with the highest number. This is why one
-does not get around reading the content of this directory. Handling the case
-where no file exists leads to the creation of a new log with the offset of zero.
+\subsubsection{Getting existing base Offsets from File System}
+To get a list of all existing base offsets, several filters and string transformations 
+need to be applied to the list of files in the topic-partition specific log directory. 
 
-\begin{lstlisting}[caption={Determining highest offset of given list}]
-maxOffset :: [Int] -> Int
-maxOffset [] = 0
-maxOffset [x] = x
-maxOffset xs = maximum xs
-\end{lstlisting}
-
-In case of receiving messages, the process is almost the same. The only
-difference is that the wanted file does not hold the highest offset but the one
-that hold the offset which is the next smaller one regarding the provided offset
-number within a fetch request. Let's assume one wants to fetch the message with
-offset \textit{400}, yet there are two different pairs of log- and index
-files: \textit{100} and \textit{300}. The correct one would be \textit{300} as the
-message must reside within this file.
-
-\begin{lstlisting}[caption={Determining offset which is next smaller regarding given offset}]
-%todo: code for next smaller
-nextSmaller :: [Int] -> Int -> Int
-nextSmaller [] _ = 0
-nextSmaller [x] _ = x
-nextSmaller xs x = last $ filter (<x) $ sort xs
-\end{lstlisting}
-
-Before applying filters and string transformations, the list of files has to be
+First of all, a list of files has to be
 built. The library
 \fnurl{System.Directory}{http://hackage.haskell.org/package/directory-1.2.2.1/docs/System-Directory.html}
-provides the function \textit{getDirectoryContents} that takes a file path as a
+provides the function \lstinline{getDirectoryContents} that takes a file path as a
 string and returns a list of all entires in the directory. This operation
 performs I/O, and thus the return type is an IO monadic value. \textit{As
 described on
 \fnurl{hackage}{http://hackage.haskell.org/package/directory-1.2.2.1/docs/System-Directory.html\#v:getDirectoryContents},
 there are several causes why this operation may fail but, at this point, we do
 not provide proper error handling.}
-The function \textit{offsetFromFileName} can be mapped over a filtered list of
+The function \lstinline{offsetFromFileName} can be mapped over a filtered list of
 strings, giving the list of all offsets within the directory. The
 filter function basically omits the files other than the ones ending with
 \textit{".log"} as well as the root directories, typically \textit{".", ".."}.
@@ -896,13 +855,13 @@ return $ map (offsetFromFileName) (filter (isLogFile) (filterRootDir dirs))
 \end{lstlisting}
 
 As hinted in the code above, a filter function is being used to get the list of
-all offsets within the directory. The function \textit{offsetFromFileName}
+all base offsets within the directory. The function \textit{offsetFromFileName}
 extracts the offset as an \textit{Int} from a \textit{String}. As an example,
 \textit{"00000000000000000005.log" :: String } will be transformed to
 \textit{0000000000000000005 :: Int}:
 
 \begin{lstlisting}[caption={Get numeric value (offset) from given string (filename)}]
-offsetFromFileName :: [Char] -> Int
+offsetFromFileName :: [Char] -> BaseOffset
 offsetFromFileName = read . reverse . snd . splitAt 4 . reverse
 \end{lstlisting}
 
@@ -919,13 +878,41 @@ bos <- getBaseOffsets (t, p)
     Just o  -> return (nextSmaller bos o)
 \end{lstlisting}
 
+\subsubsection{Getting right base Offset depending on Intent}
+In case of producing messages, the log segment wanted is the one named after the
+highest offset to be able to append new messages to the log. This is why one
+does not get around reading the content of this directory. Handling the case
+where no file exists leads to the creation of a new log with the offset of zero.
+
+\begin{lstlisting}[caption={Determining highest offset of given list}]
+maxOffset :: [BaseOffset] -> BaseOffset
+maxOffset [] = 0
+maxOffset [x] = x
+maxOffset xs = maximum xs
+\end{lstlisting}
+
+In case of receiving messages, the process is almost the same. The only
+difference is that the wanted file does not hold the highest offset but the one
+that hold the offset which is the next smaller one regarding the provided offset
+number within a fetch request. Let's assume one wants to fetch the message with
+offset \textit{400}, yet there are two different pairs of log- and index
+files: \textit{100} and \textit{300}. The correct one would be \textit{300} as the
+message must reside within this file.
+
+\begin{lstlisting}[caption={Determining offset which is next smaller regarding given offset}]
+nextSmaller :: [BaseOffset] -> BaseOffset -> BaseOffset
+nextSmaller [] _ = 0
+nextSmaller [x] _ = x
+nextSmaller xs x = last $ filter (<x) $ sort xs
+\end{lstlisting}
+
 \subsection{Append to Log}
 \label{subsec:broker-log-append}
 
-Writing data in MessageSet type to a log is the fundamental process behind the
+Writing data of type \lstinline{MessageSet} to a log is the fundamental process behind the
 scenes of handling a \lstinline{produceRequest}
 (\ref{subsec:broker-api-producerequest}). Before actually writing data to the
-file system, several steps come in between that contribute significantly to the
+file system, several steps come in between. These steps contribute significantly to the
 concept of Apache Kafka's Log system which are adapted in this implementation.
 This section describes the implementation details of the mentioned steps in the
 order of occurrence.
@@ -958,7 +945,7 @@ order of occurrence.
             {manager}{(6) Append log}{log}{}
         \end{call}
     \end{sequencediagram}
-    \caption{The process of appending a log}
+    \caption{The process of appending a message to the log}
     \label{fig:broker-log-append}
 \end{figure}
 
@@ -967,6 +954,15 @@ the function \lstinline{append} which takes the tuple of both states as well as
 the topic and partition combination and the set of messages to append.  As
 illustrated in figure \ref{fig:broker-log-append}, not only is the log involved
 in this process but also the index.
+
+The concept behind the \lstinline{append} function is that the log manger takes
+the value of the MVar, computes log and index specific functions in a pure
+fashion, and puts the value back in the MVar and after the append process is
+completed. During this process -- between \lstinline{takeMVar} and
+\lstinline{putMVar} -- the resource is locked. As for now, concurrent appending
+is not supported but may become possible in the future with this concept. The
+following listing describes the computations happening in between the mentioned
+unwrapping of MVar:
 
 \begin{lstlisting}[caption={Append function exposed by LogManager}]
 append :: (State, L.TopicStr, L.PartitionNr, Log) -> IO ()
@@ -991,15 +987,6 @@ append ((Log.LogState ls, Index.IndexState is), t, p, ms) = do
   syncedLogs <- Log.append (t, p) newLogs -- (6)
   putMVar ls syncedLogs
 \end{lstlisting}
-
-The concept behind the \lstinline{append} function is that the log manger takes
-the value of the MVar, computes log and index specific functions in a pure
-fashion, and puts the value back in the MVar and after the append process is
-completed. During this process -- between \lstinline{takeMVar} and
-\lstinline{putMVar} -- the resource is locked. As for now, concurrent appending
-is not supported but may become possible in the future with this concept. The
-following listing describes the computations happening in between the mentioned
-unwrapping of MVar:
 
 \begin{description}
   \item[(1)]
@@ -1085,7 +1072,7 @@ file. The \lstinline{withFile} function from \fnurl{System.IO
 the file and passes the resulting handle to the computation act. The handle
 will be closed on exit from \lstinline{withFile}.
 
-\begin{lstlisting}[caption={Write message to file in AppendMode}]
+\begin{lstlisting}[caption={Write message to file with AppendMode}]
 write :: (L.TopicStr, Int, Log) -> IO ()
 write (t, p, ms) = do
   bo <- getBaseOffset (t, p) Nothing -- todo: directory state
@@ -1250,7 +1237,6 @@ lookup (t, p) bo (_, phy) o = do
   return $ filterByOffset o log
 \end{lstlisting}
 
-
 \subsection{Performance Issues}
 \label{subsec:broker-log-performance-issues}
 
@@ -1259,52 +1245,5 @@ lookup (t, p) bo (_, phy) o = do
 - base offset -> directory state
 
 - concurrency
+\todo{todo}
 
-\subsection{Optimization}
-
-Next to optimizations, like batching in the network layer \todo{ref to network},
-we also provided some optimizations in terms of I/O. \todo{Kafka: a Distributed
-Messaging System for Log Processing}.
-
-\subsubsection{Page Cache:}
-
-First of all, we avoided caching messages in memory. Instead, we relied on the
-underlying file system cache. This has the benefit of avoiding double buffering
-since messages are only cached in the page cache.  Thus, even if the broker
-process is restarted, the cache retains warm.
-
-\todo{more details on modern os and page cache}
-
-\subsubsection{Sequential I/O: }
-
-While producers and consumers lead the broker to access file segments, the
-actual access taking place is sequential access rather than random. This will
-reduce seeking time to 1 per partition. In fact, the broker holds a point on a
-given offset, whereas all messages below the pointer can be considered as
-already consumed and all messages with offset greater than the provided one as
-unconsumed. Since messages are ordered, this will lead to a sequential I/O with
-a constant seeking time (O(1)).
-
-
-\subsubsection{Internal data transfer:}
-
-As mentioned earlier, HMB omit explicit caching but instead rely on the file
-system.  Keeping this in mind, the actual network access for consumers can be
-optimized as well.  A typical approach to sending bytes from a local file to a
-remote socket involves the following steps:
-
-\begin{enumerate}
-  \item Read data from storage (disk)
-  \item Copy data from the page cache to an application buffer
-  \item Copy application buffer to a kernel buffer
-  \item Send kernel buffer to the socket
-\end{enumerate}
-
-With the help of the sendfile API \todo{ref}, it is possible to transfer bytes
-from a file channel to a socket channel, the delivery process will result in the
-following steps:
-
-\begin{enumerate}
-  \item Read data from storage (disk)
-  \item Send data from page cache to the socket
-\end{enumerate}
