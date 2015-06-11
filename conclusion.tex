@@ -254,7 +254,7 @@ Very slow performance in persisting messages to the log (file system).          
 \end{table}
 \captionof{table}{Uncovered issues in early stress tests}
 
-\subsection{Benchmark "Effect of Message Batch Size"}
+\subsection{Benchmark: Effect of Message Batch Size}
 \label{sec:conc-benchmark-1}
 
 The goal of this benchmark is to analyze the network throughput between producer
@@ -446,7 +446,7 @@ result is much better! ref). Because the provided HMB producer is quite simple
 optimized producer clients which would definitely lead to better results. 
 
 \newpage
-\subsection{Benchmark "Effect of Message size"}
+\subsection{Benchmark: Effect of Message size}
 \label{sec:conc-benchmark-2}
 The goal of this benchmark is to analyze the network throughput between
 producer client and a broker system. The focus lies on the effect of changing the
@@ -599,9 +599,9 @@ Message Size             & Scenario 1       & Scenario 2       & Scenario 3     
 \end{table}
 \captionof{table}{Results of benchmark "Effect of Message size"}
 
-The throughput is increasing as the message size gets bigger. First of
+The throughput increases as the message size gets bigger. First of
 all, why are tests with 10 bytes a message significantly faster than those with
-100 bytes? It needs to be considered that the tcp throughput measurement takes
+100 bytes? It needs to be considered that the TCP throughput measurement takes
 bytes of the messages as well as the message and request overhead which is
 produced for transmitting the request. Each message has an overhead of 28 bytes
 which, in this case, is 280 percent of the actual message size. Therefore, the
@@ -674,7 +674,7 @@ this case.
 \newpage
 \section{Experiences with Haskell}
 In this section we want to give a statement about the suitability of Haskell
-as programming language regarding to the requirements of this work as well 
+as programming language regarding to the requirements of this work as well as
 our own experiences during the thesis. 
 
 \subsection{Assets}
@@ -689,30 +689,30 @@ exactly point in the code. We felt very comfortable with this strong and
 efficient ability of the GHC and refactoring was getting much easier. When we
 started to implement the first prototype for the thesis we intuitively started
 with the type base. Retrospectively it was the right decision because the
-advantages mentioned above leaded to working code quite fast.
+advantages mentioned above led to working code quite fast.
 
-{\bf Compactness of code}. We had come to love with the functional
-programming concepts Haskell provides, especially \textit{pattern matching}, \textit{list
+{\bf Compactness of code}. We had come to love with the functional programming
+concepts Haskell provides, especially \textit{pattern matching}, \textit{list
 comprehensions}, \textit{guards}, \textit{maps}, \textit{filters} or
 \textit{lambdas}. Those functionalities allow programmers to write proper,
-elegant and compact code which we think is definitely a benefit for every
-work. Concepts like \textit{lamdba} are already present in many other
-languages (not only functional ones). We are sure that we can use the learned abilities
-to write proper code in any futur project. 
+elegant and compact code which we think is definitely a benefit for every work.
+Concepts like \textit{lamdba} are already present in many other languages (not
+only functional ones). We are certain that we can use the learned abilities to
+write proper code in any futur project.
 
 {\bf Sources}. Simply searching answers to a specific Haskell problem in the
 internet rarely leads to a specific answer. Although we think that the provided
-information bases from the Haskell community are still very good. One just have
-to know how use them. First of all,
+information based from the Haskell community are still very good. One does just
+have to know how use them. First of all,
 \fnurl{Hoogle}{https://www.haskell.org/hoogle/}, as Haskell API search engine
 was very useful to search the standard libraries by any functions. A very
 helpful feature of Hoogle is searching by type signature (e.g.
 \lstinline{(a->b) -> [a] -> [b]}) which allows to find functions without any
-given name. Another tool is \fnurl{Hackage}{https://hackage.haskell.org/ }
-which provides access to any open sourced cabal package from the Haskell
-community. Each package includes detailed description about provided modules
-with their functions and types and how to use it. When we came at the point we
-needed more information about a specific library or a problem, we acquired the
+given name. Another tool is \fnurl{Hackage}{https://hackage.haskell.org/ } which
+provides access to any open sourced cabal package from the Haskell community.
+Each package includes detailed description about provided modules with their
+functions and types and how to use it. When we came at the point where we needed
+more information about a specific library or a problem, we acquired the
 community directly via the \fnurl{Haskell
 Subreddit}{https://www.reddit.com/r/haskell/} where we made very good
 experiences.
@@ -726,7 +726,7 @@ independent protocol implementation package which could be used in any other
 project. So far so good. Unfortunately the well-known expression of
 \textit{Cabal Hell} manifested its right. The fact that reinstalling a package
 with \lstinline{cabal install} can break existing packages on a system was
-really relevant to our project because we obviously worked on two dependent
+very relevant to our project because we obviously worked on two dependent
 packages simultaneously. We needed to reinstall packages all the time.
 Fortunately cabal provides the \lstinline{sandbox} functionality, which detects
 modifications on local depended packages and reinstalls them automatically.
@@ -739,7 +739,7 @@ to the official \fnurl{Github readme}
 {https://github.com/haskell/cabal/tree/master/cabal-install}.
 
 {\bf Lazy Evaluation}. Programming a server application with lots of I/O parts
-often leaded us to think in sequential kind of manner, whereas we expected that
+often led us to think in sequential kind of manner, whereas we expected that
 every line of code gets called exactly at the point where it appears in code.
 That is the false thinking.  Actually due to Haskell's lazy evaluation ability,
 a function is not called until the value is really needed (e.g. for print out
@@ -758,7 +758,7 @@ language.
 What are the next steps? As described in section \ref{sec:conc-results}, the
 resulting broker implementation is not a finalized product--it is a prototype.
 It shows that it is feasible to develop an Apache Kafka-like broker system
-written in Haskell. An extendable and scalable implementation base and
+written in Haskell. An extendible and scalable implementation base and
 architecture is provided. The provided benchmarks (\ref{sec:conc-benchmark-1}
 and \ref{sec:conc-benchmark-2}) demonstrate good performance but also uncover
 some major bottlenecks. We are certain that, with further work, one could build
