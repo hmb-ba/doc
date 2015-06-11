@@ -147,7 +147,7 @@ Client:
 The HMB performance producer is a simple console application used for stress
 tests in the broker system. It can be used to generate messages of a given size
 and batch them into a single request. It then repeatedly calls the client
-library function sendRequest to pack, encode, and send the request. The following
+library function \lstinline{sendRequest} to pack, encode, and send the request. The following
 code shows the simplified main function:
 
 \begin{lstlisting}
@@ -178,13 +178,11 @@ is a official product of Apache Kafka that systematically tests their broker
 system. It is a wrapper around the original Kafka producer client for producing
 as many messages as possible. It provides many \fnurl{configuration options}
 {http://kafka.apache.org/documentation.html\#newproducerconfigs} for specific
-benchmarks. Because the Haskell message broker offers Kafka compatibility, this
-performance producer can also be used as an alternative test from the HMB performance
-producer.
+benchmarks. 
 
 The following listing shows the setup for the benchmarks of the thesis. Values
-in brackets [ ] are placeholders for the relevant parameters for the
-benchmarks.
+in brackets [ ] are placeholders for the relevant and variable parameters for the
+benchmarks. The used version of Kafka is 2.10-0.8.2.0. 
 
 \begin{verbatim}
 Start Zookeeper
@@ -193,12 +191,12 @@ Start Zookeeper
 Start Kafka Node 
 > bin/kafka-server-start.sh config/server.properties
 
-Create Test Topic [TopicName] on broker server with [IP], 
+Create test topic [TopicName] on broker server with [IP], 
 one partition, no replication: 
 >bin/kafka-topics.sh --zookeeper [IP]:2181 
     --create --topic [TopicName] --partitions 1 --replication-factor 1
 
-Start single threaded producing benchmark: 
+Start producing benchmark: 
 > bin/kafka-run-class.sh org.apache.kafka.clients.tools.ProducerPerformance 
     [TopiName] [NumberOfMessages] [MessageSize] -1 acks=1 
     bootstrap.servers=[IP]:[Port] buffer.memory=67108864 batch.size=[BatchSize]
@@ -227,8 +225,13 @@ per console input. This setup demonstrated that encoding/decoding of a request
 worked. Also, the different broker layers have done their job well.  Later in the
 construction phase of the broker, tests were introduced that repeatedly sent a large amount of
 requests in a short period of time. This kind of stress test is
-very useful to test network related bugs and performance lacks. The following
-table lists some of the major issues that were exposed: 
+very useful to uncover network related bugs and performance lacks. 
+
+When dealing with thousands of requests per second, a function with high complexity
+can cause terrible bottlenecks. Another method to analyze Haskell code for
+potentially slow functions is time and allocation profiling provided by GHC.
+
+The following table lists some of the major issues that were exposed:
 
 \begin{table}[H]
 \begin{tabular}{|p{4cm}|p{5cm}|p{6cm}|}
@@ -250,16 +253,6 @@ Very slow performance in persisting messages to the log (file system).          
 \end{tabular}
 \end{table}
 \captionof{table}{Uncovered issues in early stress tests}
-
-
-\subsection{Profiling}
-When dealing with thousands of requests per second, a function with high complexity
-can cause terrible bottlenecks. A method to analyze Haskell code for
-potentially slow functions is time and allocation profiling provided by GHC.
-
-TODO
--- Setup?
--- Results 
 
 \subsection{Benchmark "Effect of Message Batch Size"}
 \label{sec:conc-benchmark-1}
