@@ -1,130 +1,127 @@
 \chapter{Task Description}
-\section*{Betreuer}
+\section*{Supervisor}
 \begin{itemize}
-    \item J.M.Joller, Dozent für Informatik
+    \item J.M.Joller, Professor of Computer Science
 \end{itemize}
 
-\section*{Ausgangslage, Problembeschreibung}
-Funktionale Programmieransätze werden zunehmend auch in klassischen
-Programmiersprachen eingebaut:  Lambdas, Streaming API um nur zwei Beispiele zu
-nennen. Sprachen wie Scala mit ihrem sehr reichen Typensystem sind aber in der
-Regel nur nicht und in ganzer Tiefe verständlich wenn der Entwickler über
-vertiefte Kenntnisse einer strikt funktionalen Programmiersprache besitzt. Die
-Erfahrungen in Industrieprojekten mit Scala zeigen, dass nur sehr gut
-ausgebildete Entwickler brauchbaren und wartbaren Scala Code schreiben können. 
+\section*{Problem description}
 
-Auf Grund dieser Beobachtungen basiert der MAS Kurs über funktionale
-Programmierung auf Haskell, genau wie der Multi-Paradigmen Teilmodul im Modul
-Compilerbau.
+Functional programing paradigm becomes more and more integrated within classical
+programming languages: Lambdas, Streaming API just to name a few. Languages such
+as Scala with its rich Type system are only understandable if the developer
+brings extensive knowledge of a strict functional language with. The past shows
+that only with highly experienced developer are capable of producing usable and
+maintainable Scala code in industry projects.
 
-\section*{Aufgabenstellung}
-Ein Ziel der Arbeit ist zunächst die Erarbeitung einer Übersicht zum
-Entwicklungsstand der Message basierten Middleware (MON), speziell der Event
-Streaming Ansätze. 
+Due to the supervision, the MAS course as well as the Multi-Paradigm partial
+module in the compiler course are based on Haskell.
 
-\par
-\begingroup
-\leftskip4em
-\rightskip\leftskip
-Wesentliches Ergebnis dieses Teil ist die Einordnung des in Scala geschrieben
-Message Brokers "Kafka" von Apache / Linked. Kafka hat die Ansprüche "fast,
-scalable, durable, distributed by design" zu sein (Dokumentation von Apache
-Kafka: \url{http://kafka.apache.org/}).
-\par
-\endgroup
+\section*{Assignment of tasks}
 
-Ein weiteres  Ziel ist die Definition und Implementierung des
-Kommunikations-Protokolls ("Wire-Protocol") von Kafka mithilfe von Haskell.
+One goal of this thesis is to work out an overview of the current state of
+message-oriented-middleware (MOM), specially approaches of Event-Streaming.
 
 \par
 \begingroup
 \leftskip4em
 \rightskip\leftskip
-Dieser Teil der Arbeit ist zentral, da über das Protokoll unterschiedlich
-(Programmier-Sprachen, Betriebssystem) entwickelte Clients mit Kafka
-kommunizieren können.
+
+Essential outcome of this part is the specification of the in Scala written
+message broker "Kafka" which was developed at LinkedIn and stands now under the
+Apache license.  Kafka claims to be \textit{fast}, \textit{reliable},
+\textit{scalable}, \textit{durable} and \textit{distributed by design}
+(documentation of Apache Kafka: \url{http://kafka.apache.org/}).
+
 \par
 \endgroup
 
-Das dritte Ziel ist die Implementierung von Grundfunktionen von Kafka in
-Haskell.
+A further goal is the definition and implementation of the communication
+protocol ("wire-protocol") of Kafka using Haskell.
 
 \par
 \begingroup
 \leftskip4em
 \rightskip\leftskip
-Da Kafka vom Design her auf starke Dezentralisierung ausgerichtet ist, verwendet
-Kafka "ZooKeeper" (Apache) auf den unteren Layern. Diese Funktionalität
-(Multi-Cluster) übersteigt die Möglichkeiten einer Bachelorarbeit (BA). Die BA
-beschränkt sich auf einen Cluster.
+This part of the thesis is essential since differently (programming language,
+operating system) developed clients will communication with Kafka.
 \par
 \endgroup
-
-Ein wichtiges Ziel ist der Performance-Vergleich der Haskell mit der Scala
-Implementierung.
+The third goal will be the implementation of the basic functionalities of Kafka
+in Haskell.
 
 \par
 \begingroup
 \leftskip4em
 \rightskip\leftskip
-Dazu muss Kafka installiert und ein sinnvoller Benchmark definiert werden.
+Since Kafka is strongly decentralized by design, it uses "ZooKeeper" (Apache) on
+the underlying layers. This functionality (multi cluster) is beyond the scope of
+this bachelors thesis. This thesis will be reduced to only one cluster.
+\par
+\endgroup
+An important goal is performance comparison of the implementation in Haskell
+against the one in Scala.
+
+\par
+\begingroup
+\leftskip4em
+\rightskip\leftskip
+Additionally Kafka has to be installed as well as a benchmark has to be defined.
 \par
 \endgroup
 
-\section*{Zur Durchführung}
-Die Bearbeitung der Aufgabe setzt eine Einarbeitung in technischen Grundlagen
-von Message Brokern und in die Programmierung mit Haskell  voraus.
+\section*{Realization}
 
-Solide Programmierkenntnisse und die Bereitschaft, sich rasch neues
-Domänenwissen anzueignen, werden vorausgesetzt. 
+In order to work on this assignment, familiarization in the technical basics of
+message brokers as well as the programming language Haskell is required.
 
-Wegen der variablen Breite der Aufgabe eignet sich das Thema gut für eine
-Bearbeitung durch zwei Studierende. 
+Solid skills in programming and the will to work within new domains of knowledge
+is required as well.
 
-Mit dem Betreuer finden in der Regel wöchentliche Besprechungen statt.
-Zusätzliche Besprechungen sind nach Bedarf durch die Studierenden zu
-veranlassen. Alle Besprechungen sind von den Studenten mit einer Traktandenliste
-vorzubereiten und die Ergebnisse sind in einem Protokoll zu dokumentieren, das
-dem Betreuer per E-Mail zugestellt wird.
+Because of the variable spectrum of this assignment the topic is perfectly
+suitable to be handled by two students.
 
-Für die Durchführung der Arbeit ist ein Projektplan zu erstellen. Dabei ist auf
-einen kontinuierlichen und sichtbaren Arbeitsfortschritt zu achten. An
-Meilensteinen gemäss Projektplan sind einzelne Arbeitsresultate in vorläufigen
-Versionen abzugeben. Über die abgegebenen Arbeitsresultate erhalten die
-Studierenden ein vorläufiges Feedback. Eine definitive Beurteilung erfolgt auf
-Grund der am Abgabetermin abgelieferten Implementierung und Dokumentation. 
+Usually the meetings with the supervisor will be take place on a weekly basis.
+Additional meetings will be requested by the students on their needs. Every
+meeting has to be planed using an agenda as well as documented using a protocol,
+which has to be sent to the supervisor.
 
-\section*{Dokumentation und Abgabe}
-Wegen der beabsichtigten Verwendung der Ergebnisse in der Lehre wird auf
-Vollständigkeit sowie (sprachliche und grafische) Qualität der Dokumentation
-erhöhter Wert gelegt.
+To proceed this assignment a project schedule has to be created. Thereby the
+focus lies on continuous and transparent work steps. Corresponding the
+milestones, early versions of this thesis has to be provided. The students will
+then receive feedback. The final grade will be provided based on the version of
+the implementation as well as documentation which were delivered at due date.
 
-Die Dokumentation zur Projektplanung und –Verfolgung ist gemäss den Richtlinien
-der Abteilung Informatik anzufertigen. Die Detailanforderungen an die
-Dokumentation der Recherche- und Entwicklungsergebnisse werden entsprechend dem
-konkreten Arbeitsplan festgelegt.
+\section*{Documentation and delivery}
 
-Die Dokumentation ist vollständig auf CD in drei Exemplaren abzugeben.
-Neben der Dokumentation sind abzugeben:
+Since the results are intended to be use in further studies, the priority is set
+to the completeness as well as the quality (grammar and graphics) of the
+documentation.
+
+The documentation regarding the project planning and tracking has to be
+proceeded by the guideline of the computer science department. The detail
+requirements regarding the documentation of research as well as the results of
+the implementation will be defined according to the concrete task schedule.
+
+The complete documentation has to be handed as three issues of a CD.
+Additionally to the documentation the following has to be provided:
 
 \begin{itemize}
-    \item ein Poster zur Präsentation der Arbeit
-    \item alle zum Nachvollziehen der Arbeit notwendigen Ergebnisse und Daten (Quellcode,
-        Buildskripte, Testcode, Testdaten usw.)
-    \item Material für eine Abschlusspräsentation (ca. 20’)
+    \item a poster to demonstrate the work
+    \item all data which is required to understand the results and files (source
+      code, build scripts, test code, test data etc.)
 \end{itemize}
 
-\section*{Termine}
+\section*{Dates}
 \begin{table}[H]
 \begin{tabular}{|l|p{12cm}|}
 \cline{1-2}
-{\bf FS 2015}     & {\bf Beginn der Bachelorarbeit, Ausgabe der Aufgabenstellung
-durch die Betreuer}
+{\bf Spring Semester 2015}     & {\bf Beginning of the thesis. Assignment
+description is provided by the supervisor}
   \\ \cline{1-2}
-1. Semesterwoche  & Kick-off Meeting
+1. Week  & Kick-off Meeting
   \\ \cline{1-2}
-2. Semesterwoche  & Abgabe der Projektplanung (Entwurf), einschliesslich ggf. zu
-beschaffender Hardware
+2. Week & Delivery of a project plan (draft), including a potential list of
+  hardware to be provided
   \\ \cline{1-2}
 4. Semesterwoche  & \begin{tabular}[c]{@{}l@{}}Abgabe eines vorläufigen
 Technologierechercheberichts und eines\\ detaillierten Vorschlags für einen
