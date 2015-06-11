@@ -246,7 +246,6 @@ sendResponse (socket, addr) responsemessage =
              try(S.sendAll socket responsemessage) :: IO (Either IOError ())
 \end{lstlisting}
 
-\newpage
 \section{API Layer}
 \label{sec:broker-api}
 
@@ -273,7 +272,7 @@ For nearly all provided APIs, the broker needs access to the functions provided
 by the log subsystem as described in section \ref{sec:impl-broker-log}.
 Therefore, the API layer initializes the LogManager and passes it to the
 handling function below:
-
+\newpage
 \begin{lstlisting}[caption={Handling requests depending on ApiKey}]
 handleRequest :: RequestMessage -> LogManager.State 
                  -> IO (Either HandleError BL.ByteString)
@@ -290,7 +289,6 @@ handleRequest rm = do
    return handle
 \end{lstlisting}
 
-\newpage
 \subsubsection{HandleProduceRequest}
 \label{subsec:broker-api-producerequest}
 
@@ -350,6 +348,7 @@ getHost = do
         filter ((N.NetworkInterface name ipv4 ipv6 mac) -> name == "eth0") ns
 \end{lstlisting}
 
+\newpage
 \section{Error Handling}
 \label{sec:broker-error-handling}
 
@@ -384,6 +383,7 @@ appropriately.
   \label{fig:broker-error-activity}
 \end{figure}
 
+\newpage
 \subsubsection{Socket Error}
 
 During the process of listening to an open connection and reading an incoming
@@ -1031,7 +1031,7 @@ append ((Log.LogState ls, Index.IndexState is), t, p, ms) = do
     messages is reached.
 
 \end{description}
-
+\newpage
 \subsubsection{Log Module}
 
 Initiated by the \textit{LogManager}, the \lstinline{append} function of the
@@ -1145,7 +1145,7 @@ disk storage.
     \caption{The process of reading a log}
     \label{fig:broker-log-read}
 \end{figure}
-
+\newpage
 \subsubsection{LogManager}
 Analog to appending, the log manager provides the interface to read from a
 log. The function \lstinline{readLog} takes the tuple of topic and partition as

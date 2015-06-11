@@ -179,6 +179,13 @@ about potentially seeing a message that could be lost if the leader fails.
 \cite{apachekafka}
 \cite{kafka-wiki-replication}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{images/kafka-replication-zookeeper.png}
+    \caption{Zookeeper as underlying clustering manager \cite{ArtKafkaInfoQ}}
+    \label{fig:the-log}
+\end{figure}
+
 Apache Kafka always runs with Apache Zookeeper as the underlying manager for all
 Kafka nodes. It handles the coordination between the leader and follower nodes
 and also notifies producer and consumer about the presence or failure of brokers in a
@@ -189,13 +196,6 @@ constantly informs Zookeeper about changes in his ISR set. If the leader node
 crashes, all surviving followers register themselves in Zookeeper. The replica that
 registers first becomes the new leader. \cite{kafka-wiki-replication}
 \cite{ArtKafkaInfoQ} \cite{apacheZookeeper}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.55\textwidth]{images/kafka-replication-zookeeper.png}
-    \caption{Zookeeper as underlying clustering manager \cite{ArtKafkaInfoQ}}
-    \label{fig:the-log}
-\end{figure}
 
 \section{Clients}
 
