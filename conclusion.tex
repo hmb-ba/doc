@@ -2,27 +2,27 @@
 \section{Results}
 \label{sec:conc-results}
 \subsection{Technology Research}
-The first result of this thesis is the documentation of the technology research,
-which results in gathered knowledge that is further being required for this
-thesis.  It gives an insight in messaging fundamentals and  takes a closer look
-to Apache Kafka and related topics.
+The first result of the thesis is the documentation of the technology research,
+which results in gathered knowledge that is further required for this
+thesis. It gives an insight into messaging fundamentals and takes a closer look
+at Apache Kafka and related topics.
 
 \subsection{Protocol Implementation}
 
-A fundamental result of this thesis is the implementation of the Apache Kafka
+A fundamental result of the thesis is the implementation of the Apache Kafka
 protocol in Haskell. The design decision of separating protocol related code
-from the broker implementation leads to an isolated product which now can be used
-as library for different projects. The code is provided through an \fnurl{open sourced
+from the broker implementation lead to an isolated product which can now be used
+as a library for different projects. The code is provided through an \fnurl{open sourced
 repository}{https://github.com/hmb-ba/protocol} for further development.
 
 A complete implementation of the Apache Kafka Protocol would go beyond the scope
-of this thesis as the focus lies not only in implementing the protocol but also
+of the thesis, as the focus lies not only in implementing the protocol but also
 to provide broker functionality. Thus, most important is the ability to produce
-and fetch messages. In order to provide compatibility to Apache Kafka clients
-the Metadata API is required too. This is, because it is the first part of the
-process of producing or consuming messages whereas it will request information
+and fetch messages. In order to provide compatibility for Apache Kafka clients,
+the Metadata API is also required because it is the first part of the
+process in producing or consuming messages where it will request information
 about the broker and provided topics. The following list gives an overview of
-what part of the protocol is implemented and what remains open:
+which part of the protocol is implemented and what remains open:
 
 \begin{itemize}
     \item Metadata API
@@ -61,29 +61,29 @@ what part of the protocol is implemented and what remains open:
 The main approach of this work is the implementation of a message broker in
 Haskell. The resulting application provides a server with basic functionality in
 handling requests via network and persisting messages. The broker is fully Kafka
-compatible as it is based on the protocol implementation.  In comparison to
-original Apache Kafka there are of course a lot of features missing to offer the
-same functionality. Furthermore as the scope of this thesis lies on a single
-broker system, there is no support for broker replication yet. Nevertheless the
+compatible since it is based on the protocol implementation.  In comparison to the
+original Apache Kafka, there are, of course, a lot of features missing in order to offer the
+same functionality. Furthermore, as the scope of the thesis lies on a single
+broker system, there is not yet support for broker replication. Nevertheless, the
 provided Haskell Message broker is a prototype which shows feasibility of
-developing a similar system in a fully-fledged functional program language as
-Haskell is. The following list gives an overview what features the broker system
-already provides and what remains open in the particular area.
+developing a similar system in a fully-fledged functional program language like
+Haskell. The following list gives an overview of what features the broker system
+already provides and what remains open in the particular area:
 
 Produce API:
 \begin{itemize}
-        \tick Publishing messages to specific topic and partition
+        \tick Publishing messages to a specific topic and partition
         \tick Publishing to multiple topics and partitions per request
-        \tick Support batched messages
+        \tick Supporting batched messages
         \fail Configurable Acknowledgements and Timeout
 \end{itemize}
 
 Fetch API:
 \begin{itemize}
         \tick Consuming messages of a specific topic and partition depending on given offset
-        \fail Support consuming from multiple topics and partitions per request
-        \fail Support configurable min and max bytes for fetched data
-        \fail Support consumer groups
+        \fail Supporting consuming from multiple topics and partitions per request
+        \fail Supporting configurable min and max bytes for fetched data
+        \fail Supporting consumer groups
         data is available
 \end{itemize}
 
@@ -100,8 +100,8 @@ Persistence (Log):
         \tick Persist messages in topic-partition specific log structure
         \tick Read messages from log, optimized with index file
         \tick Provide LogManager for handling files and directories structure
-        \fail Wirte Index to disk and rebuild the memory after the broker is restarted
-        \fail Data retention, whereas old data is discarded after fix period of
+        \fail Write Index to disk and rebuild the memory after the broker is restarted
+        \fail Data retention, where old data is discarded after a fixed period of
             time or Kafka's log compaction is applied. 
 \end{itemize}
 
@@ -110,18 +110,18 @@ Persistence (Log):
 
 After highlighting the implemented features above, the question about
 performance still remains. Is the provided prototype potentially faster than the
-original Apache Kafka or has it near the same throughput? Or are we still fare
+original Apache Kafka? Does the prototype near the same throughput? Or are we still far
 away from any approximation to the impressive performance of the reference
-system? This chapter describes the environment and tools with which the systems
-are tested.  It also gives insight in early stress tests which were very useful
+system? This chapter describes the environment and tools in which the systems
+were tested. It also gives insight in early stress tests which were very useful
 in finding network related bugs. Additional benchmarks are defined to
 demonstrate the performance of the final version of the Haskell message broker.
-For comparison, the original Apache Kafka system is involved to the benchmarks
-by running the equivalent tests on same hardware.
+For comparison, the original Apache Kafka system is involved in the benchmarks
+by running equivalent tests on the same hardware.
 
 \subsection{Test Setup}
 
-All of the tests and benchmarks in this chapter are performed with following setup.
+All of the tests and benchmarks in this chapter are performed with following setup:
 
 Broker Server:
 \begin{verbatim}
@@ -145,9 +145,9 @@ One SSD SATA drive
 \label{conc-eval-hmbperformanceprod}
 
 The HMB performance producer is a simple console application used for stress
-tests to the broker system. It can be used to generate messages of a given size
+tests in the broker system. It can be used to generate messages of a given size
 and batch them into a single request. It then repeatedly calls the client
-library function sendRequest to pack, encode and send the request. The following
+library function sendRequest to pack, encode, and send the request. The following
 code shows the simplified main function:
 
 \begin{lstlisting}
@@ -174,16 +174,16 @@ main = do
 
 The \fnurl{Kafka Performance Producer}
 {https://github.com/apache/kafka/blob/trunk/clients/src/main/java/org/apache/kafka/clients/tools/ProducerPerformance.java}
-is a official product of Apache Kafka to systematically test their broker
+is a official product of Apache Kafka that systematically tests their broker
 system. It is a wrapper around the original Kafka producer client for producing
-as much messages as possible. It provides many \fnurl{configuration options}
+as many messages as possible. It provides many \fnurl{configuration options}
 {http://kafka.apache.org/documentation.html\#newproducerconfigs} for specific
 benchmarks. Because the Haskell message broker offers Kafka compatibility, this
-performance producer can also be used as an alternative to the HMB performance
-producer to test.
+performance producer can also be used as an alternative test from the HMB performance
+producer.
 
-The following listing shows the setup for the benchmarks of this thesis, values
-in in brackets [ ] are placeholders for the relevant parameters for the
+The following listing shows the setup for the benchmarks of the thesis. Values
+in brackets [ ] are placeholders for the relevant parameters for the
 benchmarks.
 
 \begin{verbatim}
@@ -224,37 +224,37 @@ Start single threaded producing benchmark:
 
 An early version of the broker provided a console client which produced messages
 per console input. This setup demonstrated that encoding/decoding of a request
-worked. Also the different broker layers have done their job well.  Later in the
-construction phase of the broker, tests which repeatedly send a large amount of
-requests in short period of time where introduced. This kind of stress test is
+worked. Also, the different broker layers have done their job well.  Later in the
+construction phase of the broker, tests were introduced that repeatedly sent a large amount of
+requests in a short period of time. This kind of stress test is
 very useful to test network related bugs and performance lacks. The following
-table lists some of the major issues, that were exposed: 
+table lists some of the major issues that were exposed: 
 
 \begin{table}[H]
 \begin{tabular}{|p{4cm}|p{5cm}|p{6cm}|}
 \hline
 {\bf Exposed Issue}                                                                                  & {\bf Cause}                                                                                                                                                                                                                 & {\bf Solution}                                                                                                                                                                                                                                                                                    \\ \hline
-Dramatically slowdown after short period of time                                                       & TCP Zero Window - Socket receive buffer of broker full                                                                                                                                                                      & Broker application was to slow in receiving, parsing and handling incoming requests. Threading concept need to be optimized (see \ref{sec:impl-broker-threading}). The process of parsing an incoming request need to be swap out to another thread, so that the network receive thread can reduce socket buffer fast enough. \\ \hline
-Parsing from socket error "not enough bytes"  when testing over network
+Dramatically slowdown after short period of time                                                       & TCP Zero Window - Socket receive buffer of broker full                                                                                                                                                                      & Broker application was slow in receiving, parsing, and handling incoming requests. Threading concept needs to be optimized (see \ref{sec:impl-broker-threading}). The process of parsing an incoming request needs to be swapped out to another thread, so that the network receive thread can reduce the socket buffer fast enough. \\ \hline
+Parsing from socket error "not enough bytes" when testing over network
 interface instead of loopback. & The \lstinline{len} argument to the
 \lstinline{recv} system call is merely the upper bound on the received length
 (e.g. the size of the target buffer); the call may produce less data than asked
-for & Introduced function which checks if really the exact amount of bytes is
+for. & Introduced function which checks if the exact amount of bytes is really
 read. If not, the \lstinline{recv} call is repeated until all requested bytes are present (see details in \ref{sec:impl-broker-socket-receive}).                                                                                                                                              \\ \hline
-Throughput drop when producing larger request with nested list
-& Issue in encoding a request, called \lstinline{runPut} on each sub element and
+Throughput drop when producing a larger request with nested list
+& Issue in encoding a request called \lstinline{runPut} on each sub element and
 appended to a whole.
 & No appending of parsed sub elements. Restructure encode module by running
 \lstinline{runPut} at latest point in time. This resulted in factor 2 of performance in building requests (see \ref{sec:impl-prot-encoding}).                                                                                                                                      \\ \hline
-Very slow performance in persisting messages to the log (file system).                                 & No state and batching at broker side. Each incoming message ended in multiple file accesses which slowed down the whole process.                                                                                                                                & Messages need to be sum up to larger chunks of bytes. After defined period of time or amount of bytes, multiple messages need to be flushed to disk at once (see details of different approaches in \ref{sec:impl-broker-log}).                                                                                                                                      \\ \hline
+Very slow performance in persisting messages to the log (file system).                                 & No state and batching at broker side. Each incoming message ended in multiple file accesses which slowed down the whole process.                                                                                                                                & Messages need to be summed up to larger chunks of bytes. After a defined period of time or amount of bytes, multiple messages need to be flushed to disk at once (see details of different approaches in \ref{sec:impl-broker-log}).                                                                                                                                      \\ \hline
 \end{tabular}
 \end{table}
 \captionof{table}{Uncovered issues in early stress tests}
 
 
 \subsection{Profiling}
-When dealing with thousands of request per seconds, function with high complexity
-can cause terribly bottlenecks. A method to analyze Haskell code for
+When dealing with thousands of requests per second, a function with high complexity
+can cause terrible bottlenecks. A method to analyze Haskell code for
 potentially slow functions is time and allocation profiling provided by GHC.
 
 TODO
@@ -267,12 +267,11 @@ TODO
 The goal of this benchmark is to analyze the network throughput between producer
 client and broker system.  The focus lies on the effect of changing the batch
 size at producer client to the resulting transmission of bytes per second. The
-batch size determines the amount of bytes for which messages will be packed
-together and sent to broker as single request for efficiency.  Increasing the
+batch size determines the amount of bytes in which messages are packed
+together and sent to the broker as a single request for efficiency. Increasing the
 batch size requires more memory. The size of a single message is fixed to 100
-bytes, because it is the more interesting case for a messaging system
-(generally). It is much easier to get good throughput in MB/sec if the messages are
-large (as shown in second benchmark, see \ref{conc-benchmark-2}), but
+bytes because it is generally the more interesting case for a messaging system. It is much easier to get good throughput in MB/sec if the messages are
+large (as shown in second benchmark, see \ref{conc-benchmark-2}) but
 harder to get good throughput when the messages are small, as the overhead of
 processing each message dominates.
 
@@ -288,7 +287,7 @@ Calculation batch size in bytes:
 {\bf Batch Size [B]} & 195 | 1387 | 8192 | 16384 (Kafka default) | 56769 Bytes \\ \hline
 {\bf Tested Clients} &
     \begin{itemize}
-        \item Kafka PerformanceProducer 2.10-0.8.2.0, single threaded
+        \item Kafka Performance Producer 2.10-0.8.2.0, single threaded
         \item HMB Producer, single threaded
     \end{itemize}\\ \hline
 {\bf Tested Brokers} &
@@ -296,7 +295,7 @@ Calculation batch size in bytes:
         \item Kafka Broker 2.10-0.8.2.0, no replication, one partition
         \item HMB Broker, no replication, one partition
     \end{itemize}\\ \hline
-{\bf Measurement} & Resulting TCP throughput over a period of 10 seconds, analyzed with
+{\bf Measurement} & Resulting TCP throughput over a period of 10 seconds analyzed with
     Wireshark. Throughput includes message + request overhead\\ \hline
 {\bf Scenarios} & Producing as much messages as possible from client (left) to broker (right).
     The size of messages batched together varies in defined steps.
@@ -311,8 +310,8 @@ Calculation batch size in bytes:
 \captionof{table}{Benchmark conditions "Effect of Producer Batch size"}
 \newpage
 \subsubsection{Results}
-The results fora each specific scenarios are given below. The graph shows the
-TCP throughput in bytes in period of ten to twenty seconds.
+The results are given below for each specific scenario. The graph shows the
+TCP throughput in bytes in period of 10 to 20 seconds.
 
 Scenario 1, Kafka $\rightarrow$ Kafka:
 
@@ -428,36 +427,36 @@ Batch Size [Byte]        & Scenario 1       & Scenario 2       & Scenario 3   & 
 \end{table}
 \captionof{table}{Results of benchmark "Effect of Producer Batch Size"}
 
-The result of this benchmark demonstrates the positive effect to the throughput
-by increasing the producing batch size. The original Kafka setup (scenario 1),
-shows a significant rise by increasing the batch size. However the
-HMB setup (scenario 4) cannot use batching to full capacity. Obviously this
-benchmark exposes the HMB producer as major bottleneck. Using the Kafka
-producer to the HMB broker (scenario 2) gives lot better results instead of
-using the HMB producer. Scenario 3 approves this suspicion. The handling
-of requests on the HMB broker is quite efficient but there is still a demand
-for further optimizations to get same performance than Kafka.
+The result of the benchmark demonstrates the positive effect to throughput
+by increasing the producing batch size. The original Kafka setup (scenario 1)
+shows a significant rise by increasing the batch size. However, the
+HMB setup (scenario 4) cannot use batching to full capacity. Obviously, this
+benchmark exposes the HMB producer to a major bottleneck. Using the Kafka
+producer to the HMB broker (scenario 2) gives better results instead of
+using the HMB producer. Scenario 3 confirms this suspicion. The handling
+of requests on the HMB broker is quite efficient, but there is still a demand
+for further optimizations to get the same performance of Kafka.
 
 \subsubsection{Consequences}
-During the benchmark it was conspicuous that the HMB broker is
-not using full capacity of CPU. While Kafka is obviously getting use of
-multi-threading, at HMB the most load weigh on a single thread. This is why
+During the benchmark, it was conspicuous that the HMB broker is
+not using the full capacity of the CPU. While Kafka obviously uses
+multi-threading, most of the load weighs on a single thread for HMB. This is why
 there is only one API handler thread running at the time, which is definitely
-a point to optimize in future.
+a point to optimize in the future.
 
 TODO: Figure of CPU workload
 
-Another point with demand to optimization is the producer which manifests a
-bottleneck with messages of 100 bytes (when the message size gets bigger, the
+Another point in demand with optimization is the producer which manifests a
+bottleneck in messages of 100 bytes (when the message size gets bigger, the
 result is much better! ref). Because the provided HMB producer is quite simple
-(actually just built to test), another task for the futur is to work off details for
-optimized producer client which would definitely lead to better results. 
+(actually just built to test), another task for the future is to work off details for
+optimized producer clients which would definitely lead to better results. 
 
 \newpage
 \subsection{Benchmark "Effect of Message size"}
 \label{sec:conc-benchmark-2}
 The goal of this benchmark is to analyze the network throughput between
-producer client and broker system. The focus lies on the effect of changing the
+producer client and a broker system. The focus lies on the effect of changing the
 size of a single message to the resulting transmission of bytes per
 second. Persisting performance on the broker is not considered in
 this benchmark.
@@ -469,7 +468,7 @@ this benchmark.
 {\bf Batch Size}     & 12800 Bytes \\ \hline
 {\bf Tested Clients} &
     \begin{itemize}
-        \item Kafka PerformanceProducer 2.10-0.8.2.0, single threaded
+        \item Kafka Performance Producer 2.10-0.8.2.0, single threaded
         \item HMB Producer, single threaded
     \end{itemize}\\ \hline
 {\bf Tested Brokers} &
@@ -477,7 +476,7 @@ this benchmark.
         \item Kafka Broker 2.10-0.8.2.0, no replication, one partition
         \item HMB Broker, no replication, one partition
     \end{itemize}\\ \hline
-{\bf Measurement} & Resulting TCP throughput over a period of 10 seconds, analyzed with
+{\bf Measurement} & Resulting TCP throughput over a period of 10 seconds analyzed with
     Wireshark. Throughput includes message + request overhead.\\ \hline
 {\bf Scenarios} & Producing as much messages as possible from client (left) to broker (right).
     The size of a messages varies in defined steps. The batch size thereby is a fixed value. 
@@ -607,28 +606,28 @@ Message Size             & Scenario 1       & Scenario 2       & Scenario 3     
 \end{table}
 \captionof{table}{Results of benchmark "Effect of Message size"}
 
-Obviously the throughput is increasing as the message size gets bigger. First of
-all, why are tests with 10 bytes message significant faster than those one with
-100 bytes? It need to be considered that the tcp throughput measurement takes
-bytes of the messages as well the message and request overhead which is
-produced for transmitting the request. Each message has overhead of 28 bytes
-which is 280 per cent of the actual message size in this case. Therefore the
+The throughput is increasing as the message size gets bigger. First of
+all, why are tests with 10 bytes a message significantly faster than those with
+100 bytes? It needs to be considered that the tcp throughput measurement takes
+bytes of the messages as well as the message and request overhead which is
+produced for transmitting the request. Each message has an overhead of 28 bytes
+which, in this case, is 280 percent of the actual message size. Therefore, the
 tests with 10 bytes are not really meaningful at the moment. As the message
-size gets larger the overhead can be disregarded.
+size gets larger, the overhead can be disregarded.
 
-The benchmark shows, that the HMB broker and producer can deal with large
-message sizes quite good! The resulting throughput with 10 and 100 KB messages
-is nearly the same as with the Kafka setup. As already detected in first benchmark
-(see \ref{sec:conc-benchmark-1}) the HMB producer has its troubles with messages
+The benchmark shows that the HMB broker and producer can deal with large
+message sizes quite well! The resulting throughput of 10 and 100 KB messages
+is nearly the same as the Kafka setup. As already detected in the first benchmark
+(see \ref{sec:conc-benchmark-1}), the HMB producer has its troubles with messages
 around 100 bytes.
 
 \subsubsection{Consequences}
-This benchmark has uncovered the responder thread as bottleneck with larger
-message size because the socket buffer gets an overflow. The test result are
-made without sending responses from the broker. At this point an optimization
-in the network layer so that the socket buffers never gets to large is needed.
+This benchmark has uncovered the responder thread as a bottleneck with larger
+message sizes because the socket buffer overflows. The test results are
+made without sending responses from the broker. At this point, an optimization
+in the network layer is needed so that the socket buffers never get too large.
 
-Furthermore the consequences defined in first benchmark are are also apply in
+Furthermore, the consequences defined in first benchmark also apply in
 this case.
 
 %\subsection{Benchmark "Encode/Decode"}
@@ -683,37 +682,37 @@ this case.
 \section{Outlook}
 
 What are the next steps? As described in section \ref{sec:conc-results}, the
-resulting broker implementation is not a finalized product -- it is a prototype.
-It shows that it is feasible to develop an Apache Kafka like broker system
+resulting broker implementation is not a finalized product--it is a prototype.
+It shows that it is feasible to develop an Apache Kafka-like broker system
 written in Haskell. An extendable and scalable implementation base and
 architecture is provided. The provided benchmarks (\ref{sec:conc-benchmark-1}
-and \ref{sec:conc-benchmark-2}) demonstrate good performance put also uncover
-some major bottlenecks. We are certain that with further work one could build
+and \ref{sec:conc-benchmark-2}) demonstrate good performance but also uncover
+some major bottlenecks. We are certain that, with further work, one could build
 the current version to an extraordinary broker system.
 
-Summarized, the next tasks to do at the prototype would involve:
+Summarized, the next tasks to do with the prototype involve:
 \begin{enumerate}
     \item Facing uncovered bottlenecks (see benchmarks)
-    \item Implementation and handling of remaining API's
+    \item Implementation and handling of remaining APIs
     \item Extending the log subsystem
     \item Work off more details for Client API
     \item Further optimizations
 \end{enumerate}
 
 After bringing the broker server to a stable and nearly feature complete
-application, the next step would be to introduce broker replication. This task
-probably is predestined for a further thesis whereas the goal is to analyze
-distributed replication in detail and work out ZooKeeper
+application, the next step is introducing broker replication. This task
+is probably predestined for another thesis with a goal in analyzing
+distributed replication in detail and working out ZooKeeper
 integration.
 
 The Haskell community is very vital and active. We experienced that at the
 \fnurl{ZuriHac 2015}{https://wiki.haskell.org/ZuriHac2015} (Google Zurich,
-29.05.15) or \fnurl{HaskellerZ Meetup}{http://www.meetup.com/de/HaskellerZ/}
-(ETH Zurich, 30.04.2015) we have participated during this thesis. The results
-of this work will still be published open source through the \fnurl{GitHub
+29.05.15) and in the \fnurl{HaskellerZ Meetup}{http://www.meetup.com/de/HaskellerZ/}
+(ETH Zurich, 30.04.2015) we participated in during the thesis. The results
+of this work will be published open source through the \fnurl{GitHub
 repositories}{https://github.com/hmb-ba}. The goal is to find contributors for
-further development. For this reason we will also present this work in a
-separate Meetup later in summer 2015. As for now, the highlight remains the
-protocol implementation which has already been praised by the Haskell community
-and found its contributors they helped uncovering minor issues.
+further development. For this reason, we will also present this work in a
+later Meetup in summer 2015. As for now, the highlight remains the
+protocol implementation that already has been praised by the Haskell community, where
+contributors helped uncovering minor issues.
 
