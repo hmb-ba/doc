@@ -134,26 +134,6 @@ Stream processing frameworks -- such as Storm, Samza, or Spark
 Streaming -- were specially developed to provide rich processing primitives and
 thus can be taken advantage of in the data integration- and processing stages.
 
-%\subsection{Other Terminology}
-%\subsubsection{Complex Event processing (CEP)}
-%In the literature there is often a confusion about the difference between
-%complex event processing and stream event processing. Both systems work on
-%events and produce results based on the properties of the events... 
-%- Zitat: Combines data from multiple sources  to detect patterns and attempt to
-%identify either opportunities or threats. The goal is to identify significant
-%events and respond fast. Sales leads, orders or customer service calls are
-%examples.\\
-
-%\subsubsection{Event Sourcing}
-%\label{event-sourcing}
-%Regarding event processing we often met the term \textit{Event Sourcing} in
-%literature. It is a pattern originally defined by Martin Fowler which basically
-%treats the same objectives we mentioned for batch processing just with
-%other terms of the Domain-Driven-Design community. Instead of storing aggregated
-%data which represents the current state, the basic idea is to capture
-%every state change of an application as an immutable event object. For later
-%analysis, this gives much richer information than just overwriting it.
-
 \subsection{Lambda Architecture}
 While batch processing is used for data analysis to get results out of huge
 amounts of stored raw data at any time, stream processing reacts to events in
@@ -166,7 +146,7 @@ the speed layer:
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{images/lambda-architecture.jpg}
-    \caption{Lambda Architecture}
+    \caption{Lambda Architecture \cite{lambda-architecture}}
     \label{fig:lambda-Architecture}
 \end{figure}
 
