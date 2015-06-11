@@ -679,6 +679,87 @@ this case.
 %\end{table}
 
 \newpage
+\section{Experiences with Haskell}
+In this section we want to give a statement about the suitability of Haskell
+as programming language regarding to the requirements of this work as well 
+our own experiences during the thesis. 
+
+\subsection{Assets}
+{\bf Haskell type system}. Regarding to a protocol implementation one can take
+advantage of the Haskell type system. The given grammar in the case of the
+Apache Kafka protocol can be mapped with types very well. Instead of having a
+big mesh of interfaces and classes as it would be in object oriented languages,
+the mapping in Haskell will get to a compact and good readable code where
+changes can be made easily. The power of Haskell types also manifests when
+compiling a given code. The type checker subsequently tell any mismatches at
+exactly point in the code. We felt very comfortable with this strong and
+efficient ability of the GHC and refactoring was getting much easier. When we
+started to implement the first prototype for the thesis we intuitively started
+with the type base. Retrospectively it was the right decision because the
+advantages mentioned above leaded to working code quite fast.
+
+{\bf Compactness of code}. We had come to love with the functional
+programming concepts Haskell provides, especially \textit{pattern matching}, \textit{list
+comprehensions}, \textit{guards}, \textit{maps}, \textit{filters} or
+\textit{lambdas}. Those functionalities allow programmers to write proper,
+elegant and compact code which we think is definitely a benefit for every
+work. Concepts like \textit{lamdba} are already present in many other
+languages (not only functional ones). We are sure that we can use the learned abilities
+to write proper code in any futur project. 
+
+{\bf Sources}. Simply searching answers to a specific Haskell problem in the
+internet rarely leads to a specific answer. Although we think that the provided
+information bases from the Haskell community are still very good. One just have
+to know how use them. First of all,
+\fnurl{Hoogle}{https://www.haskell.org/hoogle/}, as Haskell API search engine
+was very useful to search the standard libraries by any functions. A very
+helpful feature of Hoogle is searching by type signature (e.g.
+\lstinline{(a->b) -> [a] -> [b]}) which allows to find functions without any
+given name. Another tool is \fnurl{Hackage}{https://hackage.haskell.org/ }
+which provides access to any open sourced cabal package from the Haskell
+community. Each package includes detailed description about provided modules
+with their functions and types and how to use it. When we came at the point we
+needed more information about a specific library or a problem, we acquired the
+community directly via the \fnurl{Haskell
+Subreddit}{https://www.reddit.com/r/haskell/} where we made very good
+experiences.
+
+\subsection{Difficulties} {\bf Cabal Hell}. To properly separate the components
+of protocol and broker
+implementation  we used \fnurl{Haskell Cabal}{https://www.haskell.org/cabal/}.
+It provides a common system for building an packaging Haskell libraries and
+programs. Defining our components as single cabal packages leads to an
+independent protocol implementation package which could be used in any other
+project. So far so good. Unfortunately the well-known expression of
+\textit{Cabal Hell} manifested its right. The fact that reinstalling a package
+with \lstinline{cabal install} can break existing packages on a system was
+really relevant to our project because we obviously worked on two dependent
+packages simultaneously. We needed to reinstall packages all the time.
+Fortunately cabal provides the \lstinline{sandbox} functionality, which detects
+modifications on local depended packages and reinstalls them automatically.
+Although this worked quite well, we still had a lot of cases in which our
+packages broke anyway. Then we had to reinitialize the sandbox setup and
+reinstall and compile all packages many times. Problems getting really serious
+when we tried to reinstall any cabal package with profiling features. Best
+experience we made by installing the \textit{cabal} command line tool according
+to the official \fnurl{Github readme}
+{https://github.com/haskell/cabal/tree/master/cabal-install}.
+
+{\bf Lazy Evaluation}. Programming a server application with lots of I/O parts
+often leaded us to think in sequential kind of manner, whereas we expected that
+every line of code gets called exactly at the point where it appears in code.
+That is the false thinking.  Actually due to Haskell's lazy evaluation ability,
+a function is not called until the value is really needed (e.g. for print out
+to console). As beginners in the functional paradigm this was a kind of a
+difficulty to deal with. But thinking in terms of streams and laziness allows
+programmers to write elegant and compact code which would be awkward in eager
+language.
+
+
+
+
+
+\newpage
 \section{Outlook}
 
 What are the next steps? As described in section \ref{sec:conc-results}, the
